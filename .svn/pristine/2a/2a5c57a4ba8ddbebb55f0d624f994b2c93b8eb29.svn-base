@@ -1,0 +1,34 @@
+package kr.or.ddit.member.mapper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CarVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RvwVO;
+
+public interface MmRntcarMapper {
+	
+	//업체검색
+	//<select id="searchAcm" parameterType="hashMap" resultType="BusiVO">
+	public List<CarVO> searchRntcar(HashMap<String, String> map);
+	
+
+	//차량 최댓값
+	//<select id="getMaxCarPr" parameterType="hashMap" resultType="int">
+	public Integer getMaxCarPr(HashMap<String, String> map);
+		
+	//차량 정보 가져오기
+	//<select id="detailRntcar"  parameterType="String" resultType="carVO">
+	public CarVO detailRntcar(String carNum);
+
+}
+
+
+
+
+
+
+

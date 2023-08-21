@@ -1,0 +1,232 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
+<script type="text/javascript">
+$(function(){
+	$("#sort").on("change",function(){
+		$("#frm01").submit();
+	});
+	
+	$("#btn01").on("click", function () {
+		var password = $("#password").val();
+		
+		let object = { "password": password };
+		$.ajax({
+			url: "/admin/mem/second",
+			contentType: "application/json;charset=utf-8",
+			data: JSON.stringify(object),
+			type: "post",
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+			},
+			success: function (result) {
+				console.log("result : " + result);
+				if (result == "success") {
+					window.location.reload();
+				} else {
+					alert("실패 메시지");
+				}
+			},
+			error: function () {
+				alert("요청을 처리하는 동안 오류가 발생했습니다");
+			}
+		});
+	});
+	
+	var auth = '<%=(String)session.getAttribute("secondAuth")%>';
+	
+	function showPhoneNumbers() {
+	    var real = document.getElementsByClassName("real");
+	    var fake = document.getElementsByClassName("fake");
+	    if (auth == "success") {
+	    	const modal = document.getElementById('openModal');
+	    	modal.disabled = true;
+	    	
+	        for (var i = 0; i < real.length; i++) {
+	            real[i].style.display = "inline";
+	        }
+	        for (var i = 0; i < fake.length; i++) {
+	            fake[i].style.display = "none";
+	        }
+	    } else {
+	        for (var i = 0; i < real.length; i++) {
+	            real[i].style.display = "none";
+	        }
+	        for (var i = 0; i < fake.length; i++) {
+	            fake[i].style.display = "inline";
+	        }
+	    }
+	}
+	
+	showPhoneNumbers();
+});
+</script>
+
+<!-- Page main content START -->
+<div class="page-content-wrapper p-xxl-4">
+
+	<!-- Filters START -->
+	<form class="row g-4 align-items-center" id="frm01">
+		<div class="col-lg-6">
+			<h1 class="h3 mb-3 mb-sm-0">부적절 회원 관리
+			<button type="button" class="btn btn-primary" data-bs-toggle="modal"
+					id="openModal"  data-bs-target="#exampleModal" data-bs-whatever="@getbootstrap" >2차 인증</button>
+			</h1>
+		</div>
+
+		<!-- 검색 -->
+		<div class="col-md-6 col-lg-4">
+			<input class="form-control bg-transparent" type="search" placeholder="Search" aria-label="Search" name="keyword" value="${param.keyword}">
+			<button class="bg-transparent p-2 position-absolute top-50 end-0 translate-middle-y border-0 text-primary-hover text-reset" type="submit">
+			</button>
+		</div>
+
+		<!-- 정렬 -->
+		<div class="col-md-6 col-lg-2">
+			<select class="form-select js-choice" aria-label=".form-select-sm" name="sort" id="sort">
+				<option value="">Sort by</option>
+				<option value="memNm" <c:if test="${param.sort=='memNm'}">selected</c:if>>이름</option>
+				<option value="wrnCnt" <c:if test="${param.sort=='wrnCnt'}">selected</c:if>>경고개수</option>
+				<option value="wrnSt" <c:if test="${param.sort=='wrnSt'}">selected</c:if>>경고상태</option>
+			</select>
+		</div>
+	</form>
+	<!-- Filters END -->
+	
+		<!-- 전체 회원 시작 -->
+			<div class="card shadow mt-5">
+				<!-- Card body START -->
+				<div class="card-body">
+					<!-- Table head -->
+					<table class="table align-middle p-4 mb-0 table-hover table-shrink">
+						<thead class="table-light">
+							<tr>
+								<th scope="col" class="border-0 text-center rounded-start">아이디</th>
+								<th scope="col" class="border-0 text-center">이름</th>
+								<th scope="col" class="border-0 text-center">성별</th>
+								<th scope="col" class="border-0 text-center">전화번호</th>
+								<th scope="col" class="border-0 text-center">이메일</th>
+								<th scope="col" class="border-0 text-center">경고개수</th>
+								<th scope="col" class="border-0 text-center">경고상태</th>
+								<th scope="col" class="border-0 text-center">가입일자</th>
+								<th scope="col" class="border-0 text-center">탈퇴일자</th>
+								<th scope="col" class="border-0 text-center rounded-end">회원상태</th>
+							</tr>
+						</thead>
+						<c:forEach var="memVO" items="${data.content}" varStatus="stat">
+							<!-- Table body START -->
+							<tbody class="border-top-0">
+								<!-- Table item -->
+								<tr>
+									<td>
+										<div class="d-flex align-items-center">
+											<!-- Avatar -->
+											<div class="avatar avatar-xs flex-shrink-0">
+												<c:if test="${not empty memVO.memImg}">
+													<img class="avatar-img rounded-circle" src="/resources/upload/mem${memVO.memImg}" alt="avatar">
+												</c:if>
+												<c:if test="${empty memVO.memImg}">
+													<img class="avatar-img rounded-circle" src="/resources/booking/assets/images/avatar/user.png" alt="avatar">
+												</c:if>
+											</div>
+											<!-- Info -->
+											<div class="ms-2">
+												<a href="/admin/mem/detail?memId=${memVO.memId}"><h6 class="mb-0">${memVO.memId}</h6></a>
+											</div>
+										</div>
+									</td>
+									<td><h6 class="mb-0">${memVO.memNm}</h6></td>
+									<td class="text-center">${memVO.memGen}</td>
+									<td>
+										<span class="real" style="display: none;">
+											<c:if test="${not empty memVO.memTel}">
+												<c:set var="text" value="${memVO.memTel}" />
+												<c:set var="tel" value="${fn:substring(text, 0, 3)}-${fn:substring(text, 3, 7)}-${fn:substring(text, 7, 11)}" />
+												${tel}
+											</c:if>
+										</span>
+										<span class="fake" style="display: inline;">*****</span>
+									</td>
+									<td>
+										<span class="realTel" style="display: none;">
+											${memVO.memEmail}
+										</span>
+										<span class="fake" style="display: inline;">*****</span>
+									</td>
+									<td class="text-center">${memVO.wrnCnt}</td>
+									<td class="text-center">${memVO.wrnSt == '0' ? '정상' : memVO.wrnSt == '1' ? '경고' : memVO.wrnSt == '2' ? '1개월 정지' : ''}</td>
+									<td class="text-center"><fmt:formatDate value="${memVO.joinDt}" pattern="yyyy/MM/dd" /></td>
+									<td class="text-center"><fmt:formatDate value="${memVO.whdwlDt}" pattern="yyyy/MM/dd" /></td>
+									<td class="text-center">
+										<div class="badge ${memVO.enabled == 1 ? 'bg-success text-success' : 'bg-danger text-danger'} bg-opacity-10">
+										    ${memVO.enabled == 1 ? 'ENABLED' : 'DISABLED'}
+										</div>
+									</td>
+								</tr>
+							</tbody>
+							<!-- Table body END -->
+						</c:forEach>
+					</table>
+				</div>
+				<!-- Card body END -->
+		
+				<!-- Card footer START -->
+				<div class="card-footer pt-0">
+					<!-- Pagination and content -->
+					<div class="d-sm-flex justify-content-sm-between align-items-sm-center">
+						<!-- Content -->
+						<c:set var="endRow" value="${data.currentPage * data.size}" />
+						<c:set var="startRow" value="${endRow - (data.size - 1)}" />
+						<c:set var="total" value="${data.total}" />
+						<c:if test="${endRow>total}">
+							<c:set var="endRow" value="${total}" />
+						</c:if>
+						<p class="mb-sm-0 text-center text-sm-start">Showing ${startRow} to ${endRow} of ${total} entries</p>
+						<!-- Pagination -->
+						<nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
+							<ul class="pagination pagination-sm pagination-primary-soft mb-0 ">
+								<li class="page-item <c:if test='${data.startPage < 6}'>disabled</c:if>" id="dataTable_previous">
+									<a class="page-link" href="/admin/mem/restriction?currentPage=${data.startPage-5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="0"  tabindex="-1">Prev</a>
+								</li>
+								<c:forEach var="pNo" begin="${data.startPage}" end="${data.endPage}">
+									<li class="page-item <c:if test='${param.currentPage eq pNo}'>active</c:if>">
+										<a href="/admin/mem/restriction?currentPage=${pNo}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="${pNo}" tabindex="0" class="page-link">${pNo}</a>
+									</li>
+								</c:forEach>
+								<li class="page-item <c:if test='${data.endPage == data.totalPages}'>disabled</c:if>" id="dataTable_next">
+									<a class="page-link" href="/admin/mem/restriction?currentPage=${data.startPage+5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="7"  tabindex="-1">Next</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+				</div>
+				<!-- Card footer END -->
+			</div>
+	
+</div>
+<!-- Page main content END -->
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog  modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">관리자 2차 인증</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form name="frm02" id="frm02" action="/admin/mem/second" method="POST">
+          <div class="mb-3">
+            <label for="recipient-name" class="col-form-label">비밀번호</label>
+            <input type="password" name="password" id="password" style="width: 100%;">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="btn01">확인</button>
+      </div>
+    </div>
+  </div>
+</div>

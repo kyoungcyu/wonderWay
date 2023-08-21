@@ -1,0 +1,45 @@
+package kr.or.ddit;
+
+public class TEST {
+
+	/**
+	 * java hello
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		System.out.println("java hello!!");
+	}
+	/*하하하하하
+	하하하하
+	하하
+	꺄르르꺄르르
+	꺄르르르르르
+	토요일조아아아아
+	*/
+
+	public void print() {
+		System.out.println("gogogo");
+	}
+	public void print1() {
+		System.out.println("gogogo");
+	}
+	public void print2() {
+		System.out.println("gogogo");
+	}
+	public void print3() {
+		System.out.println("gogogo");
+	}
+	public void print4() {
+		System.out.println("gogogo");
+	}
+	public void print5() {
+		System.out.println("gogogo");
+	}
+	public void print6() {
+		System.out.println("gogogo");
+	}
+	public void print7() {
+		System.out.println("gogogo");
+	}
+	
+}

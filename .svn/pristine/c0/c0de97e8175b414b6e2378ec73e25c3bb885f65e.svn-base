@@ -1,0 +1,365 @@
+<%@page import="kr.or.ddit.vo.BusiVO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="sec"
+	uri="http://www.springframework.org/security/tags"%>
+	
+	
+<!-- Topbar START -->
+<nav class="navbar top-bar navbar-light py-0 py-xl-3">
+	<div class="container-fluid p-0">
+		<div class="d-flex align-items-center w-100">
+
+			<!-- Logo START -->
+			<div class="d-flex align-items-center d-xl-none">
+				<a class="navbar-brand" href="/index.html"> <img
+					class="navbar-brand-item h-40px"
+					src="/resources/booking/assets/images/logo.png" alt="">
+				</a>
+			</div>
+			<!-- Logo END -->
+
+			<!-- Toggler for sidebar START -->
+			<div class="navbar-expand-xl sidebar-offcanvas-menu">
+				<button class="navbar-toggler me-auto p-2" type="button"
+					data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar"
+					aria-controls="offcanvasSidebar" aria-expanded="false"
+					aria-label="Toggle navigation" data-bs-auto-close="outside">
+					<i class="bi bi-list text-primary fa-fw"
+						data-bs-target="#offcanvasMenu"></i>
+				</button>
+			</div>
+			<!-- Toggler for sidebar END -->
+
+			<!-- Top bar left -->
+			<div class="navbar-expand-lg ms-auto ms-xl-0">
+				<!-- Toggler for menubar START -->
+				<button class="navbar-toggler ms-auto p-0" type="button"
+					data-bs-toggle="collapse" data-bs-target="#navbarTopContent"
+					aria-controls="navbarTopContent" aria-expanded="false"
+					aria-label="Toggle navigation">
+					<i class="bi bi-search"></i>
+				</button>
+				<!-- Toggler for menubar END -->
+
+				<!-- Topbar menu START -->
+				<div class="collapse navbar-collapse w-100 z-index-1"
+					id="navbarTopContent">
+					<!-- Top search START -->
+					<div class="nav my-3 my-xl-0 flex-nowrap align-items-center">
+						<div class="nav-item w-100">
+						</div>
+					</div>
+					<!-- Top search END -->
+				</div>
+				<!-- Topbar menu END -->
+			</div>
+			<!-- Top bar left END -->
+
+			<!-- Top bar right START -->
+			<ul class="nav flex-row align-items-center list-unstyled ms-xl-auto">
+				<!-- Dark mode options START -->
+				<li class="nav-item dropdown ms-3">
+					<ul class="dropdown-menu min-w-auto dropdown-menu-end"
+						aria-labelledby="message">
+						<li class="mb-1">
+							<button type="button"
+								class="dropdown-item d-flex align-items-center"
+								data-bs-theme-value="light">
+								<svg width="16" height="16" fill="currentColor"
+									class="icon-envelope" viewBox="0 0 16 16">
+									<use href="/#"></use>
+								</svg>
+							</button>
+						</li>
+					</ul>
+				</li>
+				<!-- Dark mode options END-->
+
+				<!-- Notification dropdown START -->
+				<li class="nav-item dropdown ms-3">
+					<!-- Notification button --> <a
+					class="nav-notification btn btn-light p-0 mb-0" href="/#"
+					role="button" data-bs-toggle="dropdown" aria-expanded="false"
+					data-bs-auto-close="outside"> <i class="bi bi-bell fa-fw"></i>
+				</a> 
+				<!-- Notification dote --> 
+				<span id="badgeBlink" class="notif-badge animation-blink"></span> 
+					
+					<!-- Notification dropdown menu START -->
+					<div
+						class="dropdown-menu dropdown-animation dropdown-menu-end dropdown-menu-size-md shadow-lg p-0">
+						<div class="card bg-transparent">
+							<!-- Card header -->
+							<div
+								class="card-header bg-transparent d-flex justify-content-between align-items-center border-bottom">
+								<h6 class="m-0">Notifications 
+									<span id="alarmNumber" class="badge bg-danger bg-opacity-10 text-danger ms-2">00</span>
+								</h6>
+								<a class="small" onclick="fn_deleteAll()">Clear all</a>
+							</div>
+
+							<!-- Card body START -->
+							<div class="card-body p-0">
+								<ul class="list-group list-group-flush list-unstyled p-2">
+									<!-- Notification item -->
+<!-- 									<li id="default">새로운 알림이 없습니다.</li> -->
+<!-- 									<li> -->
+<!-- 										<a href="(@data.ul)" -->
+<!-- 											class="list-group-item list-group-item-action rounded notif-unread border-0 mb-1 p-3"> -->
+<!-- 												<h6 class="mb-2">(@data.제목)</h6> -->
+<!-- 												<p class="mb-0 small">(@data.내용)</p> <span>(@data.알람날짜시간)</span> -->
+<!-- 										</a> -->
+<!-- 									</li>  -->
+								</ul>
+							</div>
+							<!-- Card body END -->
+
+						</div>
+					</div> <!-- Notification dropdown menu END -->
+				</li>
+				<!-- Notification dropdown END -->
+				<%
+					BusiVO sessionVO =  (BusiVO) session.getAttribute("vo");
+				%>
+				
+				<c:set var="img" value="<%=sessionVO%>"/>
+				<!-- Profile dropdown START -->
+				<li class="nav-item ms-3 dropdown">
+					<!-- Avatar --> <a class="avatar avatar-sm p-0" href="/#"
+					id="profileDropdown" role="button" data-bs-auto-close="outside"
+					data-bs-display="static" data-bs-toggle="dropdown"
+					aria-expanded="false"> <img class="avatar-img rounded-2"
+						src="/resources/upload/busi${img.getBusiImg()}" alt="avatar">
+				</a>
+
+					<ul
+						class="dropdown-menu dropdown-animation dropdown-menu-end shadow pt-3"
+						aria-labelledby="profileDropdown">
+						<!-- Profile info -->
+						<li class="px-3 mb-3">
+							<div class="d-flex align-items-center">
+								<!-- Avatar -->
+								<div class="avatar me-3">
+									<img class="avatar-img rounded-circle shadow"
+										src="/resources/booking/assets/images/avatar/01.jpg"
+										alt="avatar">
+								</div>
+								<div>
+									<a class="h6 mt-2 mt-sm-0" href="/#">Lori Ferguson</a>
+									<p class="small m-0">example@gmail.com</p>
+								</div>
+							</div>
+						</li>
+
+						<!-- Links -->
+						<li>
+							<hr class="dropdown-divider">
+						</li>
+						<li><a class="dropdown-item" href="/business/myPage/detail"><i
+								class="bi bi-bookmark-check fa-fw me-2"></i>회원정보 변경</a></li>
+						
+						<li><a class="dropdown-item bg-danger-soft-hover" href="/business/log/bsSignIn"><i
+								class="bi bi-power fa-fw me-2"></i>Log Out</a></li>
+					</ul>
+				</li>
+				<!-- Profile dropdown END -->
+			</ul>
+			<!-- Top bar right END -->
+		</div>
+	</div>
+</nav>
+<!-- Topbar END -->
+<script
+	src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script type="text/javascript">
+
+var socketAlm = null;
+
+	$(document).ready(
+			function() {
+				// 웹소켓 연결
+				var sock = new SockJS("/echo");
+				socketAlm = sock;
+
+				socketAlm.onmessage = function(event) {
+					console.log("EchoHandler에서 받은 메세지: " + event.data);
+					var alarmVO = JSON.parse(event.data);
+					
+					// busiId 값을 확인하여 실행 여부 결정
+					var busiId = '<%= session.getAttribute("vo") != null 
+									? ((BusiVO) session.getAttribute("vo")).getBusiId() 
+									: "" %>';
+				    if (alarmVO.receiver === busiId) {
+
+						// alarmContainer 요소 가져오기
+						var alarmContainer = document.getElementById("alarmContainer");
+	
+						// div 요소 생성
+						var newDiv = document.createElement("div");
+						newDiv.className = "alarmDiv";
+						newDiv.textContent = alarmVO.almTt;
+	
+						// alarmContainer에 생성한 div 추가
+						alarmContainer.appendChild(newDiv);
+	
+						// 3초 후에 div 요소 제거
+						setTimeout(function() {
+							newDiv.remove();
+						}, 3000);
+				    }
+					
+					$.ajax({
+						url : "/alarm/insertAjax",
+						type : "post",
+						data : JSON.stringify(alarmVO), // alarmVO를 JSON으로 변환하여 전달
+						dataType : "json",
+						contentType : 'application/json; charset=utf-8',
+						beforeSend : function(xhr) {
+							xhr.setRequestHeader("${_csrf.headerName}",
+									"${_csrf.token}")
+						},
+						success : function(result) {
+							var cnt = result;
+							console.log(result);
+
+							if (cnt >= 1) {
+								console.log("알림이 성공적으로 데이터베이스에 저장되었습니다.");
+							}
+						},
+						error : function(xhr, status, error) {
+							console.log("AJAX 요청 중 오류 발생:");
+							console.log("상태 코드: " + xhr.status);
+							console.log("오류 메시지: " + error);
+						}
+					});
+				};
+			});
+
+	function executeAjax() {
+		param = {"a":"A"};
+		$.ajax({
+			url : "/alarm/busiSelectAlarmAjax",
+			type : "post",
+			data: JSON.stringify(param),
+			dataType: "json",
+			contentType: 'application/json; charset=utf-8',
+			beforeSend : function(xhr) {
+				xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}")
+			},
+			success: function(result) {
+			    var listAlm = result;
+
+			    // ul 요소를 선택합니다. 해당 ul 요소의 ID나 클래스에 맞게 변경해주세요.
+			    var ulElement = document.getElementsByClassName("list-group list-group-flush list-unstyled p-2");
+
+			    // ul 요소의 자식 요소를 모두 제거합니다.
+			    while (ulElement[0].firstChild) {
+			        ulElement[0].removeChild(ulElement[0].firstChild);
+			    }
+
+			    if (listAlm.length == 0) {
+			        // 새로운 알림이 없는 경우 default li 요소를 생성하여 추가합니다.
+			        var defaultLiElement = document.createElement("li");
+			        defaultLiElement.id = "default";
+			        defaultLiElement.textContent = "새로운 알림이 없습니다.";
+			        ulElement[0].appendChild(defaultLiElement);
+			        document.getElementById("alarmNumber").innerHTML = listAlm.length;
+			        
+			        //id=badgeBlink hidden 추가
+			        document.getElementById("badgeBlink").setAttribute("hidden", "hidden");
+			        
+			    } else {
+			        // listAlm 배열을 순회하며 li 요소를 생성합니다.
+			        listAlm.forEach(function(data) {
+			            // li 요소 생성
+			            var liElement = document.createElement("li");
+
+			            // a 요소 생성
+			            var aElement = document.createElement("a");
+			            aElement.href = data.almUrl;
+			            aElement.className = "list-group-item list-group-item-action rounded notif-unread border-0 mb-1 p-3";
+
+			            // h6 요소 생성
+			            var h6Element = document.createElement("h6");
+			            h6Element.className = "mb-2";
+			            h6Element.textContent = data.almTt;
+
+			            // p 요소 생성
+			            var pElement = document.createElement("p");
+			            pElement.className = "mb-0 small";
+			            pElement.textContent = data.almCntn;
+
+			            // span 요소 생성
+			            var spanElement = document.createElement("span");
+			            spanElement.textContent = data.almDt;
+			            // 폰트 크기 조정
+			            spanElement.style.fontSize = "0.8em";
+			            // 투명도(Opacity) 추가
+			            spanElement.style.opacity = "0.5";
+
+			            // a 요소에 h6, p, span 요소를 자식으로 추가합니다.
+			            aElement.appendChild(h6Element);
+			            aElement.appendChild(pElement);
+			            aElement.appendChild(spanElement);
+
+			            // li 요소에 a 요소를 자식으로 추가합니다.
+			            liElement.appendChild(aElement);
+
+			            // ul 요소에 li 요소를 자식으로 추가합니다.
+			            ulElement[0].appendChild(liElement);
+				        document.getElementById("alarmNumber").innerHTML = listAlm.length;
+				        
+				        //id=badgeBlink에 hidden 제거
+				        document.getElementById("badgeBlink").removeAttribute("hidden");
+			        });
+			        
+			    }
+
+			    var spanElement = document.createElement("span");
+			    spanElement.className = "badge bg-danger bg-opacity-10 text-danger ms-2";
+			    spanElement.innerHTML = listAlm.length;
+			},
+			error : function(xhr, status, error) {
+				console.log("AJAX 요청 중 오류 발생:");
+				console.log("상태 코드: " + xhr.status);
+				console.log("오류 메시지: " + error);
+				
+			}
+		});
+	}
+	
+// 	executeAjax();
+	//setInterval(executeAjax, 2000); // 2초마다 executeAjax 함수 실행
+	
+	function fn_deleteAll(){
+		param = {"a":"A"};
+		$.ajax({
+			url : "/alarm/busiDeleteAlarmAjax",
+			type : "post",
+			data : JSON.stringify(param), // alarmVO를 JSON으로 변환하여 전달
+			dataType : "json",
+			contentType : 'application/json; charset=utf-8',
+			beforeSend : function(xhr) {
+				xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}")
+			},
+			success : function(result) {
+				var cnt = result;
+				console.log(result);
+
+				if (cnt >= 1) {
+					console.log("알림이 성공적으로 데이터베이스레서 삭제되었습니다.");
+					executeAjax();
+				}
+			},
+			error : function(xhr, status, error) {
+				console.log("AJAX 요청 중 오류 발생:");
+				console.log("상태 코드: " + xhr.status);
+				console.log("오류 메시지: " + error);
+			}
+		});
+		
+		
+	}
+	
+</script>

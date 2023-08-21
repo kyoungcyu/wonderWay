@@ -1,0 +1,542 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+
+
+<head>
+<style>
+.card {
+	margin-bottom: 20px;
+}
+
+.card-header {
+	background-color: #f8f9fa;
+	border-bottom: none;
+}
+
+.card-header .nav-tabs {
+	border-bottom: none;
+}
+
+.card-header .nav-link {
+	font-size: 16px;
+	border: none;
+	border-radius: 0;
+	color: #6c757d;
+}
+
+.card-header .nav-link:hover {
+	color: #495057;
+}
+
+.card-header .nav-link {
+	font-weight: bold;
+	color: #495057;
+	border-bottom: 2px solid #007bff;
+}
+
+.card-body {
+	background-color: #fff;
+}
+</style>
+</head>
+<body>
+	<div class="col-xl-10 mx-auto text-center">
+		<!--  이쁘게 저장  -->
+		<h1 class="mb-2">
+			<span class="position-relative z-index-9">Message Box <!-- SVG START -->
+				<span
+				class="position-absolute top-50 start-50 translate-middle z-index-n1 d-none d-sm-block">
+					<svg width="203.94px" height="54.13px" viewBox="0 0 203.94 54.13">
+							 <path class="fill-primary opacity-7"
+							d="M126.49,49.51c19.28,0.32,33.97,0.06,48.55-2.07c5.25-0.77,10.43-2.14,15.54-3.6c2.26-0.64,4.43-1.95,6.35-3.36 c3.16-2.32,3.37-4.88,0.61-7.62c-1.84-1.82-3.96-3.42-6.16-4.8c-5.74-3.6-12.04-6.02-18.4-8.28c-15.69-5.58-31.86-9.17-48.29-11.7 c-18.65-2.87-37.4-4.07-56.26-3.51C54.54,5,40.71,6.16,26.99,8.39C19.25,9.65,11.5,10.9,3.76,12.15c-0.1,0.02-0.2,0.04-0.3,0.05 c-2.03,0.27-3.23-0.26-3.44-1.51c-0.2-1.22,0.72-2.05,2.84-2.45c13.24-2.51,26.48-5.11,39.9-6.43c14.43-1.42,28.9-2.13,43.42-1.67 c24.63,0.78,48.89,4.14,72.7,10.58c9.42,2.55,18.73,5.54,27.54,9.77c4.06,1.95,7.9,4.39,11.66,6.88c1.63,1.08,3.02,2.69,4.15,4.32 c2.53,3.63,2.27,7.63-0.89,10.71c-1.84,1.79-4.08,3.29-6.38,4.45c-5.44,2.75-11.4,3.91-17.38,4.77c-19.2,2.75-38.5,2.96-57.84,1.98 c-7.84-0.4-15.68-0.74-23.5-1.34c-10.13-0.77-20.26-1.58-30.36-2.72c-9.49-1.07-18.96-2.38-28.37-4.01 C32.2,44.6,26.97,43,21.81,41.34c-2.44-0.78-4.81-2.13-6.86-3.69c-4.56-3.49-4.8-8.3-0.9-12.54c2.3-2.5,5.23-4.07,8.3-5.36 c6.9-2.91,14.13-4.64,21.46-5.97c10.14-1.84,20.37-2.47,30.66-1.92c2.57,0.14,3.72,0.84,3.6,2.22c-0.11,1.26-1.19,1.84-3.6,1.92 c-6.13,0.21-12.28,0.2-18.4,0.67c-10.47,0.82-20.72,2.87-30.56,6.62c-2.23,0.85-4.45,1.95-6.4,3.31c-4.53,3.16-4.36,6.27,0.46,8.87 c2.28,1.23,4.75,2.19,7.24,2.97c7.8,2.44,15.84,3.88,23.93,4.79c15.4,1.73,30.8,3.38,46.24,4.67 C108.32,48.84,119.7,49.15,126.49,49.51z"></path>
+							</svg>
+			</span> <!-- SVG END -->
+			</span>
+		</h1>
+		<p class="lead mb-0">쪽지함</p>
+	</div>
+	<br />
+	<br />
+
+	<!-- 새로운 쪽지 보내기 버튼 -->
+	<div class="container">
+		<div class="d-flex justify-content-stard align-items-center"
+			id="newSend">
+			<a class="btn btn-sm btn-danger-soft mb-0" data-toggle="modal"
+				data-target="#exampleModal2"> <i class="bi bi-send-plus me-1"></i>새
+				쪽지 보내기
+			</a>
+		</div>
+		<br />
+		<!-- 탭메뉴 -->
+		<div class="bg-light pb-0 px-2 px-lg-0 rounded-top">
+			<ul
+				class="nav nav-tabs nav-bottom-line nav-responsive border-0 nav-justified"
+				role="tablist">
+				<li class="nav-item" role="presentation"><a
+					class="nav-link mb-0 active" id="aTab1" title="1"
+					data-bs-toggle="tab" onclick="changeParam(this)" href="#tab-1"
+					aria-selected="true" role="tab"><i
+						class="fas fa-cog fa-fw me-2"></i>받은 쪽지함</a></li>
+				<li class="nav-item" role="presentation"><a
+					class="nav-link mb-0" id="aTab2" title="2" data-bs-toggle="tab"
+					onclick="changeParam(this)" href="#tab-2" aria-selected="false"
+					role="tab" tabindex="-1"><i class="fas fa-bell fa-fw me-2"></i>보낸
+						쪽지함</a></li>
+
+			</ul>
+		</div>
+
+		<!-- cart시작 -->
+
+		<div class="tab-content">
+			<!-- Tab content 1 START -->
+			<div class="tab-pane active show" id="tab-1" role="tabpanel">
+				<div class="row g-4">
+					<!-- Edit profile START -->
+
+					<div class="col-12">
+						<div class="card border">
+							<div class="card-header border-bottom">
+								<h5 class="card-header-title">받은 쪽지함</h5>
+							</div>
+							<div class="card-body">
+								<div class="mb-3">
+									<!--  받은 쪽지함 시작! -->
+									<c:forEach var="data" items="${recvdata.content}"
+										varStatus="stat">
+										<div class="border bg-light rounded p-3">
+											<!-- Review item START -->
+											<div class="d-sm-flex justify-content-between">
+												<!-- Avatar image -->
+												<div class="d-sm-flex align-items-center mb-3">
+													<!-- Title -->
+													<div>
+														<h6 class="m-0">발신인 : ${data.sendNm} (${data.sendId})</h6>
+														<span class="me-3 small"><fmt:formatDate
+																value="${data.sendDt}" pattern="YYYY년 MMM dd일  HH:mm:ss" /></span>
+													</div>
+												</div>
+											</div>
+
+											<!-- Content -->
+											<p>${data.cntn}</p>
+											<!-- Buttons -->
+											<div class="d-flex justify-content-end align-items-center"
+												id="${data.sendNm}/${data.sendId}" onclick="fn_getId(this.id)">
+												<a class="btn btn-sm btn-primary-soft mb-0"
+													data-toggle="modal" data-target="#exampleModal"> <i
+													class="bi bi-reply me-1"></i>Reply
+												</a>
+											</div>
+
+											<!-- Review item END -->
+										</div>
+									</c:forEach>
+									<!--  받은 쪽지함 끝! -->
+								</div>
+
+
+								<!--받은 쪽지함 페이징 처리 -->
+
+								<c:set var="currentPage" value="${param.currentPage}" />
+								<c:if test="${fn:length(currentPage)<1}">
+									<c:set var="currentPage" value="1" />
+								</c:if>
+								<div
+									class="d-sm-flex justify-content-sm-between align-items-sm-center">
+									<!-- Content -->
+									<p class="mb-sm-0 text-center text-sm-start">Showing
+										${currentPage*5-4} to 
+										<c:if test="${recvdata.total <= currentPage*5}">
+										${recvdata.total}
+										</c:if>
+										<c:if test="${recvdata.total > currentPage*5}">
+										${currentPage*5}
+										</c:if>
+										
+										of ${recvdata.total}
+										entries</p>
+
+									<!-- Pagination -->
+									<nav class="mb-sm-0 d-flex justify-content-center"
+										aria-label="navigation">
+										<ul
+											class="pagination pagination-sm pagination-primary-soft mb-0">
+
+											<li
+												class="page-item <c:if test='${recvdata.startPage < 6}'>disabled</c:if>">
+												<a class="page-link"
+												href="/business/inquiry/msgbox?currentPage=${recvdata.startPage-5}&tab=${param.tab}"
+												tabindex="-1"> Prev </a>
+											</li>
+
+											<c:forEach var="pNo" begin="${recvdata.startPage}"
+												end="${recvdata.endPage}">
+												<li
+													class="paginate_button page-item <c:if test='${pNo==currentPage}'>active</c:if>"
+													id="${pNo}" onclick="fn_active(this.id)"><a
+													class="page-link"
+													href="/business/inquiry/msgbox?currentPage=${pNo}&tab=${param.tab}">${pNo}</a></li>
+											</c:forEach>
+
+											<li
+												class="page-item <c:if test='${recvdata.endPage == recvdata.totalPages}'>disabled</c:if>">
+												<a class="page-link"
+												href="/business/inquiry/msgbox?currentPage=${recvdata.startPage+5}&tab=${param.tab}">
+													Next </a>
+											</li>
+
+										</ul>
+									</nav>
+									<!-- Pagination END -->
+								</div>
+
+								<!--받은 쪽지함 페이징 처리 끝 -->
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Tab content 1 END -->
+
+			<!-- Tab content 2 START -->
+			<div class="tab-pane active show" id="tab-2" role="tabpanel">
+				<div class="row g-4">
+					<!-- Edit profile START -->
+					<div class="col-12">
+						<div class="card border">
+							<div class="card-header border-bottom">
+								<h5 class="card-header-title">보낸 쪽지함</h5>
+							</div>
+							<div class="card-body">
+								<div class="mb-3">
+									<!--  보낸 쪽지함 시작! -->
+									<c:forEach var="data" items="${senddata.content}"
+										varStatus="stat">
+										<div class="border bg-light rounded p-3">
+											<!-- Review item START -->
+											<div class="d-sm-flex justify-content-between">
+												<!-- Avatar image -->
+												<div class="d-sm-flex align-items-center mb-3">
+													<!-- Title -->
+													<div>
+														<h6 class="m-0">수신인 : ${data.recvNm}(${data.recvId})</h6>
+														<span class="me-3 small"><fmt:formatDate
+																value="${data.sendDt}" pattern="YYYY년 MMM dd일  HH:mm:ss" /></span>
+													</div>
+												</div>
+											</div>
+
+											<!-- Content -->
+											<p>${data.cntn}</p>
+
+											<!-- Buttons -->
+											<div class="d-flex justify-content-end align-items-center"
+												id="${data.recvNm}/${data.recvId}" onclick="fn_getId(this.id)">
+												<a class="btn btn-sm btn-primary-soft mb-0"
+													data-toggle="modal" data-target="#exampleModal"> <i
+													class="bi bi-send"></i>resend
+												</a>
+											</div>
+
+											<!-- Review item END -->
+										</div>
+									</c:forEach>
+									<!--  보낸 쪽지함 끝! -->
+								</div>
+
+
+								<!--***보낸 쪽지함 페이징 처리*** -->
+								<div
+									class="d-sm-flex justify-content-sm-between align-items-sm-center">
+									<!-- Content -->
+									<p class="mb-sm-0 text-center text-sm-start">Showing
+										${currentPage*5-4} to 
+										<c:if test="${senddata.total <= currentPage*5}">
+										${senddata.total}
+										</c:if>
+										<c:if test="${senddata.total > currentPage*5}">
+										${currentPage*5} 
+										</c:if>
+										of ${senddata.total}
+										entries</p>
+
+									<!-- Pagination -->
+									<nav class="mb-sm-0 d-flex justify-content-center"
+										aria-label="navigation">
+										<ul
+											class="pagination pagination-sm pagination-primary-soft mb-0">
+
+											<li
+												class="page-item <c:if test='${senddata.startPage < 6}'>disabled</c:if>">
+												<a class="page-link"
+												href="/business/inquiry/msgbox?currentPage=${senddata.startPage-5}&tab=${param.tab}"
+												tabindex="-1"> Prev </a>
+											</li>
+
+											<c:forEach var="pNo" begin="${senddata.startPage}"
+												end="${senddata.endPage}">
+												<li
+													class="paginate_button page-item 
+												<c:if test='${pNo==currentPage}'>active</c:if>
+												"
+													id="${pNo}" onclick="fn_active(this.id)"><a
+													class="page-link"
+													href="/business/inquiry/msgbox?currentPage=${pNo}&tab=${param.tab}">${pNo}</a></li>
+											</c:forEach>
+
+											<li
+												class="page-item <c:if test='${senddata.endPage == senddata.totalPages}'>disabled</c:if>">
+												<a class="page-link"
+												href="/business/inquiry/msgbox?currentPage=${senddata.startPage+5}&tab=${param.tab}">
+													Next </a>
+											</li>
+										</ul>
+									</nav>
+									<!-- Pagination END -->
+								</div>
+								<!--보낸 쪽지함 페이징 처리 끝 -->
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Tab content 2 END -->
+		</div>
+
+		<!--  끝  -->
+	</div>
+
+	<!-- 모달시작 -->
+
+	<!-- Modal 1 -->
+	<div class="modal fade" id="exampleModal" role="dialog"
+		aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">쪽지보내기</h5>
+					<button type="button" class="btn" data-dismiss="modal"
+						style="font-size: 1.5rem; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff;"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+
+					<table>
+						<tr>
+							<td>받는 사람 :</td>
+							<td id="val"></td>
+						</tr>
+					</table>
+					<textarea id="ta" cols="42" rows="10" placeholder="쪽지 내용을 입력해주세요."></textarea>
+
+
+
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" onclick="msgInsert()" class="btn btn-primary"
+						data-dismiss="modal">쪽지 보내기</button>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal 2 -->
+	<div class="modal fade" id="exampleModal2" role="dialog"
+		aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">새로운 쪽지보내기</h5>
+					<button type="button" class="btn" data-dismiss="modal"
+						style="font-size: 1.5rem; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff;"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<table>
+						<tr>
+							<span>*30일 이내 예약 회원에게만 쪽지를 보낼 수 있습니다.</span>
+							<br/>
+							<td><select id="val2">
+									<option value="">수신인 / 아이디 /예약번호</option>
+									<c:forEach var="data" items="${rsvNmList}">
+										<option value="${data}">${data}</option>
+									</c:forEach>
+							</select></td>
+						</tr>
+					</table>
+					<textarea id="ta2" cols="42" rows="10" placeholder="쪽지 내용을 입력해주세요."></textarea>
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" onclick="newMsgInsert()"
+						class="btn btn-primary" data-dismiss="modal">쪽지 보내기</button>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<script type="text/javascript">
+		function fn_getId(getId) {
+			console.log(getId);
+			$("#val").html(getId);
+		}
+
+		function msgInsert() {
+
+			var cntn = $("#ta").val();
+			var fullId = $("#val").html();
+			var getNm = fullId.split("/")[0];
+			var getId = fullId.split("/")[1];
+
+			var param = {
+				"cntn" : cntn.trim(),
+				"recvNm" : getNm,
+				"recvId" : getId
+				
+			};
+			console.log("아작스로 db저장하려고 쪽지 보낼때 param" + JSON.stringify(param));
+
+			$.ajax({
+				url : "/business/inquiry/msgInsert",
+				type : "post",
+				data : JSON.stringify(param),
+				dataType : "json",
+				contentType : "application/json",
+				beforeSend : function(xhr) {
+					xhr.setRequestHeader("${_csrf.headerName}",
+							"${_csrf.token}")
+				},
+				success : function(data) {
+					console.log("ajax성공 " + data)
+
+					if (data >= 1) {
+						alert("쪽지를 보냈습니다.");
+						$("#ta").val("");
+
+						//쪽지 알람 메세지 보내기
+						var busiNm = "${recvdata.content[0].recvNm}";
+						console.log("쪽지보내기 성공했을때 busiNm" + busiNm);
+						let alm = {
+							"sender" : busiNm,  //보낸사람
+							"receiver" : param.recvId, //받는사람
+							"almCntn" : busiNm + "님이 쪽지를 보냈습니다.",
+							"almTt" : "쪽지가 도착했습니다. 알림창을 확인해주세요.",
+							"almUrl" : "/member/mypage/msgbox?tab=1"
+						}
+						console.log("쪽지보내기 성공했을때 alm" + JSON.stringify(alm));
+						socketAlm.send(JSON.stringify(alm));
+
+					} else {
+						alert("쪽지보내기에 실패했습니다. 다시 시도해주세요.")
+						$("#ta").val("");
+					}
+				},
+				error : function(e) {
+				}
+			});
+
+			$("#ta").val("");
+
+		}
+		function newMsgInsert() {
+
+			var cntn = $("#ta2").val();
+			var SelectedNm = $("#val2 option:selected").val();
+			var getnm = SelectedNm.split(" / ")[0];
+			var getId = SelectedNm.split(" / ")[1];
+			var rsvId = SelectedNm.split(" / ")[2];
+			
+			var param = {
+				"cntn" : cntn.trim(),
+				"recvNm" : getnm,
+				"recvId" : getId
+			};
+			console.log("아작스로 db저장하려고 쪽지 보낼때 param" + JSON.stringify(param));
+
+			$.ajax({
+				url : "/business/inquiry/msgInsert",
+				type : "post",
+				data : JSON.stringify(param),
+				dataType : "json",
+				contentType : "application/json",
+				beforeSend : function(xhr) {
+					xhr.setRequestHeader("${_csrf.headerName}",
+							"${_csrf.token}")
+				},
+				success : function(data) {
+					console.log("ajax성공 " + data)
+
+					if (data >= 1) {
+						alert("쪽지를 보냈습니다.");
+						$("#ta").val("");
+
+						//쪽지 알람 메세지 보내기
+						var busiNm = "${recvdata.content[0].recvNm}";
+						console.log("쪽지보내기 성공했을때 busiNm" + busiNm);
+						let alm = {
+							"sender" : busiNm, //보낸사람
+							"receiver" : param.recvId, //받는사람
+							"almCntn" : busiNm + "님이 쪽지를 보냈습니다.",
+							"almTt" : "쪽지가 도착했습니다. 알림창을 확인해주세요.",
+							"almUrl" : "/member/mypage/msgbox?tab=1"
+						}
+						console.log("쪽지보내기 성공했을때 alm" + JSON.stringify(alm));
+						socketAlm.send(JSON.stringify(alm));
+
+					} else {
+						alert("쪽지보내기에 실패했습니다. 다시 시도해주세요.")
+						$("#ta").val("");
+					}
+				},
+				error : function(e) {
+				}
+			});
+
+			$("#ta").val("");
+
+		}
+		function fn_active(id) {
+			console.log("id:" + id);
+			$(".page-item").removeClass("active");
+			$("#" + id).addClass("active");
+		}
+
+		$(function() {
+			let tab = "${param.tab}";
+
+			if (tab == "1") {
+				$("#tab-1").addClass("active").addClass("show");
+				$("#tab-2").removeClass("active").removeClass("show");
+				$("#aTab1").addClass("active");
+				$("#aTab2").removeClass("active");
+			} else {
+				$("#tab-2").addClass("active").addClass("show");
+				$("#tab-1").removeClass("active").removeClass("show");
+				$("#aTab2").addClass("active");
+				$("#aTab1").removeClass("active");
+			}
+		});
+		
+		function changeParam(element){
+			var tabNum = element.getAttribute('title');
+			console.log("title"+tabNum);
+			window.location.href = "/business/inquiry/msgbox?currentPage=${param.currentPage}&tab="+tabNum;
+		}
+	</script>
+
+
+</body>

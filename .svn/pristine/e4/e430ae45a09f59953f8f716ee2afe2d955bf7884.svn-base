@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.member.mapper.MypageMapper">
+
+<!-- 마이페이지 - 내 정보 > 가져오기 -->
+	<select id="detailMyInfo" parameterType="memVO" resultType="memVO">
+		SELECT  MEM_ID, MEM_NM, MEM_ENM, MEM_FMNM, MEM_PW, MEM_BIR, MEM_GEN, 
+			    MEM_TEL, MEM_EMAIL, MEM_ADDR1, MEM_ADDR2, MAIL_AGR, MEM_MLG, 
+			    WRN_CNT, WRN_ST, MEM_MBTI, GRAD_ID, MEM_IMG, ENABLED, JOIN_DT, WHDWL_DT
+		FROM MEM 
+		WHERE MEM_ID=#{memId}
+	</select>
+
+<!-- 마이페이지 - 내 정보 > 수정하기 -->
+	<update id="updateMyInfo" parameterType="memVO">
+		  UPDATE MEM
+		  SET   MEM_NM =#{memNm},
+				MEM_ENM = #{memEnm},
+				MEM_FMNM = #{memFmnm},
+				MEM_BIR = #{memBir},
+				MEM_GEN =#{memGen},
+				MEM_TEL=#{memTel},
+				MEM_EMAIL=#{memEmail},
+				MEM_ADDR1=#{memAddr1},
+				MEM_ADDR2 =#{memAddr2},
+				MEM_MBTI=#{memMbti},
+				MEM_IMG=#{memImg}
+            WHERE MEM_ID=#{memId};
+	</update>
+	
+<!-- 마이페이지 - 내 정보 > 이메일 변경 -->
+	<update id="updateMyEmail" parameterType="memVO">
+		  UPDATE MEM
+		  SET MEM_EMAIL =#{memEmail}
+          WHERE MEM_ID=#{memId};
+	</update>
+
+<!-- 마이페이지 - 내 정보 > 비밀번호 변경 -->
+	<update id="updateMyPass" parameterType="memVO">
+		  UPDATE MEM
+		  SET MEM_PW =#{memPw}
+          WHERE MEM_ID=#{memId};
+	</update>
+
+<!-- 회원탈퇴 -->
+	<delete id="deleteMem">
+		DELETE FROM MEM WHERE MEM_ID=#{memId}
+	</delete>
+	
+
+	
+
+	
+</mapper>

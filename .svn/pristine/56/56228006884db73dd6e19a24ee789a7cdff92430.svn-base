@@ -1,0 +1,40 @@
+package kr.or.ddit.admin.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AdadVO;
+import kr.or.ddit.vo.AdvListVO;
+import kr.or.ddit.vo.AdvReqListVO;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RcmLocVO;
+import kr.or.ddit.vo.TourVO;
+
+public interface AdTourMapper {
+	// 여행지 목록
+	public List<TourVO> tourList(Map<String, String> map);
+	
+	// 전체 개수
+	public int getTotal(Map<String, String> map);
+	
+	public int tourReg(TourVO tourVO);
+	
+	public int attachInsert(AttachVO attachVO);
+	
+	public int attachDeInsert(List<AttachDeVO> attachDeVOlist);
+	
+	public int attachIdUpdate(TourVO tourVO);
+	
+	public String getImgPath(String tourId);
+	
+	public TourVO tourDetail(String tourId);
+	
+	public int tourDel(String tourId);
+	
+	public int tourAttachDel(String tourId);
+	
+	public int insertTourExcel(TourVO tourVO);
+}

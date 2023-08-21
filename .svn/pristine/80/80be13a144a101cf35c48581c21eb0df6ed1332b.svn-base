@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.business.mapper.BsBusiMapper">
+
+	<select id="carNum" parameterType="busiVO" resultType="carCheckVO">
+		SELECT 
+			SUBSTR(CAR_NUM, -4) AS CORRECT
+			, CAR_NUM
+			,COMPARE
+			,RSV_ID
+		FROM CAR_CHECK
+		WHERE BUSI_ID = #{busiId}
+
+	</select>
+
+	<select id="memDetail" parameterType="carCheckVO" resultType="carCheckVO">
+		SELECT 
+			B.RSV_ID,
+			C.MEM_NM,
+			C.MEM_TEL,
+			D.RM_NUM,
+			(SELECT RM_NM FROM RM WHERE RM_ID = E.RM_ID) AS RM_NM
+		
+		FROM CAR_CHECK A 
+		
+		INNER JOIN RSV B
+		    ON A.RSV_ID = B.RSV_ID
+		INNER JOIN MEM C    
+		    ON B.MEM_ID = C.MEM_ID
+		INNER JOIN RSV_STY D
+		    ON B.RSV_ID =D.RSV_ID
+		INNER JOIN RM_DE E
+		    ON D.RM_NUM = E.RM_NUM
+		    AND D.RM_ID = E.RM_ID
+		WHERE 
+		A.RSV_ID=#{rsvId}
+		
+	
+	
+	
+	</select>
+
+</mapper>

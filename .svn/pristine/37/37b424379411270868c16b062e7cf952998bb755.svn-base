@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.business.mapper.BsMsgMapper">
+	<select id="recvMsg" parameterType="String" resultType="msgVO">
+		select   MSG_ID, SEND_ID, RECV_ID, CNTN, SEND_DT
+		   FROM  MSG
+		   WHERE RECV_ID = #{busiId}
+	</select>
+	<select id="sendMsg" parameterType="hashMap" resultType="msgVO">
+		WITH T AS(
+		    select ROW_NUMBER() OVER(ORDER BY MSG_ID DESC) RNUM,  MSG_ID, SEND_ID, RECV_ID, CNTN, SEND_DT
+		    FROM  MSG
+		    WHERE SEND_ID = #{busiId}
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 10) - 9 AND #{currentPage} * 10
+	</select>
+	
+	<insert id="msgInsert"  parameterType="msgVO">
+			INSERT INTO MSG (MSG_ID, SEND_ID, RECV_ID, CNTN, SEND_DT)
+			VALUES ((SELECT MAX(msg_id) FROM MSG)+1, #{sendId}, #{recvId}, #{cntn}, SYSDATE)
+	
+	</insert>
+	<select id="recvTotal" parameterType="String" resultType="int">
+		 SELECT  COUNT(MSG_ID)
+		   FROM  MSG
+		   WHERE RECV_ID = #{busiId}
+	
+	</select>
+	<select id="sendTotal" parameterType="String" resultType="int">
+		 SELECT  COUNT(MSG_ID)
+		 FROM  MSG
+		 WHERE SEND_ID = #{busiId}
+		
+	</select>
+</mapper>
+
+

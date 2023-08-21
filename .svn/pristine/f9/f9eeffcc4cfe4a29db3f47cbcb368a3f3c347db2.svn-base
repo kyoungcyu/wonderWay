@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.util.websocket.mapper.WsMapper">
+
+
+	<insert id="insertChat">
+	<selectKey order="BEFORE" resultType="string" keyProperty="seq">
+		select MAX(seq)+1 FROM CHAT
+	</selectKey>
+	
+		INSERT INTO CHAT (
+		    SEQ,
+		    CHAT_CNTN,
+		    CHAT_DT,
+		    CHAT_RM_ID,
+		    SENDER,
+		    RECEIVER
+		) VALUES (
+		    #{seq},
+		    #{chatCntn},
+		    #{chatDt},
+		    '0',
+		    #{sender},
+		    #{receiver}
+		)
+		
+	
+	</insert>
+	
+	
+	<insert id="insertAlarm" parameterType="kr.or.ddit.vo.AlarmVO">
+		<selectKey order="BEFORE" resultType="string" keyProperty="almId">
+			SELECT MAX(alm_id)+1 FROM ALM
+		</selectKey>
+			INSERT INTO alm (
+			    alm_id,
+			    receiver,
+			    alm_cntn,
+			    alm_dt,
+			    sender,
+			    alm_tt,
+			    alm_url
+			) VALUES (
+		        #{almId}
+		      , #{receiver}
+		      , #{almCntn}
+		      , #{almDt}
+		      , #{sender}
+		      , #{almTt}
+		      , #{almUrl}
+		      
+			)
+	
+	</insert>
+	
+	<select id="selectAllAlarms" parameterType="String" resultType="kr.or.ddit.vo.AlarmVO">
+			SELECT
+			    alm_id,
+			    receiver,
+			    alm_cntn,
+			    alm_dt,
+			    sender,
+			    alm_tt,
+			    alm_url
+			FROM
+			    alm
+			where Receiver = #{receiver}    
+	</select>
+
+	<delete id="deleteAllAlarms" parameterType="String">
+		DELETE FROM alm
+		WHERE receiver = #{receiver} 
+	</delete>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

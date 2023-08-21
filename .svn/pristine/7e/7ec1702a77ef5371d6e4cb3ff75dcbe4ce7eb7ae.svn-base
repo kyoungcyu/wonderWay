@@ -1,0 +1,24 @@
+package kr.or.ddit.business.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.business.mapper.BsCheckInMapper;
+import kr.or.ddit.business.service.BsCheckInService;
+import kr.or.ddit.vo.CheckInVO;
+
+@Service
+public class BsCheckInServiceImpl implements BsCheckInService{
+	@Autowired
+	BsCheckInMapper bsCheckInMapper;
+
+	@Override
+	public CheckInVO checkRsv(String memId) {
+		return this.bsCheckInMapper.checkRsv(memId);
+	}
+
+	@Override
+	public int checkIn(String rsvId) {
+		return this.bsCheckInMapper.checkIn(rsvId);
+	}
+}

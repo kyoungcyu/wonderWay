@@ -1,0 +1,14 @@
+package kr.or.ddit.admin.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.RsvListVO;
+
+public interface AdRsvService {
+	public List<RsvListVO> rsvList(Map<String,String> map);
+	
+	public RsvListVO rsvDetail(String memId);
+	
+	public int getTotal(Map<String, String> map);
+}

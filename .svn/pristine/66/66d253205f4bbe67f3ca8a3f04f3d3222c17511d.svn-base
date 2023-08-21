@@ -1,0 +1,10 @@
+package kr.or.ddit.business.mapper;
+
+import kr.or.ddit.vo.CheckInVO;
+
+public interface BsCheckInMapper {
+	public CheckInVO checkRsv(String memId);
+	
+	public int checkIn(String rsvId);
+}
+

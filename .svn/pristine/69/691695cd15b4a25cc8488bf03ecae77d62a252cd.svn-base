@@ -1,0 +1,36 @@
+package kr.or.ddit.business.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.RvwVO;
+
+
+public interface BsRvwMapper {
+
+	public List<RvwVO> selectRvw(Map<String, Object> reviewMap);
+
+	public String totalRvw(String busiId);
+
+	public String totalCmt(String busiId);
+
+	public String totalBlind(String busiId);
+
+	public String averageStar(String busiId);
+
+	public int updateBlind(String rsvId);
+
+	public int deleteBlind(String rsvId);
+
+	public int insertCmt(RvwVO rvwVO);
+
+   
+   
+
+
+
+
+
+
+}
+

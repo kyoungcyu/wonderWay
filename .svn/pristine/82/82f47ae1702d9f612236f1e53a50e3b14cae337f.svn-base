@@ -1,0 +1,804 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.member.mapper.MypageMapper">
+
+	<!-- 마이페이지 - 내 정보 > 가져오기 -->
+	<select id="detailMyInfo" parameterType="memVO"
+		resultType="memVO">
+		SELECT MEM_ID, MEM_NM, MEM_ENM, MEM_FMNM, MEM_PW, MEM_BIR,
+		MEM_GEN,
+		MEM_TEL, MEM_EMAIL, MEM_ADDR1, MEM_ADDR2, MAIL_AGR, MEM_MLG,
+		WRN_CNT, WRN_ST, MEM_MBTI, GRAD_ID, MEM_IMG, ENABLED, JOIN_DT,
+		WHDWL_DT
+		FROM
+		MEM
+		WHERE MEM_ID=#{memId}
+	</select>
+
+	<!-- 마이페이지 - 내 정보 > 수정하기 -->
+	<update id="updateMyInfo" parameterType="memVO">
+		UPDATE MEM
+		SET MEM_ENM = #{memEnm},
+			MEM_FMNM = #{memFmnm},
+			MEM_BIR = #{memBir},
+			MEM_ADDR1=#{memAddr1},
+			MEM_ADDR2 =#{memAddr2},
+			MEM_MBTI=#{memMbti},
+			MEM_IMG=#{memImg}
+		WHERE MEM_ID=#{memId}
+	</update>
+
+	<!-- 마이페이지 - 내 정보 > 이메일 변경 -->
+	<update id="updateMyEmail" parameterType="memVO">
+		UPDATE MEM
+		SET MEM_EMAIL
+		=#{memEmail}
+		WHERE MEM_ID=#{memId}
+	</update>
+
+	<!-- 마이페이지 - 내 정보 > 비밀번호 변경 -->
+	<update id="updateMyPass" parameterType="memVO">
+		UPDATE MEM
+		SET MEM_PW
+		=#{memPw}
+		WHERE MEM_ID=#{memId}
+	</update>
+	
+	<!-- 마이페이지 - 이미지 변경 -->
+	<!-- 1. mem 테이블 memImg -->
+	<update  id="updateImg" parameterType="memVO" >
+		UPDATE BUSI 
+		SET BUSI_IMG =  #{memImg} 
+		WHERE memId=#{memId}  
+	</update>
+	
+	<!-- 2.첨부파일 테이블 등록 -->
+	<insert id="attachInsert" parameterType="attachVO">
+		INSERT INTO ATTACH(ATTACH_ID, ATTACH_DEL) 
+		VALUES(#{attachId},'N')
+	</insert>
+	
+	<!-- 3.첨부파일_상세 테이블  등록-->
+	<update id="attachDeInsert" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(ATTACH_DE_ID, ATTACH_ID, ORG_NM, FILE_NM, SAVE_PATH, FILE_SZ, FILE_TY, FILE_DEL,FILE_DT) 
+			VALUES(#{idx}+1 ,#{attachDeVO.attachId},#{attachDeVO.orgNm},#{attachDeVO.fileNm},
+			#{attachDeVO.savePath},#{attachDeVO.fileSz},#{attachDeVO.fileTy},'N',SYSDATE)
+		</foreach>
+	</update>
+	
+	
+	<select id="getImgPath" parameterType="String" resultType="String">
+	SELECT 
+    	SAVE_PATH
+	FROM ATTACH_DE 
+	WHERE ATTACH_ID = #{memId}
+	</select>
+	
+	
+
+	<!-- 회원탈퇴 -->
+	<update id="deleteMem" parameterType="memVO">
+		UPDATE MEM
+		SET ENABLED=0,
+		WHDWL_DT = SYSDATE
+		WHERE MEM_ID=#{memId}
+	</update>
+
+	<!-- 예약내역 -->
+	<!-- 숙박 전체조회 -->
+	<select id="allBooking" parameterType="hashMap" resultType="mmRsvListVO">
+		SELECT DISTINCT
+		A. RSV_ID,
+		A.RSV_CODE,
+		A.MEM_ID,
+		A.BUSI_ID,
+		B.RSV_ST AS CHECKIN,
+		B.RSV_ED AS CHECKOUT,
+		E.CHCK_IN AS CHECKINTIME,
+		E.CHCK_OUT AS CHECKOUTTIME,
+		B.RM_ID,
+		B.RM_NUM,
+		D.RM_NM,
+		E.BUSI_NM,
+		E.BUSI_LOC,
+		E.BUSI_CODE
+
+		FROM RSV A,
+		RSV_STY B,
+		RM_DE C,
+		RM D,
+		BUSI E
+
+		WHERE E.BUSI_ID = A.BUSI_ID
+		AND A.RSV_ID = B.RSV_ID
+		AND B.RM_ID = C.RM_ID
+		AND C.RM_ID= D.RM_ID
+		AND A.MEM_ID=#{memId}
+		AND A.RSV_CODE=#{rsvCode}
+	</select>
+	
+<!-- 숙소. 예약 취소 30일 이전 건(환불 100% x) 내역  K03-->	
+<select id="rsvCancel30Bef" parameterType="hashMap" resultType="mmRsvListVO">
+     SELECT DISTINCT
+		A.RSV_ID,
+		A.RSV_CODE,
+		A.MEM_ID,
+		A.BUSI_ID,
+        A.RSV_DT,
+		B.RSV_ST AS CHECKIN,
+		B.RSV_ED AS CHECKOUT,
+		E.CHCK_IN AS CHECKINTIME,
+		E.CHCK_OUT AS CHECKOUTTIME,
+		B.RM_ID,
+		B.RM_NUM,
+		D.RM_NM,
+		E.BUSI_NM,
+		E.BUSI_LOC,
+		E.BUSI_CODE
+
+		FROM RSV A,
+		RSV_STY B,
+		RM_DE C,
+		RM D,
+		BUSI E,
+        PAY F,
+        RFD_REQ G
+
+		WHERE E.BUSI_ID = A.BUSI_ID
+		AND A.RSV_ID = B.RSV_ID
+		AND B.RM_ID = C.RM_ID
+		AND C.RM_ID=D.RM_ID
+        AND A.RSV_ID=F.RSV_ID
+        AND F.PAY_ID= G.PAY_ID
+        AND A.MEM_ID=#{memId} 
+        AND A.RSV_CODE=#{rsvCode}
+        AND B.RSV_ST - SYSDATE &lt; 30
+</select>
+	<!-- K02 결제확인 -->
+	<!-- 리뷰작성 -> 1. RSV_ST < TODAY  -->
+	<select id="completePay"  parameterType="hashMap" resultType="mmRsvListVO">
+	 SELECT DISTINCT
+		A.RSV_ID,
+		A.RSV_CODE,
+		A.MEM_ID,
+		A.BUSI_ID,
+        A.RSV_DT,
+		B.RSV_ST AS CHECKIN,
+		B.RSV_ED AS CHECKOUT,
+		E.CHCK_IN AS CHECKINTIME,
+		E.CHCK_OUT AS CHECKOUTTIME,
+		B.RM_ID,
+		B.RM_NUM,
+		D.RM_NM,
+		E.BUSI_NM,
+		E.BUSI_LOC,
+		E.BUSI_CODE,
+		(SELECT COUNT(*) FROM RVW WHERE RVW.RSV_ID = A.RSV_ID) RVWCNT
+
+		FROM RSV A,
+		RSV_STY B,
+		RM_DE C,
+		RM D,
+		BUSI E,
+        PAY F
+
+		WHERE E.BUSI_ID = A.BUSI_ID
+		AND A.RSV_ID = B.RSV_ID
+		AND B.RM_ID = C.RM_ID
+		AND C.RM_ID=D.RM_ID
+        AND A.RSV_ID=F.RSV_ID
+        AND A.MEM_ID=#{memId}
+        AND A.RSV_CODE=#{rsvCode}
+        AND B.RSV_ST &lt; SYSDATE
+        </select>	
+	
+	<!-- 2. 입금확인  RSV_ST >sysdate - K02-->
+	<select id="completePayBefUse"  parameterType="hashMap" resultType="mmRsvListVO">
+	 SELECT DISTINCT
+		A.RSV_ID,
+		A.RSV_CODE,
+		A.MEM_ID,
+		A.BUSI_ID,
+        A.RSV_DT,
+		B.RSV_ST AS CHECKIN,
+		B.RSV_ED AS CHECKOUT,
+		E.CHCK_IN AS CHECKINTIME,
+		E.CHCK_OUT AS
+		CHECKOUTTIME,
+		B.RM_ID,
+		B.RM_NUM,
+		D.RM_NM,
+		E.BUSI_NM,
+		E.BUSI_LOC,
+		E.BUSI_CODE
+
+		FROM RSV A,
+		RSV_STY B,
+		RM_DE C,
+		RM D,
+		BUSI E,
+        PAY F
+        
+
+		WHERE E.BUSI_ID = A.BUSI_ID
+		AND A.RSV_ID = B.RSV_ID
+		AND B.RM_ID = C.RM_ID
+		AND C.RM_ID=D.RM_ID
+        AND A.RSV_ID=F.RSV_ID
+        AND A.MEM_ID=#{memId}
+        AND A.RSV_CODE=#{rsvCode}
+        AND B.RSV_ST &gt; SYSDATE
+        </select>
+	
+	
+	<!-- 렌터카 조회 -->
+	<select id="rntBooking" parameterType="hashMap" resultType="mmRsvRntcarListVO">
+		SELECT DISTINCT
+		 A.RSV_ID
+		,A.RSV_CODE
+		,A.RSV_DT
+		,A.MEM_ID
+		,A.BUSI_ID
+
+		,B.RSV_ST
+		,B.RSV_ED
+		,B.RNT_ST
+		,B.RNT_ED
+
+		,C.CAR_NUM
+		,C.CAR_CODE
+		,C.CAR_KND
+		,C.CAR_OP
+		,C.CAR_IMG
+
+		FROM RSV A
+		LEFT JOIN RSV_RNTCAR B ON A.RSV_ID = B.RSV_ID
+		LEFT JOIN CAR C ON A.BUSI_ID = C.BUSI_ID
+		WHERE
+		A.MEM_ID=#{memId} AND B.CAR_NUM=C.CAR_NUM
+		AND A.RSV_CODE=#{rsvCode}
+	</select>
+	
+	<!-- 예약내역 조회 (예약테이블에서) 이 아니라 입실일이 기준이 되어야 함. 입실일 해야함-->
+	<select id="rsvDetail" parameterType="rsvVO" resultType="rsvVO">
+<!-- 	SELECT RSV_ID, RSV_CODE, RSV_DT, TO_CHAR(RSV_DT,'YYYY-MM-DD') RSV_DT_STR, MEM_ID  -->
+<!-- 	FROM RSV -->
+<!-- 	WHERE RSV_ID=#{rsvId} AND RSV_CODE =#{rsvCode}  -->
+<!-- 	<if test="memId!=null and memId!=''"> -->
+<!-- 	AND MEM_ID=#{memId} -->
+<!-- 	</if> -->
+	SELECT A.RSV_ID, A.RSV_CODE, A.RSV_DT, TO_CHAR(A.RSV_DT,'YYYY-MM-DD') RSV_DT_STR, B.RSV_ST, A.MEM_ID 
+	FROM RSV A ,RSV_STY B
+	WHERE RSV_CODE ='K02' AND MEM_ID=#{memId} AND A.RSV_ID=B.RSV_ID AND A.RSV_ID=#{rsvId}
+
+
+	</select>
+	
+	<!-- 취소확정 리스트 -> 'K04' / 'K03' -->
+	<select id="rsvCancelK04" parameterType="hashMap" resultType="mmRsvListVO">
+	SELECT DISTINCT
+		A.RSV_ID,
+		A.RSV_CODE,
+		A.MEM_ID,
+		A.BUSI_ID,
+        A.RSV_DT,
+		B.RSV_ST AS CHECKIN,
+		B.RSV_ED AS CHECKOUT,
+		E.CHCK_IN AS CHECKINTIME,
+		E.CHCK_OUT AS
+		CHECKOUTTIME,
+		B.RM_ID,
+		B.RM_NUM,
+		D.RM_NM,
+		E.BUSI_NM,
+		E.BUSI_LOC,
+		E.BUSI_CODE
+
+		FROM RSV A,
+		RSV_STY B,
+		RM_DE C,
+		RM D,
+		BUSI E,
+        PAY F,
+        RFD_REQ G
+
+		WHERE E.BUSI_ID = A.BUSI_ID
+		AND A.RSV_ID = B.RSV_ID
+		AND B.RM_ID = C.RM_ID
+		AND C.RM_ID=D.RM_ID
+        AND A.RSV_ID=F.RSV_ID
+        AND F.PAY_ID= G.PAY_ID
+        AND A.MEM_ID=#{memId}
+        AND A.RSV_CODE=#{rsvCode}
+	</select>
+	
+	
+	<!-- K01 - 결제대기 취소-->
+	<delete id="noPayRsvK01" parameterType="rsvVO">
+		DELETE FROM RSV WHERE RSV_ID=#{rsvId}
+	</delete>
+	<!-- k01 - 결제대기 취소 - 숙박 -->
+	<delete id="noPayRsvK01Sty" parameterType="rsvStyVO">
+		DELETE FROM RSV_STY WHERE RSV_ID=#{rsvId}
+	</delete>
+		<!-- k01 - 결제대기 취소 - 숙박 -->
+	<delete id="noPayRsvK01Rnt" parameterType="kr.or.ddit.vo.RsvRntCarVO">
+		DELETE FROM RSV_RNTCAR WHERE RSV_ID=#{rsvId}
+	</delete>
+	
+	
+	
+	
+	<!-- 예약완료 취소 - 1. 환불 100% 인 경우 30일 전-->
+	
+	<!-- 1)환불요청 = 환불승인-->
+	<insert id="rfdOK" parameterType="rfdReqVO">
+	INSERT INTO RFD_REQ (
+	    PAY_ID,
+	    RFD_PR,
+	    RFD_RESN,
+	    RFD_DT,
+	    RFD_REQ_DT
+	) VALUES (
+	    (SELECT PAY_ID FROM PAY WHERE RSV_ID=#{rsvId}),
+	    (SELECT PAY_PR FROM PAY WHERE RSV_ID=#{rsvId}),
+	    #{rfdResn},
+	    SYSDATE,
+	    SYSDATE
+	)
+	
+	</insert>
+	<!-- 2) PAY 테이블 RFD_CK='Y'변경 -->
+	<update id="rfdCk" parameterType="payVO">
+		UPDATE PAY SET RFD_CK='Y'
+		WHERE RSV_ID=#{rsvId}
+	</update>
+	
+	<!-- 3) RSV 테이블 RSV_CODE='K04' -->
+	<update id="rfdCodeK04" parameterType="rsvVO">
+		UPDATE RSV SET RSV_CODE='K04'
+		WHERE RSV_ID=#{rsvId}
+	</update>	
+	
+	<!-- 예약완료 취소 - 2. 환불 100%가 아닌 경우-->
+	<!-- 2-1 RFD_REQ 테이블 insert 요청-->
+	<insert id="rfdRequest" parameterType="rfdReqVO" >
+	INSERT INTO RFD_REQ (
+	    PAY_ID,
+	    RFD_PR,
+	    RFD_RESN,
+	    RFD_REQ_DT
+	) VALUES (
+	    (SELECT PAY_ID FROM PAY WHERE RSV_ID=#{rsvId}),
+	    (SELECT PAY_PR FROM PAY WHERE RSV_ID=#{rsvId}),
+	    #{rfdResn},
+	    SYSDATE
+	)	
+	</insert>	
+	<!-- 2-2 예약테이블 rsv_code k03으로 변경-->
+	<update id="rsvCodeK03Change" parameterType="rsvVO">
+	UPDATE RSV SET RSV_CODE='K03' WHERE RSV_ID=#{rsvId}
+	</update>
+	
+	
+	<!-- 리뷰작성 -->
+	<insert id="myReivewWrite" parameterType="rvwVO">
+	INSERT INTO RVW (
+    	RSV_ID,
+	    RVW_CNTN,
+	    RVW_STAR,
+	    RVW_DT
+	) VALUES (
+	    #{rsvId},
+	    #{rvwCntn},
+	    #{rvwStar},
+	    SYSDATE
+	)
+	</insert>
+
+
+	<!-- 쿠폰함 -->
+	<!-- 등급조회 -->
+	<select id="myGrad" parameterType="String" resultType="gradVO">
+		SELECT
+		GRAD_ID
+		, GRAD_NM
+		FROM GRAD
+		WHERE
+		GRAD_ID =(SELECT GRAD_ID
+		FROM
+		MEM
+		WHERE
+		MEM_ID=#{memId})
+	</select>
+
+
+	<resultMap type="cupnVO" id="cupnMap">
+		<result property="cupnId" column="CUPN_ID" />
+		<result property="cupnCl" column="CUPN_CL" />
+		<result property="cupnRt" column="CUPN_RT" />
+		<result property="cupnDc" column="CUPN_DC" />
+		<result property="cupnExp" column="CUPN_EXP" />
+		<result property="gradId" column="GRAD_ID" />
+		<collection property="hcupnVOList" resultMap="hcupnVOMap"></collection>
+	</resultMap>
+
+	<resultMap type="hCupnVO" id="hcupnVOMap">
+		<result property="usable" column="USABLE" />
+		<result property="useDt" column="USE_DT" />
+		<result property="memId" column="MEM_ID" />
+		<result property="cupnId" column="CUPN_ID" />
+	</resultMap>
+
+
+	<!-- 쿠폰함 조회 -->
+	<select id="myCoupon" resultMap="cupnMap">
+		SELECT A.CUPN_ID, A.CUPN_CL,
+		A.CUPN_RT, A.CUPN_DC, A.CUPN_EXP, A.GRAD_ID,
+		B.USABLE,B.USE_DT
+		FROM CUPN
+		A
+		LEFT JOIN H_CUPN B ON A.CUPN_ID=B.CUPN_ID
+		WHERE B.MEM_ID=#{memId}
+	</select>
+
+	<!-- 쿠폰존 조회 -->
+	<select id="couponZone" parameterType="cupnVO"
+		resultType="cupnVO">
+		SELECT
+		CUPN_ID, CUPN_CL, CUPN_RT, CUPN_DC, CUPN_EXP, GRAD_ID
+		FROM
+		CUPN
+		WHERE
+		GRAD_ID IS NULL
+	</select>
+
+
+	<!-- 쿠폰 다운로드 -->
+	<insert id="downCoupon" parameterType="hCupnVO">
+		INSERT INTO H_CUPN(USABLE,
+		MEM_ID, CUPN_ID) VALUES
+		('N',#{memId},#{cupnId})
+
+	</insert>
+
+
+
+	<!-- 전체검색 -->
+	<sql id="search">
+		<!-- 상품명 -->
+		<if test="keyword!=null">
+			AND (
+		        BRD_TT LIKE '%' || #{keyword} || '%' OR
+		        FRST_WRTR LIKE '%' || #{keyword} || '%' OR 
+		        BRD_CNTN LIKE '%' || #{keyword}|| '%'
+			)
+		</if>
+	</sql>	
+	
+	<sql id="sort">
+		<!-- 정렬 -->
+		<if test="sort!=''">
+			<choose>
+				<when test="sort=='frstDt'">
+					ORDER BY FRST_DT DESC
+				</when>
+				<when test="sort=='brdLike'">
+					ORDER BY BRD_LIKE DESC
+				</when>
+				<when test="sort=='inqCnt'">
+					ORDER BY INQ_CNT DESC
+				</when>
+			</choose>	
+		</if>
+	</sql>	
+	
+	<!-- 나의 작성글 내역 -->
+	<!-- 1.여행후기/ 2. 질문답변 -->
+	<select id="myWriteListD01" parameterType="hashMap" resultType="brdVO">
+	WITH T AS(
+	SELECT 
+	<choose>
+		<when test="sort=='frstDt'">
+			ROW_NUMBER() OVER(ORDER BY FRST_DT DESC) RNUM,
+		</when>
+		<when test="sort=='brdLike'">
+			ROW_NUMBER() OVER(ORDER BY BRD_LIKE DESC) RNUM,
+		</when>
+		<when test="sort=='inqCnt'">
+			ROW_NUMBER() OVER(ORDER BY INQ_CNT DESC) RNUM,
+		</when>
+		<otherwise>
+			ROW_NUMBER() OVER(ORDER BY BRD_ID DESC) RNUM,
+		</otherwise>
+	</choose>	
+	BRD_ID,BRD_KND,BRD_TT,BRD_LIKE,BRD_CNTN,INQ_CNT,FRST_WRTR,FRST_DT 
+	FROM BRD 
+	WHERE 
+		BRD_KND='D01'
+		AND FRST_WRTR=#{frstWrtr}
+		AND BRD_DEL='N'
+	<include refid="search"></include>
+	)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	
+	
+	<select id="myWriteListD02" parameterType="hashMap" resultType="brdVO">
+	WITH T AS(
+	SELECT 
+	<choose>
+		<when test="sort=='frstDt'">
+			ROW_NUMBER() OVER(ORDER BY FRST_DT DESC) RNUM,
+		</when>
+		<when test="sort=='brdLike'">
+			ROW_NUMBER() OVER(ORDER BY BRD_LIKE DESC) RNUM,
+		</when>
+		<when test="sort=='inqCnt'">
+			ROW_NUMBER() OVER(ORDER BY INQ_CNT DESC) RNUM,
+		</when>
+		<otherwise>
+			ROW_NUMBER() OVER(ORDER BY BRD_ID DESC) RNUM,
+		</otherwise>
+	</choose>	
+	BRD_ID,BRD_KND,BRD_TT,BRD_LIKE,BRD_CNTN,INQ_CNT,FRST_WRTR,FRST_DT 
+	FROM BRD 
+	WHERE 
+		BRD_KND='D02'
+		AND FRST_WRTR=#{frstWrtr}
+		AND BRD_DEL='N'
+	<include refid="search"></include>
+	)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage2} * #{size2}) - (#{size2} - 1) 
+						  AND (#{currentPage2} * #{size2})
+	</select>
+	
+	<!-- 3. 리뷰조회 -->
+	<select id="myWriteListReview" parameterType="rvwVO" resultType="rvwVO">
+	SELECT A.RSV_ID, A.RVW_CNTN, A.RVW_STAR, A.RVW_CMT, A.RVW_BLIND, A.RVW_DT, A.ATTACH_ID,C.BUSI_NM FROM RVW A
+	LEFT JOIN RSV B ON B.RSV_ID=A.RSV_ID
+	LEFT JOIN BUSI C ON C.BUSI_ID=B.BUSI_ID
+	WHERE B.MEM_ID=#{memId}
+	ORDER BY A.RVW_DT DESC
+	</select>
+	
+	<!-- 3-1 리뷰 삭제 -->
+	<delete id="myRvwDelete" parameterType="rvwVO">
+		DELETE FROM RVW WHERE RSV_ID=#{rsvId}
+	</delete>
+	<!-- 3-2 리뷰 수정 -->	
+	<update id="myRvwUpdate" parameterType="rvwVO">
+		UPDATE SET RVW_CNTN=#{rvwCntn}, RVW_STAR =#{rvwStar}
+		WHERE RSV_ID=#{rsvId}
+	</update>
+	
+	
+	
+	
+	<!-- 4. 댓글 -->
+	<select id="myWriteListCmt" parameterType="hashMap" resultType="cmtVO">
+	WITH T AS(
+		SELECT 
+		<choose>
+		<when test="sort=='frstDt'">
+			ROW_NUMBER() OVER(ORDER BY CMT_DT DESC) RNUM,
+		</when>
+		<otherwise>
+			ROW_NUMBER() OVER(ORDER BY CMT_ID DESC) RNUM,
+		</otherwise>
+	</choose>	
+		
+		A.CMT_ID, A.CMT_WR, A.CMT_CNTN, A.CMT_DT, A.BRD_ID, A.REP_CMT_ID, A.REP_LEVEL, A.ANS_ID, B.BRD_TT,B.BRD_KND
+		FROM CMT A
+		LEFT JOIN BRD B ON A.BRD_ID=B.BRD_ID
+		WHERE A.CMT_WR = #{cmtWr} AND
+	    	  B.BRD_DEL = 'N'	
+			<include refid="search"></include>
+		ORDER BY A.CMT_DT DESC
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage4} * #{size4}) - (#{size4} - 1) 
+						  AND (#{currentPage4} * #{size4})
+	</select>
+	
+	
+	<!-- 게시글 count -->
+	<select id="myWriteListD01Count" parameterType="hashMap" resultType="int">
+	SELECT
+		COUNT(*)
+	FROM BRD 
+	WHERE 
+		BRD_KND='D01'
+		AND FRST_WRTR=#{frstWrtr}
+		AND BRD_DEL='N'
+	<include refid="search"></include>
+	<include refid="sort"></include>
+	
+	</select>
+	
+	<select id="myWriteListD02Count" parameterType="hashMap" resultType="int">
+	SELECT
+		COUNT(*)
+	FROM BRD 
+	WHERE 
+		BRD_KND='D02'
+		AND FRST_WRTR=#{frstWrtr}
+		AND BRD_DEL='N'
+	<include refid="search"></include>
+	<include refid="sort"></include>
+	
+	</select>
+	
+	<select id="myWriteListCmtCount" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM CMT A
+		LEFT JOIN BRD B ON A.BRD_ID=B.BRD_ID
+		WHERE A.CMT_WR = #{cmtWr} AND
+	    	  B.BRD_DEL = 'N'	
+	<include refid="search"></include>
+	
+	</select>
+	
+	<!-- 구매내역-->
+	<!-- 1. 구매내역 -->
+	<select id="myProdList" parameterType="hashMap" resultType="kr.or.ddit.vo.MmMyProdList">
+	SELECT A.BUY_ID,A.PROD_STRT, A.PROD_END, A.BUY_RTRCN, A.MEM_ID, A.PROD_ID,B.PAY_ID,B.PAY_PR,B.PAY_DT, B.PAY_MTH, C.CM_CODE,
+	D.INSU_NM, D.INSU_TR_TY, D.INSU_NAT, D.INSU_FEE,D.INSU_PRCS,
+	E.WIFI_NM, E.WIFI_NAT,E.WIFI_DATA,E.WIFI_SPD,E.WIFI_COM, E.WIFI_LOC, E.WIFI_FEE, E.WIFI_MAKER, E.WIFI_LEND,
+	F.ROAM_NM, F.ROAM_NAT, F.ROAM_DAYS, F.ROAM_QTT,F.ROAM_SPD, F.ROAM_COM, F.ROAM_OPT, F.ROAM_FEE
+	FROM BUY A
+	LEFT JOIN PAY B ON A.BUY_ID=B.BUY_ID
+	LEFT JOIN PROD C ON A.PROD_ID=C.PROD_ID
+	LEFT JOIN INSU D ON A.PROD_ID=D.PROD_ID
+	LEFT JOIN WIFI E ON A.PROD_ID=E.PROD_ID
+	LEFT JOIN ROAM F ON A.PROD_ID=F.PROD_ID
+	WHERE A.MEM_ID=#{memId} AND
+	A.BUY_RTRCN = 'N'	
+	ORDER BY B.PAY_DT DESC
+	</select>
+	
+	<!-- 2.취소상품 -->
+<!-- 	2-3. 상품 취소 -  BUY 테이블 BUY_RTRCN = 'Y'  -->
+	<update id="myProdCancel" parameterType="buyVO">
+	UPDATE BUY SET BUY_RTRCN ='Y' 
+	WHERE BUY_ID =#{buyId}
+	</update>
+	
+<!--  	2.1  RFD_REQ 테이블  INSERT -->
+	<insert id="rfdProdAdd" parameterType="rfdReqVO">
+	INSERT INTO RFD_REQ (
+	    PAY_ID,
+	    RFD_PR,
+	    RFD_RESN,
+	    RFD_DT,
+	    RFD_REQ_DT
+	) VALUES (
+	    #{payId},
+	    #{rfdPr},
+	    #{rfdResn},
+	    SYSDATE,
+	    SYSDATE
+	)
+	</insert>
+	<!-- 2.2 PAY 테이블  RFD_CK-'Y'-->
+	<update id="myProdCancelOK" parameterType="payVO">
+		UPDATE PAY SET RFD_CK='Y'
+		WHERE BUY_ID=#{buyId}
+	</update>
+	
+	<!-- 취소상품 조회 -->
+	<select id="myCancelProdList" parameterType="hashMap" resultType="kr.or.ddit.vo.MmMyProdList">
+	SELECT A.BUY_ID,A.PROD_STRT, A.PROD_END, A.BUY_RTRCN, A.MEM_ID, A.PROD_ID,B.PAY_ID,B.PAY_PR,B.PAY_DT, B.PAY_MTH, C.CM_CODE,
+	D.INSU_NM, D.INSU_TR_TY, D.INSU_NAT, D.INSU_FEE,D.INSU_PRCS,
+	E.WIFI_NM, E.WIFI_NAT,E.WIFI_DATA,E.WIFI_SPD,E.WIFI_COM, E.WIFI_LOC, E.WIFI_FEE, E.WIFI_MAKER, E.WIFI_LEND,
+	F.ROAM_NM, F.ROAM_NAT, F.ROAM_DAYS, F.ROAM_QTT,F.ROAM_SPD, F.ROAM_COM, F.ROAM_OPT, F.ROAM_FEE
+	FROM BUY A
+	LEFT JOIN PAY B ON A.BUY_ID=B.BUY_ID
+	LEFT JOIN PROD C ON A.PROD_ID=C.PROD_ID
+	LEFT JOIN INSU D ON A.PROD_ID=D.PROD_ID
+	LEFT JOIN WIFI E ON A.PROD_ID=E.PROD_ID
+	LEFT JOIN ROAM F ON A.PROD_ID=F.PROD_ID
+	WHERE A.MEM_ID=#{memId} AND
+	A.BUY_RTRCN = 'Y'	
+	ORDER BY B.PAY_DT DESC
+	</select>
+	
+	<!-- 취소 상세보기 -->
+	<select id="rfdDetail" parameterType="rfdReqVO" resultType="rfdReqVO">
+	SELECT PAY_ID, RFD_PR, RFD_RESN, RFD_DT, RFD_REQ_DT 
+	FROM RFD_REQ 
+	WHERE PAY_ID=#{payId}
+	</select>
+	
+	
+	
+	<!-- 관심내역 -->
+	<!-- 1.최근 본 내역-->
+	<select id="myRecentList" parameterType="mmRsvListVO" resultType="mmRsvListVO">
+		SELECT * FROM BUSI A
+		LEFT JOIN CAR B ON A.BUSI_ID=B.BUSI_ID
+		WHERE A.BUSI_ID=#{busiId}
+	</select>
+	
+	<!-- 2.찜목록 -->
+	<select id="myLikeList" parameterType="wishVO" resultType="wishVO">
+		SELECT A.MEM_ID, A.BUSI_ID, A.WISH_DT,A.CAR_NUM,B.BUSI_NM, B.BUSI_LOC, B.BUSI_SCR,B.BUSI_CODE, B.CHCK_IN,B.CHCK_OUT, B.BUSI_IMG,C.CAR_CODE,C.CAR_KND,C.CAR_FEE,C.CAR_IMG FROM WISH A
+		LEFT JOIN BUSI B ON A.BUSI_ID=B.BUSI_ID
+		LEFT JOIN CAR C ON A.CAR_NUM=C.CAR_NUM
+		WHERE A.MEM_ID=#{memId}
+		ORDER BY A.WISH_DT DESC
+	</select>
+	
+	
+	<!-- 새로운 예약내역 조회 -->
+	<select id="bookingList" parameterType="mmRsvListVO" resultType="mmRsvListVO">
+	SELECT DISTINCT  
+	    A.RSV_ID,
+	    A.RSV_CODE,
+	    A.MEM_ID,
+	    A.BUSI_ID,
+	    A.RSV_DT,
+	    C.RSV_ST AS CHECKIN,
+	    C.RSV_ED AS CHECKOUT,
+	    B.CHCK_IN AS CHECKINTIME,
+	    B.CHCK_OUT AS CHECKOUTTIME,
+	    E.RM_ID,
+	    D.RM_NUM,
+	    E.RM_NM,
+	    B.BUSI_NM,
+	    B.BUSI_LOC,
+	    B.BUSI_CODE,
+	    B.BUSI_IMG,
+	    G.RSV_ST AS RNTCHECKIN,
+	    G.RSV_ED AS RNTCHECKOUT,
+	    G.RNT_ST,
+	    G.RNT_ED,
+	    G.CAR_NUM,
+	    H.CAR_CODE,
+	    H.CAR_KND,
+	    H.CAR_OP,
+	    H.CAR_IMG,
+	    (SELECT COUNT(*) FROM RVW WHERE RVW.RSV_ID = A.RSV_ID) RVWCNT
+    
+    FROM RSV A
+    LEFT JOIN BUSI B ON A.BUSI_ID=B.BUSI_ID
+    LEFT JOIN RSV_STY C ON A.RSV_ID=C.RSV_ID
+    LEFT JOIN RM_DE D ON D.RM_ID = C.RM_ID AND D.RM_NUM=C.RM_NUM
+    LEFT JOIN RM E ON D.RM_ID=E.RM_ID
+    LEFT JOIN PAY F ON A.RSV_ID=F.RSV_ID
+    LEFT JOIN RSV_RNTCAR G ON A.RSV_ID=G.RSV_ID
+    LEFT JOIN CAR H ON H.CAR_NUM = G.CAR_NUM
+    WHERE A.MEM_ID=#{memId} AND A.RSV_CODE=#{rsvCode}
+	
+	
+	</select>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

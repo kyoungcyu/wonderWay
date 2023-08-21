@@ -1,0 +1,124 @@
+package kr.or.ddit.member.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.member.mapper.TripBoardMapper;
+import kr.or.ddit.member.service.TripBoardService;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.LikeBrdVO;
+
+@Service
+public class TripBoardServiceImpl implements TripBoardService{
+	
+	@Autowired
+	TripBoardMapper tripBoardMapper;
+	
+	//여행후기 메인 - 최신순 조회
+	@Override
+	public List<BrdVO> tripRecList(Map<String, String> map) {
+		return this.tripBoardMapper.tripRecList(map);
+	}
+	
+	//여행후기  메인 - 인기순 조회
+	@Override
+	public List<BrdVO> tripLikeList(Map<String, String> map) {
+		return this.tripBoardMapper.tripLikeList(map);
+	}
+	//글 목록 리스트
+	@Override
+	public List<BrdVO> tripBoardList(Map<String, String> map) {
+		// TODO Auto-generated method stub
+		return this.tripBoardMapper.tripBoardList(map);
+	}
+	
+	//글 상세보기
+	@Override
+	public BrdVO tripDetail(BrdVO brdVO) {
+		return this.tripBoardMapper.tripDetail(brdVO);
+	}
+	//조회수
+	@Override
+	public int tripViewCnt(String brdId) {
+		return this.tripBoardMapper.tripViewCnt(brdId);
+	}
+	
+	
+	//여행후기 글 등록
+	@Transactional
+	@Override
+	public int tripAddWrite(BrdVO brdVO) {
+		AttachVO attachVO = new AttachVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+		int result = this.tripBoardMapper.tripAddWrite(brdVO);
+			result += this.tripBoardMapper.attachInsert(attachVO);
+			result += this.tripBoardMapper.attachDeInsert(attachDeVOlist);
+			result += this.tripBoardMapper.attachIdUpdate(attachVO);
+		return result;
+	}
+
+	
+	//게시글 좋아요 기능
+	@Transactional
+	@Override
+	public int likeBrd(LikeBrdVO likeBrdVO) {
+		 int result = this.tripBoardMapper.likeBrd(likeBrdVO);
+		 	 result += this.tripBoardMapper.insertBrd(likeBrdVO);
+		 return result;
+	}
+	//게시글 좋아요 취소
+	@Transactional
+	@Override
+	public int dislikeBrd(LikeBrdVO likeBrdVO) {
+		int result = this.tripBoardMapper.dislikeBrd(likeBrdVO);
+			result += this.tripBoardMapper.deleteBrd(likeBrdVO);
+		return 0;
+	}
+	
+	//여행후기 글 수정
+	@Override
+	public int tripUpdate(String brdId) {
+		return this.tripBoardMapper.tripUpdate(brdId);
+	}
+	
+	//여행후기 글 삭제
+	@Override
+	public int tripDelete(String brdId) {
+		return this.tripBoardMapper.tripDelete(brdId);
+	}
+	// 게시글 수
+	@Override
+	public int countBoard(Map<String, String> map) {
+		return this.tripBoardMapper.countBoard(map);
+	}
+
+	
+
+	
+
+	
+	
+	
+	
+	
+	
+	
+
+
+	
+
+	
+	
+	
+	
+	
+	
+
+}

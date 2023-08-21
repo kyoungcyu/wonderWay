@@ -1,0 +1,442 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- Main content START -->
+<div class="col-lg-8 col-xl-9 ps-xl-5">
+
+	<!-- Offcanvas menu button -->
+	<div class="d-grid mb-0 d-lg-none w-100">
+		<button class="btn btn-primary mb-4" type="button"
+			data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar"
+			aria-controls="offcanvasSidebar">
+			<i class="fas fa-sliders-h"></i> Menu
+		</button>
+	</div>
+
+
+
+	<div class="card border bg-transparent">
+		<!-- Card header -->
+		<div class="card-header bg-transparent border-bottom">
+			<h4 class="card-header-title">예약내역</h4>
+		</div>
+
+		<!-- Card body START -->
+		<div class="card-body p-0">
+
+			<!-- Tabs -->
+			<ul class="nav nav-tabs nav-bottom-line nav-responsive nav-justified">
+				<li class="nav-item"><a class="nav-link mb-0 active"
+					data-bs-toggle="tab" href="#tab-1">결제대기</a></li>
+				<li class="nav-item"><a class="nav-link mb-0"
+					data-bs-toggle="tab" href="#tab-2">결제완료</a></li>
+				<li class="nav-item"><a class="nav-link mb-0"
+					data-bs-toggle="tab" href="#tab-3">예약완료</a></li>
+				<li class="nav-item"><a class="nav-link mb-0"
+					data-bs-toggle="tab" href="#tab-4">취소내역</a></li>
+			</ul>
+
+			<!-- Tabs content item END -->
+			<div class="tab-content">
+				<div class="tab-pane fade show active" id="tab-1">
+					<!-- 결제대기 탭의 내용 -->
+				</div>
+				<div class="tab-pane fade" id="tab-2">
+					<!-- 결제완료 탭의 내용 -->
+					<!-- sub tab -->
+					<div class="card-body p-2" id="subtab">
+						<!-- Tabs -->
+						<ul class="nav nav-pills-shadow nav-responsive">
+							<li class="nav-item"><a type="button" class="nav-link mb-0 me-sm-2 active"
+								data-bs-toggle="tab" href="#tab-2-1">전체</a></li>
+							<li class="nav-item"><a class="nav-link mb-0 me-sm-2"
+								data-bs-toggle="tab" href="#tab-2-2">숙소</a></li>
+							<li class="nav-item"><a class="nav-link mb-0"
+								data-bs-toggle="tab" href="#tab-2-3">교통</a></li>
+							<li class="nav-item"><a class="nav-link mb-0"
+								data-bs-toggle="tab" href="#tab-2-4">렌터카</a></li>
+							<li class="nav-item"><a class="nav-link mb-0"
+								data-bs-toggle="tab" href="#tab-2-5">해외여행</a></li>
+						</ul>
+					</div>
+					<!-- sub tab-->
+
+					<!-- Tab content -->
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="tab-2-1">
+							<!-- 전체 탭의 내용 -->
+							<!-- Card item START -->
+							<div class ="px-4">
+							<div class="card border mb-4">
+								<!-- Card header -->
+								<div
+									class="card-header border-bottom d-md-flex justify-content-md-between align-items-center">
+									<!-- Icon and Title -->
+									<div class="d-flex align-items-center">
+										<div class="icon-lg bg-light rounded-circle flex-shrink-0">
+											<i class="fa-solid fa-plane"></i>
+										</div>
+										<!-- Title -->
+										<div class="ms-2">
+											<h6 class="card-title mb-0">France to New York1</h6>
+											<ul class="nav nav-divider small">
+												<li class="nav-item">Booking ID: CGDSUAHA12548</li>
+												<li class="nav-item">Business class</li>
+											</ul>
+										</div>
+									</div>
+
+									<!-- Button -->
+									<div class="mt-2 mt-md-0">
+										<a href="#" class="btn btn-primary-soft mb-0">Manage
+											Booking</a>
+									</div>
+								</div>
+
+								<!-- Card body -->
+								<div class="card-body">
+									<div class="row g-3">
+										<div class="col-sm-6 col-md-4">
+											<span>Departure time</span>
+											<h6 class="mb-0">Tue 05 Aug 12:00 AM</h6>
+										</div>
+
+										<div class="col-sm-6 col-md-4">
+											<span>Arrival time</span>
+											<h6 class="mb-0">Tue 06 Aug 4:00 PM</h6>
+										</div>
+
+										<div class="col-md-4">
+											<span>Booked by</span>
+											<h6 class="mb-0">Frances Guerrero</h6>
+										</div>
+									</div>
+								</div>
+							</div>
+							</div>
+							<!-- Card item END -->
+						</div>
+					</div>
+					<!-- TAB CONTENT END -->
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					<div class="tab-pane fade" id="tab-2-2">
+						<!-- 숙소 탭의 내용 -->
+						<!-- Tab content 1-->
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="tab-2-2">
+							<!-- 전체 탭의 내용 -->
+							<!-- Card item START -->
+							<div class ="px-4">
+							<div class="card border mb-4">
+								<!-- Card header -->
+								<div
+									class="card-header border-bottom d-md-flex justify-content-md-between align-items-center">
+									<!-- Icon and Title -->
+									<div class="d-flex align-items-center">
+										<div class="icon-lg bg-light rounded-circle flex-shrink-0">
+											<i class="fa-solid fa-plane"></i>
+										</div>
+										<!-- Title -->
+										<div class="ms-2">
+											<h6 class="card-title mb-0">France to New York2</h6>
+											<ul class="nav nav-divider small">
+												<li class="nav-item">Booking ID: CGDSUAHA12548</li>
+												<li class="nav-item">Business class</li>
+											</ul>
+										</div>
+									</div>
+
+									<!-- Button -->
+									<div class="mt-2 mt-md-0">
+										<a href="#" class="btn btn-primary-soft mb-0">Manage
+											Booking</a>
+									</div>
+								</div>
+
+								<!-- Card body -->
+								<div class="card-body">
+									<div class="row g-3">
+										<div class="col-sm-6 col-md-4">
+											<span>Departure time</span>
+											<h6 class="mb-0">Tue 05 Aug 12:00 AM</h6>
+										</div>
+
+										<div class="col-sm-6 col-md-4">
+											<span>Arrival time</span>
+											<h6 class="mb-0">Tue 06 Aug 4:00 PM</h6>
+										</div>
+
+										<div class="col-md-4">
+											<span>Booked by</span>
+											<h6 class="mb-0">Frances Guerrero</h6>
+										</div>
+									</div>
+								</div>
+							</div>
+							</div>
+							<!-- Card item END -->
+						</div>
+					</div>
+					<!-- TAB CONTENT END -->
+					
+					
+					<!-- Tab content 1-->
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="tab-2-2">
+							<!-- 전체 탭의 내용 -->
+							<!-- Card item START -->
+							<div class ="px-4">
+							<div class="card border mb-4">
+								<!-- Card header -->
+								<div
+									class="card-header border-bottom d-md-flex justify-content-md-between align-items-center">
+									<!-- Icon and Title -->
+									<div class="d-flex align-items-center">
+										<div class="icon-lg bg-light rounded-circle flex-shrink-0">
+											<i class="fa-solid fa-plane"></i>
+										</div>
+										<!-- Title -->
+										<div class="ms-2">
+											<h6 class="card-title mb-0">France to New York3</h6>
+											<ul class="nav nav-divider small">
+												<li class="nav-item">Booking ID: CGDSUAHA12548</li>
+												<li class="nav-item">Business class</li>
+											</ul>
+										</div>
+									</div>
+
+									<!-- Button -->
+									<div class="mt-2 mt-md-0">
+										<a href="#" class="btn btn-primary-soft mb-0">Manage
+											Booking</a>
+									</div>
+								</div>
+
+								<!-- Card body -->
+								<div class="card-body">
+									<div class="row g-3">
+										<div class="col-sm-6 col-md-4">
+											<span>Departure time</span>
+											<h6 class="mb-0">Tue 05 Aug 12:00 AM</h6>
+										</div>
+
+										<div class="col-sm-6 col-md-4">
+											<span>Arrival time</span>
+											<h6 class="mb-0">Tue 06 Aug 4:00 PM</h6>
+										</div>
+
+										<div class="col-md-4">
+											<span>Booked by</span>
+											<h6 class="mb-0">Frances Guerrero</h6>
+										</div>
+									</div>
+								</div>
+							</div>
+							</div>
+							<!-- Card item END -->
+						</div>
+					</div>
+					<!-- TAB CONTENT2 END -->
+					
+					</div>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					<div class="tab-pane fade" id="tab-2-3">
+						<!-- 교통 탭의 내용 -->
+						
+						
+						<!-- Tab content 1-->
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="tab-2-3">
+							<!-- 전체 탭의 내용 -->
+							<!-- Card item START -->
+							<div class ="px-4">
+							<div class="card border mb-4">
+								<!-- Card header -->
+								<div
+									class="card-header border-bottom d-md-flex justify-content-md-between align-items-center">
+									<!-- Icon and Title -->
+									<div class="d-flex align-items-center">
+										<div class="icon-lg bg-light rounded-circle flex-shrink-0">
+											<i class="fa-solid fa-plane"></i>
+										</div>
+										<!-- Title -->
+										<div class="ms-2">
+											<h6 class="card-title mb-0">France to New York2</h6>
+											<ul class="nav nav-divider small">
+												<li class="nav-item">Booking ID: CGDSUAHA12548</li>
+												<li class="nav-item">Business class</li>
+											</ul>
+										</div>
+									</div>
+
+									<!-- Button -->
+									<div class="mt-2 mt-md-0">
+										<a href="#" class="btn btn-primary-soft mb-0">Manage
+											Booking</a>
+									</div>
+								</div>
+
+								<!-- Card body -->
+								<div class="card-body">
+									<div class="row g-3">
+										<div class="col-sm-6 col-md-4">
+											<span>Departure time</span>
+											<h6 class="mb-0">Tue 05 Aug 12:00 AM</h6>
+										</div>
+
+										<div class="col-sm-6 col-md-4">
+											<span>Arrival time</span>
+											<h6 class="mb-0">Tue 06 Aug 4:00 PM</h6>
+										</div>
+
+										<div class="col-md-4">
+											<span>Booked by</span>
+											<h6 class="mb-0">Frances Guerrero</h6>
+										</div>
+									</div>
+								</div>
+							</div>
+							</div>
+							<!-- Card item END -->
+						</div>
+					</div>
+					<!-- TAB CONTENT END -->
+					
+					
+					
+					
+					<!-- Tab content 1-->
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="tab-2-3">
+							<!-- 전체 탭의 내용 -->
+							<!-- Card item START -->
+							<div class ="px-4">
+							<div class="card border mb-4">
+								<!-- Card header -->
+								<div
+									class="card-header border-bottom d-md-flex justify-content-md-between align-items-center">
+									<!-- Icon and Title -->
+									<div class="d-flex align-items-center">
+										<div class="icon-lg bg-light rounded-circle flex-shrink-0">
+											<i class="fa-solid fa-plane"></i>
+										</div>
+										<!-- Title -->
+										<div class="ms-2">
+											<h6 class="card-title mb-0">France to New York2</h6>
+											<ul class="nav nav-divider small">
+												<li class="nav-item">Booking ID: CGDSUAHA12548</li>
+												<li class="nav-item">Business class</li>
+											</ul>
+										</div>
+									</div>
+
+									<!-- Button -->
+									<div class="mt-2 mt-md-0">
+										<a href="#" class="btn btn-primary-soft mb-0">Manage
+											Booking</a>
+									</div>
+								</div>
+
+								<!-- Card body -->
+								<div class="card-body">
+									<div class="row g-3">
+										<div class="col-sm-6 col-md-4">
+											<span>Departure time</span>
+											<h6 class="mb-0">Tue 05 Aug 12:00 AM</h6>
+										</div>
+
+										<div class="col-sm-6 col-md-4">
+											<span>Arrival time</span>
+											<h6 class="mb-0">Tue 06 Aug 4:00 PM</h6>
+										</div>
+
+										<div class="col-md-4">
+											<span>Booked by</span>
+											<h6 class="mb-0">Frances Guerrero</h6>
+										</div>
+									</div>
+								</div>
+							</div>
+							</div>
+							<!-- Card item END -->
+						</div>
+					</div>
+					<!-- TAB CONTENT END -->
+					
+					
+
+					</div>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					<div class="tab-pane fade" id="tab-2-4">
+						<!-- 렌터카 탭의 내용 -->
+						결제완료 렌터카 예약내역 여기에 넣어주세요
+					</div>
+					<div class="tab-pane fade" id="tab-2-5">
+						<!-- 해외여행 탭의 내용 -->
+						결제완료 해외여행 예약내역 여기에 넣어주세요
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="tab-3">
+				<!-- 예약완료 탭의 내용 -->
+			</div>
+			<div class="tab-pane fade" id="tab-4">
+				<!-- 취소내역 탭의 내용 -->
+			</div>
+		</div>
+		
+		<!-- Tab content END -->
+	</div>
+	<!-- Card body END -->
+</div>
+<!-- Card END -->
+</div>
+<!-- Main content END -->
+
+<style>
+.custom-card {
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 5px;
+	margin-bottom: 10px;
+}
+
+#subtab {
+	margin-top: 5px;
+}
+</style>
+
+<script type="text/javascript">
+</script>

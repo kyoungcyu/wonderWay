@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.business.mapper.BsCheckInMapper">
+	<resultMap id="checkInMap" type="checkInVO">
+		<result column="MEM_ID" property="memId" />
+		<result column="MEM_NM" property="memNm" />
+		<result column="MEM_ENM" property="memEnm" />
+		<result column="RSV_ID" property="rsvId" />
+		<result column="RM_NUM" property="rmNum" />
+	</resultMap>
+	
+	<select id="checkRsv" parameterType="String" resultMap="checkInMap">
+		SELECT
+		        A.MEM_ID AS MEM_ID
+		      , A.MEM_NM AS MEM_NM
+		      , A.MEM_FMNM || ' ' || A.MEM_ENM AS MEM_ENM
+		      , B.RSV_ID AS RSV_ID
+		      , (SELECT RM_NUM FROM RSV_STY WHERE RSV_ID = B.RSV_ID) AS RM_NUM
+		FROM MEM A
+		INNER JOIN RSV B ON B.MEM_ID = A.MEM_ID
+		WHERE A.MEM_ID = #{memId}
+		AND (SELECT RSV_ST FROM RSV_STY WHERE RSV_ID = B.RSV_ID) = TRUNC(SYSDATE)
+	</select>
+	
+	<update id="checkIn" parameterType="String">
+		UPDATE RSV_STY
+		SET CHECK_IN = 'Y'
+		WHERE RSV_ID = #{rsvId}
+	</update>
+	
+	<update id="checkOut" parameterType="String">
+		UPDATE RSV_STY
+		SET CHECK_OUT = 'Y'
+		WHERE RSV_ID = #{rsvId}
+	</update>
+	
+	
+	
+	<!-- MAIN PAGE -->
+	<!-- 오늘 입실자 -->
+	<select id="todayCome" parameterType="hashMap" resultType="kr.or.ddit.vo.bsCheckinOutVO">
+		WITH T
+		AS(
+			SELECT 
+			ROW_NUMBER() OVER(ORDER BY A.Rsv_Id DESC) AS RNUM
+			, A.Rsv_Id
+			, C.Rsv_St
+			, C.Rsv_Ed
+			, C.Car_Num
+			
+			, C.Rm_Num
+			, E.RM_NM
+			
+			, B.Mem_Gen
+			, B.Mem_Nm
+			, B.MEM_IMG
+			, ( SUBSTR(B.MEM_TEL, 1, 3) || '-' ||
+			    SUBSTR(B.MEM_TEL, 4, 4) || '-' ||
+			    SUBSTR(B.MEM_TEL, 8, 4) ) as MEM_TEL
+			
+			, C.CHECK_IN
+			
+			FROM RSV A
+			INNER JOIN RSV_STY C ON C.Rsv_Id = A.Rsv_Id
+			INNER JOIN MEM B ON A.Mem_Id = B.MEM_ID
+			INNER JOIN RM_DE D ON D.RM_NUM = C.RM_NUM
+			                 AND D.RM_ID = C.RM_ID
+			INNER JOIN RM E ON D.RM_ID = E. RM_ID
+			WHERE A.Busi_Id = #{busiId}
+			AND C.Rsv_ST= TRUNC(SYSDATE)
+			ORDER BY C.CHECK_IN
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN
+		(#{currentPage} * 4) - 3 AND #{currentPage} * 4
+		
+		
+	</select>
+	
+	
+	<!-- 오늘 퇴실자 -->
+	
+	<select id="todayOut" parameterType="hashMap" resultType="kr.or.ddit.vo.bsCheckinOutVO">
+		WITH T
+		AS(
+			SELECT 
+			ROW_NUMBER() OVER(ORDER BY A.Rsv_Id DESC) AS RNUM
+			, A.Rsv_Id
+			, C.Rsv_St
+			, C.Rsv_Ed
+			, C.Car_Num
+			
+			, C.Rm_Num
+			, E.RM_NM
+			
+			, B.Mem_Gen
+			, B.Mem_Nm
+			, B.MEM_IMG
+			, ( SUBSTR(B.MEM_TEL, 1, 3) || '-' ||
+			    SUBSTR(B.MEM_TEL, 4, 4) || '-' ||
+			    SUBSTR(B.MEM_TEL, 8, 4) ) as MEM_TEL
+			
+			, C.CHECK_IN
+			, C.CHECK_OUT
+			
+			FROM RSV A
+			INNER JOIN RSV_STY C ON C.Rsv_Id = A.Rsv_Id
+			INNER JOIN MEM B ON A.Mem_Id = B.MEM_ID
+			INNER JOIN RM_DE D ON D.RM_NUM = C.RM_NUM
+			                 AND D.RM_ID = C.RM_ID
+			INNER JOIN RM E ON D.RM_ID = E. RM_ID
+			WHERE A.Busi_Id = #{busiId}
+			AND C.Rsv_ed= TRUNC(SYSDATE)
+			ORDER BY C.CHECK_OUT
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN
+		(#{currentPage} * 4) - 3 AND #{currentPage} * 4
+	</select>
+	
+	
+	
+	<!-- 오늘 총 입실자 -->
+	<select id="totalIn" parameterType="String" resultType="int">
+		SELECT 
+		  COUNT(A.Rsv_Id)
+		FROM RSV A
+		INNER JOIN RSV_STY C ON C.Rsv_Id = A.Rsv_Id
+		INNER JOIN MEM B ON A.Mem_Id = B.MEM_ID
+		WHERE A.Busi_Id = #{busiId}
+		AND C.RSV_ST = TRUNC(SYSDATE)
+	</select>
+	
+	<!-- 오늘 총 퇴실자 -->
+	<select id="totalOut" parameterType="String" resultType="int">
+		SELECT 
+		  COUNT(A.Rsv_Id)
+		FROM RSV A
+		INNER JOIN RSV_STY C ON C.Rsv_Id = A.Rsv_Id
+		INNER JOIN MEM B ON A.Mem_Id = B.MEM_ID
+		WHERE A.Busi_Id = #{busiId}
+		AND C.RSV_ed = TRUNC(SYSDATE)
+	</select>
+	
+	
+	<!-- 오늘 예약수 -->
+	<select id="todayRsv" parameterType="String" resultType="int">
+		select 
+			count(rsv_id)
+		from rsv
+		where busi_id = #{busiId}
+		and rsv_dt =  TRUNC(SYSDATE)
+	</select>
+	
+	
+	<!-- 오늘 취소수 -->
+	<select id="todayRfd" parameterType="String" resultType="int">
+		select 
+			count(a.pay_id)
+		from pay a
+		inner join rsv b on A.Rsv_Id = B.Rsv_Id
+		inner join rfd_req c on A.Pay_Id = C.Pay_Id
+		where a.rfd_ck = 'Y'
+		and b.busi_id = #{busiId}
+		and  c.rfd_dt =  TRUNC(SYSDATE)
+	</select>
+	
+	
+	<!-- 오늘 리뷰수 -->
+	<select id="todayRvw" parameterType="String" resultType="int">
+		select 
+		count(a.rsv_id)
+		from rvw a
+		inner join rsv b on A.Rsv_Id = B.Rsv_Id
+		where busi_id = #{busiId}
+		and a.rvw_dt =  TRUNC(SYSDATE)
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</mapper>

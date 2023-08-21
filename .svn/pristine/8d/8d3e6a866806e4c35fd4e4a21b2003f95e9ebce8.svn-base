@@ -1,0 +1,118 @@
+package kr.or.ddit.business.controller;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.business.service.BsBusiService;
+import kr.or.ddit.business.service.BsCheckInService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CheckInVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RequestMapping("/business")
+@Controller
+public class BsBusiController {
+	
+	@Autowired
+	BsBusiService bsBusiService;
+	
+	@Autowired
+	BsCheckInService bsCheckInService;
+	
+	
+	@GetMapping("/main") // home 페이지
+	public String main(Model model, Authentication authentication, HttpSession session) {
+		
+		//--------시큐리티가 넣어놓은 session에서 username가져오고 Httpsession에 넣는다 -------------//
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        log.info("session getUsername : " + userDetails.getUsername());
+		
+        String lginId = userDetails.getUsername();
+        
+        
+        //------------------ 메인 시작 --------------------//
+        //로그인한 회원 정보 가져옴
+        BusiVO busiVO = this.bsBusiService.userDetail(lginId);
+
+		log.info("busiVO : " + busiVO);
+		
+		model.addAttribute("data", busiVO);
+		session.setAttribute("vo", busiVO);//로그인한 회원의 로그인아이디 session에 저장
+        
+		return "business/main";
+	}
+
+	
+	@GetMapping("/resList")
+	public String resList(Model model) {
+		
+		List<BusiVO> data = this.bsBusiService.busiList();
+		
+		log.info("data : " + data);
+		
+		model.addAttribute("data", data.get(1));
+		
+		
+		return "business/resList";
+	}
+	@GetMapping("/canList")
+	public String canList(Model model) {
+		
+		List<BusiVO> data = this.bsBusiService.busiList();
+		
+		log.info("data : " + data);
+		
+		model.addAttribute("data", data.get(0));
+		
+		
+		return "business/canList";
+	}
+	
+	@GetMapping("/myBusi/unmannedCheckIn")
+	public String unmannedCheckIn() {
+		
+		return "business/myBusi/unmannedCheckIn";
+	}
+	
+	@ResponseBody
+	@PostMapping("/myBusi/completeCheckIn")
+	public CheckInVO completeCheckIn(@RequestParam("memId") String memId) {
+		log.info("memId : " + memId);
+		
+		CheckInVO vo = this.bsCheckInService.checkRsv(memId);
+		
+		log.info("vo : " + vo);
+		
+		int cnt = 0;
+		
+		if(vo != null) {
+			String rsvId = vo.getRsvId();
+			cnt = this.bsCheckInService.checkIn(rsvId);
+		}
+		
+		if(cnt > 0) {
+			vo.setCheckIn(String.valueOf(cnt));
+			return vo;
+		} else {
+			return null;
+		}
+		
+	}
+	
+}

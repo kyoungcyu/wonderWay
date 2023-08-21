@@ -1,0 +1,38 @@
+package kr.or.ddit.admin.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.MemVO;
+
+public interface AdMemServiece {
+
+	//전체 회원 목록
+	public List<MemVO> memList(Map<String,String> map);
+
+	//회원 상세
+	public MemVO memDetail(MemVO memVO);
+
+	//회원 수
+	public int memTotal(Map<String,String> map);
+
+	//회원 작성 게시글
+	public List<BrdVO> memBrdList(MemVO memVO);
+	
+	//부적절 회원 관리
+	public List<BrdVO> brdReprtList(Map<String, String> map);
+
+	//미처리 신고수
+	public int brdReptTotal(Map<String, String> map);
+
+	//회원 경고 상태
+	public int updateWarningStatus(MemVO memVO);
+
+	//차단 회원 등록
+	public int insertInrtMem(Map<String, String> map);
+	
+	//차단 회원 등록 삭제
+	public int deleteIntrMem(Map<String, String> map);
+
+}

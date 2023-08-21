@@ -1,0 +1,47 @@
+package kr.or.ddit.member.mapper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CvfcVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RmVO;
+import kr.or.ddit.vo.RvwVO;
+import kr.or.ddit.vo.TrnRmVO;
+import kr.or.ddit.vo.TrnSeatVO;
+
+public interface MmTrnMapper {
+	
+	//<!--기차역에 맞는 아이디 가져오기  -->
+	//<select id="getStationId" parameterType="String" resultType="String">
+	public String getStationId (String stationNm);
+	
+	
+	//<!--랜덤 좌석 배정  -->
+	//<select id="getRndSeat" parameterType="hashMap"  resultType="trnSeatVO">
+	public List<TrnSeatVO> getRndSeat(HashMap<String, Object> map);
+	
+	
+	//<!--객실 가져오기  -->
+	//<select id="getRm" parameterType="String" resultType="trnRmVO">
+	public List<TrnRmVO> getRm(String trnKnd);
+	
+
+	//<!--좌석 가져오기  -->
+	//<select id="getSeat" parameterType="hashMap" resultType="trnSeatVO" >
+	public List<TrnSeatVO> getSeat(HashMap<String, String> map);
+	
+	
+	//	<!--회원 예약시 테이블에 인서트  -->
+	//	<insert id="insertMemRsv" parameterType="hashMap">
+	public int insertMemRsv(HashMap<String,Object> map);
+}
+
+
+
+
+
+
+

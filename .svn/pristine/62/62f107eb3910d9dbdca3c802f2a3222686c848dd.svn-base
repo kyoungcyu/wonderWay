@@ -1,0 +1,52 @@
+package kr.or.ddit.admin.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.admin.mapper.AdRfdMapper;
+import kr.or.ddit.admin.service.AdRfdService;
+import kr.or.ddit.vo.RfdListVO;
+
+@Service
+public class AdRfdServiceImpl implements AdRfdService{
+	@Autowired
+	AdRfdMapper adRfdMapper;
+	
+	@Override
+	public List<RfdListVO> rfdList(Map<String,String> map) {
+		return adRfdMapper.rfdList(map);
+	}
+
+	@Override
+	public RfdListVO rfdDetail(String payId) {
+		return adRfdMapper.rfdDetail(payId);
+	}
+
+	@Override
+	public int rfdAccept(String payId) {
+		return adRfdMapper.rfdAccept(payId);
+	}
+
+	@Override
+	public int rfdDenied(String payId) {
+		return adRfdMapper.rfdDenied(payId);
+	}
+
+	@Override
+	public int rsvAccept(String payId) {
+		return adRfdMapper.rsvAccept(payId);
+	}
+
+	@Override
+	public int getTotal(Map<String, String> map) {
+		return adRfdMapper.getTotal(map);
+	}
+	
+	@Override
+	public int rfdUpdateFee(Map<String, String> map) {
+		return adRfdMapper.rfdUpdateFee(map);
+	}
+}

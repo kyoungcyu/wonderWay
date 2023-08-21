@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdCupnMapper">
+
+	<!-- resultMap 선언 -->
+	<resultMap id="cupnListMap" type="cupnVO">
+		<result column="CUPN_ID" property="cupnId" />
+		<result column="CUPN_CL" property="cupnCl" />
+		<result column="CUPN_RT" property="cupnRt" />
+		<result column="CUPN_DC" property="cupnDc" />
+		<result column="CUPN_EXP" property="cupnExp" />
+		<result column="CUPN_EXP_STR" property="cupnExpStr" />
+		<result column="GRAD_ID" property="gradId" />
+		<result column="GRAD_NM" property="gradNm" />
+		<result column="CUPN_ENABLED" property="cupnEnable" />
+		<result column="REMAIN_EXP" property="remainExp" />
+	</resultMap>
+	
+	<sql id="orderBy">
+	   <choose>
+		  <when test="sort=='cupnKind'">
+			 ORDER BY A.CUPN_CL DESC
+		  </when>
+		  <when test="sort=='cupnRtAsc'">
+			 ORDER BY A.CUPN_RT ASC
+		  </when>
+		  <when test="sort=='cupnRtDesc'">
+			 ORDER BY A.CUPN_RT DESC
+		  </when>
+	      <otherwise>
+	         ORDER BY A.CUPN_EXP DESC
+	      </otherwise>
+	   </choose>
+	</sql>
+	
+	<select id="cupnList" parameterType="hashMap" resultMap="cupnListMap">
+		WITH T AS(
+			SELECT
+					ROW_NUMBER() OVER(<include refid="orderBy"></include>) RNUM
+			      , A.CUPN_ID AS CUPN_ID
+			      , A.CUPN_CL AS CUPN_CL
+			      , A.CUPN_RT AS CUPN_RT
+			      , A.CUPN_DC AS CUPN_DC
+			      , A.CUPN_EXP AS CUPN_EXP
+			      , A.GRAD_ID AS GRAD_ID
+			      , B.GRAD_NM AS GRAD_NM
+			      , TRUNC(A.CUPN_EXP - SYSDATE) AS REMAIN_EXP
+			FROM CUPN A
+			LEFT OUTER JOIN GRAD B ON A.GRAD_ID = B.GRAD_ID
+			WHERE A.CUPN_ENABLED = 'N'
+			<!-- 쿠폰명 검색 -->
+			<if test="keyword!=null and !keyword.equals('')">
+				AND A.CUPN_DC LIKE '%' || #{keyword} || '%'
+			</if>
+			<!-- 정렬 검색 -->
+			<if test="sort!=null and !sort.equals('')">
+				<choose>
+				  <when test="sort=='cupnKind'">
+					 ORDER BY A.CUPN_CL DESC
+				  </when>
+				  <when test="sort=='cupnRtAsc'">
+					 ORDER BY A.CUPN_RT ASC
+				  </when>
+				  <when test="sort=='cupnRtDesc'">
+					 ORDER BY A.CUPN_RT DESC
+				  </when>
+			      <otherwise>
+			         ORDER BY A.CUPN_EXP DESC
+			      </otherwise>
+			   	</choose>
+			</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) 
+		FROM CUPN A
+		LEFT OUTER JOIN GRAD B ON A.GRAD_ID = B.GRAD_ID
+		WHERE A.CUPN_ENABLED = 'N'
+		<!-- 쿠폰명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND A.CUPN_DC LIKE '%' || #{keyword} || '%'
+		</if>
+	</select>
+	
+	<select id="cupnDetail" parameterType="String" resultType="cupnVO">
+		SELECT
+				A.CUPN_ID AS CUPN_ID
+		      , A.CUPN_CL AS CUPN_CL
+		      , A.CUPN_RT AS CUPN_RT
+		      , A.CUPN_DC AS CUPN_DC
+		      , A.CUPN_EXP AS CUPN_EXP
+		      , TO_CHAR(A.CUPN_EXP, 'YYYY/MM/DD') AS CUPN_EXP_STR
+		      , A.GRAD_ID AS GRAD_ID
+		      , B.GRAD_NM AS GRAD_NM
+		      , A.CUPN_ENABLED AS CUPN_ENABLED
+		      , TRUNC(A.CUPN_EXP - SYSDATE) AS REMAIN_EXP
+		FROM CUPN A
+		LEFT OUTER JOIN GRAD B ON A.GRAD_ID = B.GRAD_ID
+		WHERE A.CUPN_ID = #{cupnId}
+	</select>	
+	
+	<update id="cupnUnable" parameterType="String">
+		UPDATE CUPN
+		SET CUPN_ENABLED = 'Y'
+		WHERE CUPN_ID = #{cupnId}
+	</update>
+	
+	<insert id="cupnRegist" parameterType="cupnVO">
+		INSERT INTO CUPN
+		(
+		    CUPN_ID
+		  , CUPN_CL
+		  , CUPN_RT
+		  , CUPN_DC
+		  , CUPN_EXP
+		  , GRAD_ID
+		  , CUPN_ENABLED
+		)
+		SELECT
+		    'B001' || TRIM(TO_CHAR(SUBSTR(MAX(CUPN_ID), -3, 3) + 1, '0000'))
+		  , 'B001'
+		  , #{cupnRt}
+		  , #{cupnDc}
+		  , #{cupnExpStr}
+		  , #{gradId}
+		  , 'N'
+		FROM
+		    CUPN
+		WHERE
+		    CUPN_ID = (SELECT MAX(CUPN_ID)
+		        	   FROM CUPN)
+	</insert>
+</mapper>

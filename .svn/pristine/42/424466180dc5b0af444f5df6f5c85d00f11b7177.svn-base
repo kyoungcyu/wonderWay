@@ -1,0 +1,302 @@
+package kr.or.ddit.member.controller;
+
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.member.service.QnaBoardService;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.vo.AnsVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.CmtVO;
+import oracle.jdbc.proxy.annotation.Post;
+
+@RequestMapping("/member/qnaBoard")
+@Controller
+public class QnaController {
+
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+	@Autowired
+	QnaBoardService qnaBoardService;
+
+	// 질문답변 게시판 페이지 메인
+	@GetMapping("/qnaMain")
+	public String qnaMain(BrdVO brdVO, Model model, @RequestParam(value = "keyword", required = false) String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage,
+			@RequestParam(value = "currentPage2", required = false, defaultValue = "1") int currentPage2) {
+
+		Map<String, String> data = new HashMap<String, String>();
+
+		data.put("keyword", keyword);
+		data.put("sort", sort);
+		data.put("currentPage", Integer.toString(currentPage));
+
+		// 1. 페이징 처리 - 답변 없는 질문 리스트 페이징처리
+		// 한 페이지에 9개씩
+		int size = 12;
+		data.put("size", String.valueOf(size));
+		log.info("data : " + data);
+
+		List<BrdVO> list = this.qnaBoardService.qnaBoardList(data);
+		log.info("list : " + list);
+		model.addAttribute("qnaBoardList", list);
+		//
+		int total = this.qnaBoardService.qnaBoardListCnt(brdVO);
+		log.info("total : " + total);
+
+		PagingDTO<BrdVO> qnaPage = new PagingDTO<BrdVO>(total, currentPage, size, list);
+		log.info("qnaPage : " + qnaPage);
+		model.addAttribute("qnaPage", qnaPage);
+
+		Map<String, String> data2 = new HashMap<String, String>();
+
+		// 2. 페이징 처리 - 답변 있는 질문 리스트 페이징처리
+		// 한 페이지에 9개씩
+		int size2 = 9;
+		data2.put("size2", String.valueOf(size));
+		log.info("data : " + data);
+
+		List<BrdVO> list2 = this.qnaBoardService.qnaBoardList(data2);
+		log.info("list2 : " + list2);
+		model.addAttribute("qnaBoardList", list2);
+		//
+		int total2 = this.qnaBoardService.qnaBoardAnsListCnt(brdVO);
+		log.info("total2 : " + total2);
+
+		PagingDTO<BrdVO> qnaPage2 = new PagingDTO<BrdVO>(total2, currentPage2, size2, list2);
+		log.info("qnaPage2 : " + qnaPage2);
+		model.addAttribute("qnaPage2", qnaPage2);
+
+		// 오늘의 질문
+		List<BrdVO> qnaBoardList = this.qnaBoardService.qnaBoardList(data);
+		model.addAttribute("qnaBoardList", qnaBoardList);
+		log.info("qnaBoardList : " + qnaBoardList);
+
+		// 답변 완료 된 QNA
+		List<BrdVO> qnaBoardAnsList = this.qnaBoardService.qnaBoardAnsList(data);
+		model.addAttribute("qnaBoardAnsList", qnaBoardAnsList);
+		log.info("qnaBoardAnsList : " + qnaBoardAnsList);
+
+		return "/member/qnaBoard/qnaMain";
+	}
+
+	// 질문답변 게시글 목록 리스트
+	@GetMapping("/qnaList")
+	public String qnaList(Model model, BrdVO brdVO, @RequestParam(value = "keyword", required = false) String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage) {
+
+		// 페이징 처리
+		Map<String, String> data = new HashMap<String, String>();
+
+		data.put("keyword", keyword);
+		data.put("sort", sort);
+		data.put("currentPage", Integer.toString(currentPage));
+
+		int size = 10;
+		data.put("size", String.valueOf(size));
+		log.info("data : " + data);
+
+		List<BrdVO> list = this.qnaBoardService.allQnaBoardList(data);
+		log.info("allQnaBoardList :" + list);
+		model.addAttribute("allQnaBoardList", list);
+		// 모든 질문
+		int total = this.qnaBoardService.allQnaBoardListCnt(brdVO);
+		log.info("total : " + total);
+		model.addAttribute("total", total);
+
+		PagingDTO<BrdVO> allPage = new PagingDTO<BrdVO>(total, currentPage, size, list);
+		log.info("allPage : " + allPage);
+		model.addAttribute("allPage", allPage);
+
+		return "/member/qnaBoard/qnaList";
+	}
+
+	// 게시글 상세보기
+	@GetMapping("/qnaDetail")
+	public String qnaDetail(@RequestParam("brdId") String brdId, CmtVO cmtVO, Model model, Principal principal) {
+		log.info("brdId : " + brdId);
+		// 질문 상세보기
+		List<BrdVO> brdVO = this.qnaBoardService.qnaBoardDetail(brdId);
+		log.info("brdVO : " + brdVO);
+		model.addAttribute("brdVO", brdVO);
+
+		// 질문 답변 상세보기
+		List<AnsVO> ansVO = this.qnaBoardService.ansDetail(brdId);
+		log.info("ansVO : " + ansVO);
+		model.addAttribute("ansVO", ansVO);
+
+		// 조회수 기능
+		int qnaViewCnt = this.qnaBoardService.qnaViewCnt(brdId);
+		log.info("qnaViewCnt : " + qnaViewCnt);
+		model.addAttribute("qnaViewCnt", qnaViewCnt);
+		if(ansVO.size() != 0) {
+
+			cmtVO.setAnsId(ansVO.get(0).getAnsId());
+			
+			// 댓글 내용 불러오기
+			List<CmtVO> cmtList = this.qnaBoardService.cmtDetail(cmtVO);
+			model.addAttribute("cmtList", cmtList);
+			log.info("cmtList : " + cmtList);
+
+			// 댓글 수 조회하기
+			int cmtCount = this.qnaBoardService.cmtCount(brdId);
+			model.addAttribute("cmtCount", cmtCount);
+			log.info("cmtCount : " + cmtCount);
+		}
+
+		return "/member/qnaBoard/qnaDetail";
+	}
+
+	// 질문 등록하기
+	@GetMapping("/qnaBoardWrite")
+	public String qnaBoardWrite() {
+		return "/member/qnaBoard/qnaBoardWrite";
+	}
+
+	// 질문 등록하기
+	@PostMapping("/qnaBoardWritePost")
+	public String qmaBOardWritePost(@ModelAttribute BrdVO brdVO) {
+		int result = this.qnaBoardService.queWrite(brdVO);
+		String brdId = brdVO.getBrdId();
+		log.info("brdVO : " + brdVO);
+
+		log.info("result : " + result);
+		return "redirect:/member/qnaBoard/qnaDetail?brdId=" + brdId;
+	}
+
+	// 질문 수정하기
+	@GetMapping("/qnaBoardUpdate")
+	public String qnaBoardUpdate(@RequestParam("brdId") String brdId, Model model) {
+		log.info("brdId : " + brdId);
+
+		List<BrdVO> brdVO = this.qnaBoardService.qnaBoardDetail(brdId);
+		log.info("brdVO : " + brdVO);
+		model.addAttribute("brdVO", brdVO);
+		return "/member/qnaBoard/qnaBoardUpdate";
+	}
+
+	// 질문 수정하기
+	@ResponseBody
+	@PostMapping("/qnaBoardUpdatePost")
+	public String qnaBoardUpdatePost(@RequestBody BrdVO brdVO, Principal principal) {
+		String memId = principal.getName();
+		brdVO.setLastWrtr(memId);
+		int data = this.qnaBoardService.qnaUpdate(brdVO);
+		log.info("data : " + data);
+		return "result";
+	}
+
+	// 질문 삭제하기
+	@ResponseBody
+	@PostMapping("/queDelete")
+	public int queDelete(@RequestBody String brdId) {
+		log.info("brdId : " + brdId);
+		int result = this.qnaBoardService.queDelete(brdId);
+
+		log.info("result : " + result);
+
+		return result;
+	}
+
+	// 답변 등록하기
+	@PostMapping("/qnaAnsWrite")
+	public String qnaAnsWrite(@ModelAttribute AnsVO ansVO, BrdVO brdVO, Principal principal) {
+		String ansWr = principal.getName();
+		ansVO.setAnsWr(ansWr);
+		log.info("ansVO : " + ansVO);
+		log.info("brdVO : " + brdVO);
+		int result = this.qnaBoardService.ansWrite(ansVO);
+//		return "/member/qnaBoard/qnaDetail";
+		return "redirect:/member/qnaBoard/qnaDetail?brdId=" + brdVO.getBrdId();
+	}
+
+	// 답변 삭제하기
+	@ResponseBody
+	@PostMapping("/ansDelete")
+	public int ansDelete(@RequestBody String ansId) {
+		log.info("ansId : " + ansId);
+		int result = this.qnaBoardService.ansDelete(ansId);
+		log.info("result : " + result);
+
+		return result;
+	}
+
+	/**
+	 * 댓글
+	 */
+	
+	// 댓글 작성하기
+	@ResponseBody
+	@PostMapping("/cmtWrite")
+	public String cmtWrite(@RequestBody CmtVO cmtVO, Principal principal) {
+
+		String cmtWr = principal.getName();
+		cmtVO.setCmtWr(cmtWr);
+		// cmtVO : CmtVO(cmtId=null, cmtWr=test01, cmtCntn=sfad, cmtDt=null,
+		// brdId=D0120230629424, repCmtId=null, repLevel=0)
+		log.info("cmtVO : " + cmtVO);
+
+		int result = this.qnaBoardService.cmtWrite(cmtVO);
+		log.info("result : " + result);
+
+		if (result > 0) {// 성공
+			return "success";
+		} else {// 실패
+			return "fail";
+		}
+	}
+
+	// 댓글 수정하기
+	@ResponseBody
+	@PostMapping("/cmtUpdate")
+	public String cmtUpdate(@RequestBody CmtVO cmtVO, Model model, Principal principal) {
+
+		String cmtWr = principal.getName();
+		cmtVO.setCmtWr(cmtWr);
+		model.addAttribute("cmtWr");
+
+		int result = this.qnaBoardService.cmtUpdate(cmtVO);
+
+		model.addAttribute("result", result);
+
+		if (result > 0) {// 성공
+			return "success";
+		} else {// 실패
+			return "fail";
+		}
+	}
+
+	// 댓글 삭제하기
+	@ResponseBody
+	@PostMapping("/cmtDelete")
+	public String cmtDelete(@RequestBody CmtVO cmtVO, Model model) {
+
+		int result = this.qnaBoardService.cmtDelete(cmtVO);
+
+		model.addAttribute("result", result);
+
+		if (result > 0) {// 성공
+			return "success";
+		} else {// 실패
+			return "fail";
+		}
+
+	}
+}

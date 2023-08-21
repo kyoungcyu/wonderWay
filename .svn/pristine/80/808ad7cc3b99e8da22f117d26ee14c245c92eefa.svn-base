@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdFaqMapper">
+	<!-- 자주 사용되는 구문을 따로 관리 -->
+	<sql id="where">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+    	AND    (
+            FAQ_ID '%' || #{keyword} || '%' OR
+            FAQ_TT LIKE '%' || #{keyword} || '%' OR
+            FAQ_ANS LIKE'%' || #{keyword} || '%'
+        )
+        </if>
+        <if test="sort!=null and !sort.equals('')">
+	        	<choose>
+	        		<when test="sort=='F01'">
+	        			AND FAQ_CODE = 'F01'
+	        		</when>
+	        		<when test="sort=='F02'">
+	        			AND FAQ_CODE = 'F02'
+	        		</when>
+	        		<when test="sort=='F03'">
+	        			AND FAQ_CODE = 'F03'
+	        		</when>
+	        		<when test="sort=='F04'">
+	        			AND FAQ_CODE = 'F04'
+	        		</when>
+	        		<when test="sort=='F05'">
+	        			AND FAQ_CODE = 'F05'
+	        		</when>
+	        		<when test="sort=='F06'">
+	        			AND FAQ_CODE = 'F06'
+	        		</when>
+	        	</choose>
+	        </if>
+	</sql>
+
+	<!-- FAQ 목록 -->
+	<select id="faqList" parameterType="hashMap" resultType="faqVO">
+		WITH T AS(
+		    SELECT ROW_NUMBER() OVER(ORDER BY FAQ_ID ASC) RNUM,
+		            FAQ_ID, FAQ_DETAIL, FAQ_TT,
+		            FAQ_CODE, ATTACH_ID, FAQ_ANS
+		    FROM FAQ
+		    WHERE  1 = 1
+		    <include refid="where"></include>
+		    ORDER BY FAQ_ID
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- FAQ 수 -->
+	<select id="faqTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM FAQ
+		WHERE  1 = 1
+		<include refid="where"></include>
+	</select>
+	
+	<!-- FAQ 등록 -->
+	<insert id="faqRegistration" parameterType="faqVO">
+		<selectKey resultType="String" order="BEFORE" keyProperty="faqId">
+			SELECT NVL(SUBSTR(MAX(FAQ_ID),1,11)||TRIM(TO_CHAR(SUBSTR(MAX(FAQ_ID),-3,3)+1,'000')),#{faqCode}||TO_CHAR(SYSDATE,'YYYYMMDD')||'001')
+			FROM FAQ WHERE FAQ_CODE = #{faqCode} AND SUBSTR(FAQ_ID,4,8) = TO_CHAR(SYSDATE,'YYYYMMDD')
+		</selectKey>
+		INSERT INTO FAQ (FAQ_ID, FAQ_TT, FAQ_CODE, FAQ_ANS)
+		VALUES (#{faqId}, #{faqTt}, #{faqCode}, #{faqAns})
+	</insert>
+	
+	<!-- FAQ 선택 -->
+	<select id="faqSelect" parameterType="faqVO" resultType="faqVO">
+		SELECT
+		    FAQ_ID, FAQ_TT, FAQ_CODE, FAQ_ANS
+		FROM
+		    FAQ
+		WHERE
+			FAQ_ID =#{faqId}
+	</select>
+	
+	<!-- FAQ 수정 -->
+	<update id="faqModifyPost" parameterType="faqVO">
+		UPDATE FAQ
+		SET
+			FAQ_TT = #{faqTt},
+			FAQ_CODE = #{faqCode},
+			FAQ_ANS = #{faqAns}
+		WHERE
+			FAQ_ID =#{faqId}
+	</update>
+	
+	<!-- FAQ 삭제 -->
+	<delete id="faqDelete" parameterType="faqVO">
+		DELETE FROM FAQ
+		WHERE FAQ_ID = #{faqId}
+	</delete>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

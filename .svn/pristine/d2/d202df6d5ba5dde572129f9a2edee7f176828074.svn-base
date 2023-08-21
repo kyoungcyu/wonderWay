@@ -1,0 +1,160 @@
+package kr.or.ddit.business.service.impl;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.business.mapper.BsBusiMapper;
+import kr.or.ddit.business.service.BsBusiService;
+import kr.or.ddit.util.CommonFile;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BusiVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class BsBusiServiceImpl implements BsBusiService{
+   @Autowired
+   BsBusiMapper bsBusiMapper;
+   
+   @Override
+   public List<BusiVO> busiList(){
+      return this.bsBusiMapper.busiList();
+   }
+   
+   @Override
+   @Transactional
+   public int create(BusiVO busiVO) {
+	   
+	    int cnt1 = this.bsBusiMapper.create(busiVO);
+	    int cnt2 = this.bsBusiMapper.insertAuth(busiVO);
+	    
+	    return cnt1 + cnt2;
+   }
+   
+   @Override
+   public BusiVO busiOne(BusiVO busiVO){
+      return this.bsBusiMapper.busiOne(busiVO);
+   }
+   @Override
+   public BusiVO userDetail(String lginId){
+      return this.bsBusiMapper.userDetail(lginId);
+   }
+
+   @Override
+   public int checkBusiId(BusiVO busiVO) {
+	   return this.bsBusiMapper.checkBusiId(busiVO);
+}
+   
+   @Override
+   public int checkBsEmail(BusiVO busiVO) {
+	   return this.bsBusiMapper.checkBsEmail(busiVO);
+   }
+   @Override
+   public int resetPw(BusiVO busiVO) {
+	   return this.bsBusiMapper.resetPw(busiVO);
+   }
+   @Override
+   public int resetTel(BusiVO busiVO) {
+	   return this.bsBusiMapper.resetTel(busiVO);
+   }
+
+	@Override
+	public int updateBank(BusiVO busiVO) {
+		return this.bsBusiMapper.updateBank(busiVO);
+	}
+	   
+	@Override
+	public int withDraw(BusiVO busiVO) {
+		return this.bsBusiMapper.withDraw(busiVO);
+	}
+	
+	@Override
+	public int updateGubun(BusiVO busiVO) {
+		return this.bsBusiMapper.updateGubun(busiVO);
+	}
+	@Override
+	public int chatTime(BusiVO busiVO) {
+		return this.bsBusiMapper.chatTime(busiVO);
+	}
+	@Override
+	public int updateImg(BusiVO busiVO) {
+		//1. busi 테이블에 insert
+//		int result = this.bsBusiMapper.updateImg(busiVO);
+		log.info("busiVO :"+busiVO);
+				
+		//2. 첨부파일 처리
+		AttachVO attachVO = new AttachVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+		log.info("attachDeVOlist :"+attachDeVOlist);
+		
+		//2.1. ATTACH테이블(ATTACH_ID, ATTACH_DEL)에 insert
+		attachVO.setAttachId(busiVO.getBusiId());
+		attachVO.setAttachDel("N");
+		log.info("attachVO :"+attachVO);
+		this.bsBusiMapper.attachInsert(attachVO);
+		
+		//2.2. ATTACH_DE테이블에 insert
+		// <input name="picture" type="file"
+		MultipartFile[] uploads = busiVO.getUploads();
+		
+		for(MultipartFile upload : uploads) {
+			String orgNm = upload.getOriginalFilename();
+
+			//UUID 처리 시작
+			UUID uuid = UUID.randomUUID();
+			String fileNm = uuid.toString() + "_" + orgNm;
+
+			// 파일 업로드 시작 ===
+			File uploadPath = new File(CommonFile.uploadFolder+"\\busi", CommonFile.getFolder());
+			if (uploadPath.exists() == false) {
+				uploadPath.mkdirs();
+			}
+
+			log.info("uploadPath => " + uploadPath.getAbsolutePath());
+			// 설계
+			File saveFile = new File(uploadPath, fileNm);
+			try {
+				upload.transferTo(saveFile);
+	
+				AttachDeVO attachDeVO = new AttachDeVO();
+				attachDeVO.setAttachId(attachVO.getAttachId());
+				attachDeVO.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm); // 파일 저장 경로
+				attachDeVO.setOrgNm(orgNm);// 파일 원본 명
+				attachDeVO.setFileNm(fileNm);// 파일 저장명
+				attachDeVO.setFileSz(upload.getSize()); // 파일 사이즈
+				attachDeVO.setFileTy(upload.getContentType()); // 파일 컨텐츠 타입
+	
+				log.info("insert할 attachDeVO : " + attachDeVO);
+	
+				attachDeVOlist.add(attachDeVO);
+			} catch (Exception e) {
+				log.error(e.getMessage());
+			}
+		}//end for
+		
+		log.info("attachDeVOlist : " + attachDeVOlist);
+
+		int result = this.bsBusiMapper.attachDeInsert(attachDeVOlist);
+
+		return result;
+	}
+
+	@Override
+	public String getImgPath(String busiId) {
+		return this.bsBusiMapper.getImgPath(busiId);
+	}
+	
+}
+	
+   

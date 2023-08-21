@@ -1,0 +1,29 @@
+package kr.or.ddit.admin.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BusiVO;
+
+public interface AdBusiService {
+	//숙박 업체 목록
+	public List<BusiVO> styList(Map<String, String> map);
+	
+	//숙박업체 수
+	public int styTotal(Map<String, String> map);
+	
+	//렌트카 업체 목록
+	public List<BusiVO> rntList(Map<String, String> map);
+	
+	//렌트카 업체 수
+	public int rntTotal(Map<String, String> map);
+	
+	//숙박업체 상세
+	public BusiVO styDetail(BusiVO busiVO);
+	
+	//숙박 업체 방의 개수
+	public int countRoom(BusiVO busiVO);
+	
+	//최근 30일 예약건수
+	public int countRsv(BusiVO busiVO);
+}

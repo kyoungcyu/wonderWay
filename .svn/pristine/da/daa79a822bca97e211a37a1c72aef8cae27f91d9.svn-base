@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdBusiMapper">
+	<sql id="styWhere">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+	    	AND    (
+	            BUSI_ID   LIKE '%' || #{keyword} || '%' OR
+	            BUSI_NM   LIKE '%' || #{keyword} || '%' OR
+	            BUSI_TEL   LIKE '%' || #{keyword} || '%' OR
+	            BUSI_LOC LIKE '%' || #{keyword} || '%'
+	        )
+        </if>
+         <if test="sort!=null and !sort.equals('')">
+	        <choose>
+		      <when test="sort == '호텔'">
+		         AND ACMD_CODE = 'A01'
+		      </when>
+		      <when test="sort == '모텔'">
+		         AND ACMD_CODE = 'A02'
+		      </when>
+		      <when test="sort == '리조트'">
+		         AND ACMD_CODE = 'A03'
+		      </when>
+		      <when test="sort == '게스트하우스'">
+		         AND ACMD_CODE = 'A04'
+		      </when>
+		      <when test="sort == '펜션'">
+		         AND ACMD_CODE = 'A05'
+		      </when>
+		   </choose>
+         </if>
+	</sql>
+	
+	<!-- 숙박업체 리스트 -->
+	<select id="styList" resultType="busiVO">
+		WITH T AS(
+		    SELECT
+			    ROW_NUMBER() OVER(ORDER BY REG_DT) RNUM,
+			    A.BUSI_ID, A.LGIN_ID, A.BUSI_NM, A.BUSI_LOC, A.RPRSV_NM, A.BUSI_SCR,
+			    A.ENABLED, A.BUSI_NO, A.BUSI_EMAIL, A.BUSI_TEL,REG_DT,
+			    A. WHDWL_DT, A.CLS_DT, A.ACMD_CODE, A.BUSI_IMG
+			FROM
+			    BUSI A
+			WHERE
+			    BUSI_CODE = 'B01'
+		    	<include refid="styWhere"></include>
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 숙박업체 수 -->
+	<select id="styTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM BUSI
+		WHERE BUSI_CODE = 'B01' 
+		<include refid="styWhere"></include>
+	</select>
+	
+	<sql id="rntWhere">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+	    	AND    (
+	            BUSI_NM   LIKE '%' || #{keyword} || '%' OR
+	            BUSI_LOC LIKE '%' || #{keyword} || '%'
+	        )
+        </if>
+        <if test="sort!=null and !sort.equals('')">
+        	<choose>
+        		<when test="sort == '활성'">
+        			AND ENABLED = '1'
+        		</when>
+        		<when test="sort == '비활성'">
+        			AND ENABLED = '0'
+        		</when>
+        	</choose>
+        </if>
+	</sql>
+	
+	
+	<!-- 렌터카업체 리스트 -->
+	<select id="rntList" resultType="busiVO">
+		WITH T AS(
+		    SELECT
+			    ROW_NUMBER() OVER(ORDER BY REG_DT) RNUM,
+			    A.BUSI_ID, A.LGIN_ID, A.BUSI_NM, A.BUSI_LOC, A.RPRSV_NM, A.BUSI_SCR,
+			    A.ENABLED, A.BUSI_NO, A.BUSI_EMAIL, A.BUSI_TEL,REG_DT,
+			    A. WHDWL_DT, A.CLS_DT, A.ACMD_CODE, A.BUSI_IMG
+			FROM
+			    BUSI A
+			WHERE
+			    BUSI_CODE = 'B02'
+		    	<include refid="rntWhere"></include>
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 숙박업체 수 -->
+	<select id="rntTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM BUSI
+		WHERE BUSI_CODE = 'B02' 
+		<include refid="rntWhere"></include>
+	</select>
+	
+	<!-- 숙박 업체 상세 -->
+	<select id="styDetail" parameterType="busiVO" resultType="busiVO">
+		SELECT 
+		    A.BUSI_ID, A.LGIN_ID, A.BUSI_NM, A.BUSI_LOC, A.RPRSV_NM, A.BUSI_SCR, A.ENABLED,
+		    A.BUSI_PCY, A.BUSI_CODE, A.BUSI_NO, A.BUSI_INFO, A.BUSI_EMAIL,
+		    A.BUSI_TEL, A.BUSI_MNY, A.REG_DT, A.WHDWL_DT, A.CLS_DT, A.RPRSV_BRDT, A.OPBIZ_YMD,
+		    A.ACMD_CODE, A.CHAT_ST, A.CHAT_ED, A.ACCOUNT, A.BUSI_IMG
+		FROM BUSI A
+		WHERE BUSI_ID = #{busiId}
+	</select>
+	
+	<!-- 객실리스트 -->
+	<select id="roomList" parameterType="busiVO" resultType="rmVO" >
+		SELECT 
+		    A.RM_ID, A.RM_NM, A.RM_PR, A.RM_DC, A.STD_PP, 
+		    A.MAX_PP, A.PP_EX_FEE, A.BUSI_ID, A.RM_BED, B.SAVE_PATH
+		FROM 
+		    RM A
+		LEFT JOIN ATTACH_DE B ON A.RM_ID = B.ATTACH_ID
+		WHERE A.BUSI_ID = #{busiId}
+	</select>
+	
+	<!-- 방의 개수 -->
+	<select id="countRoom" parameterType="busiVO" resultType="int">
+		SELECT COUNT(*) FROM RM WHERE BUSI_ID = #{busiId}
+	</select>
+	
+	<!-- 최근 30일 예약건수 -->
+	<select id="countRsv" parameterType="busiVO" resultType="int">
+		SELECT
+		   COUNT(*)
+		FROM
+		    RSV
+		WHERE RSV_CODE = 'K02'
+			AND BUSI_ID = #{busiId}
+			AND RSV_DT &lt; SYSDATE - 30
+	</select>
+	
+	<!-- 최근 30일 수익 -->
+	<select id="totalPay" parameterType="busiVO" resultType="String">
+		SELECT 
+			SUM(A.PAY_PR)
+		FROM 
+			PAY A
+		JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		WHERE 
+			B.BUSI_ID = #{busiId}
+		  AND A.PAY_DT > SYSDATE - 30
+		  AND A.RFD_CK = 'N'
+	</select>
+	
+	<!-- 업체 활성/비활성화 -->
+	<update id="updateAbled" parameterType="busiVO">
+		UPDATE 
+			BUSI
+		SET 
+			ENABLED = #{enabled}
+		WHERE 
+			BUSI_ID = #{busiId}
+	</update>
+	
+	<!-- 렌터카 차량의 개수 -->
+	<select id="countCar" parameterType="busiVO" resultType="int">
+		SELECT COUNT(*) FROM CAR WHERE BUSI_ID = #{busiId}
+	</select>
+	
+	<!-- 차량리스트 -->
+	<select id="carList" parameterType="busiVO" resultType="carVO" >
+		SELECT
+		    CAR_NUM, CAR_CODE, CAR_KND, CAR_YR, CAR_IMG,
+		    CAR_FEE, FUEL_TY, MAX_PP, BUSI_ID, CAR_OP
+		FROM
+		    CAR
+		WHERE BUSI_ID = #{busiId}
+	</select>
+	
+	<!-- 전체 업체 리스트 -->
+	<select id="busiList" resultType="busiVO">
+		SELECT
+		    BUSI_ID, LGIN_ID, BUSI_NM, BUSI_CODE
+		FROM
+		    BUSI
+		WHERE
+		    ENABLED = '1'
+	</select>
+	
+	<!-- 숙박 업체 엑셀 다운로드 -->
+	<select id="styExcelList" resultType="busiVO">
+		SELECT
+			BUSI_ID, LGIN_ID, BUSI_NM, BUSI_LOC, RPRSV_NM, BUSI_SCR,
+		    BUSI_NO, BUSI_EMAIL, BUSI_TEL, BUSI_MNY, ACCOUNT, BUSI_CODE,
+		    REG_DT, WHDWL_DT, ENABLED, ACMD_CODE
+		FROM
+		    BUSI
+		WHERE
+			BUSI_CODE = 'B01'
+	</select>
+	
+	<!-- 렌터카 업체 엑셀 다운로드 -->
+	<select id="rntExcelList" resultType="busiVO">
+		SELECT
+			BUSI_ID, LGIN_ID, BUSI_NM, BUSI_LOC, RPRSV_NM, BUSI_SCR,
+		    BUSI_NO, BUSI_EMAIL, BUSI_TEL, BUSI_MNY, ACCOUNT, BUSI_CODE,
+		    REG_DT, WHDWL_DT, ENABLED, ACMD_CODE
+		FROM
+		    BUSI
+		WHERE
+			BUSI_CODE = 'B02'
+	</select>
+	
+	<!-- 활성 숙박 업체수 -->
+	<select id="enableSty" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE ENABLED = 1
+		AND BUSI_CODE = 'B01'
+	</select>
+	
+	<!-- 비활성 숙박 업체수 -->
+	<select id="disableSty" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE ENABLED = 0
+		AND BUSI_CODE = 'B01'
+	</select>
+	
+	<!-- 호텔 수 -->
+	<select id="hotel" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE ENABLED = 1
+		AND ACMD_CODE = 'A01'
+	</select>
+	
+	<!-- 모텔 수 -->
+	<select id="motel" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE ENABLED = 1
+		AND ACMD_CODE = 'A02'
+	</select>
+	
+	<!-- 리조트 수 -->
+	<select id="resort" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE ENABLED = 1
+		AND ACMD_CODE = 'A03'
+	</select>
+	
+	<!-- 게스트하우스 수 -->
+	<select id="ghouse" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE ENABLED = 1
+		AND ACMD_CODE = 'A04'
+	</select>
+	
+	<!-- 펜션 수 -->
+	<select id="pension" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE ENABLED = 1
+		AND ACMD_CODE = 'A05'
+	</select>
+	
+	<!-- 이번달 숙박 업체 매출 -->
+	<select id="thisMthSty" resultType="int">
+		SELECT SUM(A.PAY_PR)
+		FROM PAY A
+		JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		WHERE A.PAY_DT >= TRUNC(SYSDATE, 'MONTH')
+		  AND A.PAY_DT &lt; TRUNC(SYSDATE, 'MONTH') + INTERVAL '1' MONTH
+		  AND C.BUSI_CODE = 'B01'
+		  AND B.RSV_CODE = 'K02'
+	</select>
+	
+	<!-- 지난달 숙박 업체 매출 -->
+	<select id="lastMthSty" resultType="int">
+		SELECT SUM(A.PAY_PR) AS last_month_sales
+		FROM PAY A
+		JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		WHERE A.PAY_DT >= TRUNC(SYSDATE, 'MONTH') - INTERVAL '1' MONTH
+		  AND A.PAY_DT &lt; TRUNC(SYSDATE, 'MONTH')
+		  AND C.BUSI_CODE = 'B01'
+		  AND B.RSV_CODE = 'K02'
+	</select>
+	
+	<!-- 활성 렌터카 업체수 -->
+	<select id="enableRnt" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE ENABLED = 1
+		AND BUSI_CODE = 'B02'
+	</select>
+	
+	<!-- 비활성 렌터카 업체수 -->
+	<select id="disableRnt" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE ENABLED = 0
+		AND BUSI_CODE = 'B02'
+	</select>
+	
+	<!-- 이번달 숙박 업체 매출 -->
+	<select id="thisMthRnt" resultType="int">
+		SELECT SUM(A.PAY_PR)
+		FROM PAY A
+		JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		WHERE A.PAY_DT >= TRUNC(SYSDATE, 'MONTH')
+		  AND A.PAY_DT &lt; TRUNC(SYSDATE, 'MONTH') + INTERVAL '1' MONTH
+		  AND C.BUSI_CODE = 'B02'
+		  AND B.RSV_CODE = 'K02'
+	</select>
+	
+	<!-- 지난달 숙박 업체 매출 -->
+	<select id="lastMthRnt" resultType="int">
+		SELECT SUM(A.PAY_PR) AS last_month_sales
+		FROM PAY A
+		JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		WHERE A.PAY_DT >= TRUNC(SYSDATE, 'MONTH') - INTERVAL '1' MONTH
+		  AND A.PAY_DT &lt; TRUNC(SYSDATE, 'MONTH')
+		  AND C.BUSI_CODE = 'B02'
+		  AND B.RSV_CODE = 'K02'
+	</select>
+	
+	<resultMap type="adBusiSalesVO" id="adBusiSalesMap">
+		<result column="RNUM" property="rowNum"/>
+		<result column="PAY_ID" property="payId"/>
+		<result column="BUSI_NM" property="busiNm"/>
+		<result column="RSV_ID" property="rsvId"/>
+		<result column="PAY_PR" property="payPr"/>
+		<result column="RSV_DT" property="rsvDt"/>
+	</resultMap>
+	
+	<!-- 업체별 정산 내역 -->
+	<select id="busiSalesList" parameterType="hashMap" resultMap="adBusiSalesMap">
+		WITH T AS(
+			SELECT ROW_NUMBER() OVER(ORDER BY B.RSV_DT DESC) RNUM 
+				 , A.PAY_ID AS PAY_ID
+			     , C.BUSI_NM AS BUSI_NM
+			     , B.RSV_ID AS RSV_ID
+			     , A.PAY_PR AS PAY_PR
+			     , B.RSV_DT AS RSV_DT
+			FROM PAY A
+			INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+			INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+			WHERE C.BUSI_ID = #{busiSearch}
+			AND B.RSV_CODE = 'K02'
+			AND EXTRACT(MONTH FROM PAY_DT) = #{sort}
+			ORDER BY B.RSV_DT DESC
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 업체별 정산 내역 총 데이터 수 -->
+	<select id="getTotalSales" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM PAY A
+		INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		WHERE C.BUSI_ID = #{busiSearch}
+		AND B.RSV_CODE = 'K02'
+		AND EXTRACT(MONTH FROM PAY_DT) = #{sort}
+	</select>
+	
+	<select id="salesYear" parameterType="String" resultType="int">
+		SELECT SUM(A.PAY_PR)
+		FROM PAY A   
+		INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID   
+		INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID   
+		WHERE B.RSV_CODE = 'K02'   
+		AND C.BUSI_ID = #{busiSearch}
+		AND A.PAY_DT &gt;= TRUNC(SYSDATE, 'YEAR')
+		AND A.PAY_DT &lt;= SYSDATE
+	</select>
+	
+	<select id="salesMonth" parameterType="String" resultType="int">
+		SELECT SUM(A.PAY_PR)
+		FROM PAY A   
+		INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID   
+		INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID   
+		WHERE B.RSV_CODE = 'K02'   
+		AND C.BUSI_ID = #{busiSearch}
+		AND A.PAY_DT &gt;= TRUNC(SYSDATE, 'MONTH')
+		AND A.PAY_DT &lt;= SYSDATE
+	</select>
+	
+	<select id="downloadExcel" parameterType="hashMap" resultMap="adBusiSalesMap">
+		SELECT ROW_NUMBER() OVER(ORDER BY B.RSV_DT DESC) RNUM 
+			 , A.PAY_ID AS PAY_ID
+		     , C.BUSI_NM AS BUSI_NM
+		     , B.RSV_ID AS RSV_ID
+		     , A.PAY_PR AS PAY_PR
+		     , B.RSV_DT AS RSV_DT
+		FROM PAY A
+		INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		WHERE C.BUSI_ID = #{busiSearch}
+		AND B.RSV_CODE = 'K02'
+		AND EXTRACT(MONTH FROM PAY_DT) = #{sort}
+		ORDER BY B.RSV_DT DESC
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

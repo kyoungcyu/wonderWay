@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdTourMapper">
+
+	<!-- 광고 resultMap 선언 -->
+	<resultMap id="tourListMap" type="tourVO">
+		<result column="TOUR_ID" property="tourId" />
+		<result column="TOUR_NM" property="tourNm" />
+		<result column="TOUR_DC" property="tourDc" />
+		<result column="LATI" property="lati" />
+		<result column="LONGI" property="longi" />
+		<result column="IMG_PATH" property="imgPath" />
+		<result column="ATTACH_ID" property="attachId" />
+		<result column="TOUR_CODE" property="tourCode" />
+		<result column="TOUR_LOC" property="tourLoc" />
+	</resultMap>
+	
+	<sql id="orderBy">
+		<choose>
+			<when test="sort=='tourNmAsc'">
+				ORDER BY TOUR_NM ASC
+			</when>
+			<when test="sort=='tourNmDesc'">
+				ORDER BY TOUR_NM DESC
+			</when>
+			<when test="sort=='tourCodeAsc'">
+				ORDER BY FN_CODE_TO_NM(TOUR_CODE) ASC
+			</when>
+			<when test="sort=='tourCodeDesc'">
+				ORDER BY FN_CODE_TO_NM(TOUR_CODE) DESC
+			</when>
+			<otherwise>
+				ORDER BY TOUR_ID DESC
+			</otherwise>
+		</choose>
+	</sql>
+
+	<select id="tourList" parameterType="hashMap" resultMap="tourListMap">
+		WITH T AS(
+			SELECT
+				    ROW_NUMBER() OVER(<include refid="orderBy"></include>) RNUM
+				  , TOUR_ID AS TOUR_ID
+			      , TOUR_NM AS TOUR_NM
+			      , TOUR_DC AS TOUR_DC
+			      , LATI AS LATI
+			      , LONGI AS LONGI
+			      , ATTACH_ID AS ATTACH_ID
+			      , FN_CODE_TO_NM(TOUR_CODE) AS TOUR_CODE
+			      , TOUR_LOC AS TOUR_LOC
+			FROM TOUR
+			WHERE TOUR_DEL = 'N'
+		<!-- 여행지명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND TOUR_NM LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 정렬 검색 -->
+		<if test="sort!=null and !sort.equals('')">
+			<choose>
+				<when test="sort=='tourNmAsc'">
+					ORDER BY TOUR_NM ASC
+				</when>
+				<when test="sort=='tourNmDesc'">
+					ORDER BY TOUR_NM DESC
+				</when>
+				<when test="sort=='tourCodeAsc'">
+					ORDER BY FN_CODE_TO_NM(TOUR_CODE) ASC
+				</when>
+				<when test="sort=='tourCodeDesc'">
+					ORDER BY FN_CODE_TO_NM(TOUR_CODE) DESC
+				</when>
+			</choose>
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	<select id="tourDetail" parameterType="String" resultMap="tourListMap">
+		SELECT TOUR_ID AS TOUR_ID
+		     , TOUR_NM AS TOUR_NM
+		     , TOUR_DC AS TOUR_DC
+		     , LATI AS LATI
+		     , LONGI AS LONGI
+		     , ATTACH_ID AS ATTACH_ID
+		     , fn_code_to_nm(TOUR_CODE) AS TOUR_CODE
+		     , TOUR_LOC AS TOUR_LOC
+		FROM TOUR
+		WHERE TOUR_ID = #{tourId}
+	</select>
+	
+	<select id="getImgPath" parameterType="String" resultType="String">
+		SELECT (SELECT SAVE_PATH FROM ATTACH_DE WHERE ATTACH_ID = TOUR_ID)
+		FROM TOUR
+		WHERE TOUR_ID = #{tourId}
+	</select>
+	
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM TOUR
+		<!-- 여행지명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND TOUR_NM LIKE '%' || #{keyword} || '%'
+		</if>
+	</select>
+	
+	
+	<!-- 1. 여행지 등록 -->
+	<insert id="tourReg" parameterType="tourVO">
+		<selectKey order="BEFORE" resultType="string" keyProperty="tourId">
+			SELECT 'S'|| LPAD((SELECT MAX(SUBSTR(TOUR_ID,3))+1 FROM TOUR),4,0)
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TOUR(
+		      TOUR_ID
+		    , TOUR_NM
+		    , TOUR_DC
+		    , LATI
+		    , LONGI
+		    , TOUR_CODE
+		    , TOUR_LOC
+		) VALUES(
+		      #{tourId}
+		    , #{tourNm}
+		    , #{tourDc}
+		    , #{lati}
+		    , #{longi}
+		    , #{tourCode}
+		    , #{tourLoc}
+		)
+	</insert>
+	
+	<!-- 2. 첨부파일 테이블 등록 -->
+	<insert id="attachInsert" parameterType="attachVO">
+		<selectKey resultType="String" order="BEFORE" keyProperty="attachId">
+			SELECT 'S'|| LPAD((SELECT MAX(SUBSTR(TOUR_ID,3)) FROM TOUR),4,0) FROM DUAL
+		</selectKey>
+		INSERT INTO ATTACH(
+				ATTACH_ID
+			  , ATTACH_DEL
+		) VALUES(
+				#{attachId}
+			  , 'N'
+		)
+	</insert>
+	
+	<!-- 3. 첨부파일_상세 테이블  등록-->
+	<update id="attachDeInsert" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(
+					ATTACH_DE_ID
+				  , ATTACH_ID
+				  , ORG_NM
+				  , FILE_NM
+				  , SAVE_PATH
+				  , FILE_SZ
+				  , FILE_TY
+				  , FILE_DEL
+				  , FILE_DT
+			) VALUES(
+					#{idx}+1
+				  , #{attachDeVO.attachId}
+				  , #{attachDeVO.orgNm}
+				  , #{attachDeVO.fileNm}
+				  , #{attachDeVO.savePath}
+				  , #{attachDeVO.fileSz}
+				  , #{attachDeVO.fileTy}
+				  , 'N'
+				  , SYSDATE
+			)
+		</foreach>
+	</update>
+	
+	<!-- 4. brd 테이블의  ATTACH_ID 처리 -->
+	<update id="attachIdUpdate" parameterType="brdVO">
+		UPDATE TOUR
+		SET ATTACH_ID = #{attachId}
+		WHERE TOUR_ID = #{tourId}
+	</update>
+	
+	<update id="tourDel" parameterType="String">
+		UPDATE TOUR
+		SET TOUR_DEL = 'Y'
+		WHERE TOUR_ID = #{tourId}
+	</update>
+
+	<update id="tourAttachDel" parameterType="String">
+		UPDATE ATTACH
+   		SET ATTACH_DEL = 'Y'
+ 		WHERE ATTACH_ID = #{attachId}
+	</update>
+	
+	
+	<insert id="insertTourExcel" parameterType="tourVO">
+		<selectKey order="BEFORE" resultType="string" keyProperty="tourId">
+			SELECT 'S'|| LPAD((SELECT MAX(SUBSTR(TOUR_ID,3))+1 FROM TOUR),4,0)
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TOUR(
+		      TOUR_ID
+		    , TOUR_NM
+		    , TOUR_DC
+		    , LATI
+		    , LONGI
+		    , TOUR_CODE
+		    , TOUR_LOC
+		) VALUES(
+		      #{tourId}
+		    , #{tourNm}
+		    , #{tourDc}
+		    , #{lati}
+		    , #{longi}
+		    , #{tourCode}
+		    , #{tourLoc}
+		)
+	</insert>
+	
+	<!-- 여행지 매거진용 여행지 목록 -->
+	<select id="tourListMagazine" resultType="tourVO">
+		SELECT TOUR_ID
+		     , TOUR_NM
+		FROM TOUR
+		ORDER BY TOUR_NM ASC
+	</select>
+	
+	<!-- 여행지 매거진 등록 -->
+	<!-- 1.글 등록 -->
+	<insert id="magazineRegister" parameterType="brdVO">
+		<selectKey resultType="String" order="BEFORE" keyProperty="brdId">
+			SELECT  NVL(SUBSTR(MAX(BRD_ID), 1, 11)
+					|| TRIM(TO_CHAR(SUBSTR(MAX(BRD_ID), -3, 3) + 1, '000'))
+				  , 'D05' || TO_CHAR(SYSDATE, 'YYYYMMDD') || '001')
+			FROM BRD 
+			WHERE BRD_KND = 'D05' AND SUBSTR(BRD_ID, 4, 8) = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		</selectKey>
+		INSERT INTO BRD(
+				BRD_ID
+			  , BRD_KND
+			  , BRD_TT
+			  , BRD_CNTN
+			  , TOUR_ID
+			  , FRST_WRTR
+			  , FRST_DT
+			  , LAST_WRTR
+			  , LAST_DT
+		) VALUES(		
+				#{brdId}
+			  , #{brdKnd}
+			  , #{brdTt}
+			  , #{brdCntn}
+			  , #{tourId}
+			  , #{frstWrtr}
+			  , SYSDATE
+			  , #{lastWrtr}
+			  , SYSDATE
+		)
+	</insert>
+	
+	<!-- 2.첨부파일 테이블 등록 -->
+	<insert id="attachInsertMagazine" parameterType="attachVO">
+		<selectKey resultType="String" order="BEFORE" keyProperty="attachId">
+			SELECT  NVL(SUBSTR(MAX(BRD_ID), 1, 11)
+					|| TRIM(TO_CHAR(SUBSTR(MAX(BRD_ID), -3, 3), '000'))
+				  , 'D05' || TO_CHAR(SYSDATE, 'YYYYMMDD') || '001')
+			FROM BRD 
+			WHERE BRD_KND = 'D05' AND SUBSTR(BRD_ID, 4, 8) = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		</selectKey>
+		INSERT INTO ATTACH(
+				ATTACH_ID
+			  , ATTACH_DEL
+		) VALUES(
+				#{attachId}
+			   ,'N'
+		)
+	</insert>
+	
+	<!-- 4.brd 테이블의  ATTACH_ID 처리 -->
+	<update id="attachIdUpdateMagazine" parameterType="brdVO">
+		UPDATE BRD
+		SET ATTACH_ID = #{attachId}
+		WHERE BRD_ID = #{brdId}
+	</update>
+	
+	<resultMap type="brdVO" id="brdMagazineMap">
+		<result column="BRD_ID" property="brdId" />
+		<result column="BRD_KND" property="brdKnd" />
+		<result column="BRD_TT" property="brdTt" />
+		<result column="TOUR_ID" property="tourId" />
+		<result column="BRD_CNTN" property="brdCntn" />
+		<result column="FRST_DT" property="frstDt" />
+		<result column="LAST_DT" property="lastDt" />
+		<result column="LAST_WRTR" property="lastWrtr" />
+		<result column="INQ_CNT" property="inqCnt" />
+		<collection property="attachVOList" resultMap="attachMap"></collection>
+	</resultMap>
+	
+	<resultMap type="attachVO" id="attachMap">
+		<result property="attachId" column="ATTACH_ID" />
+		<result property="attachDel" column="ATTACH_DEl" />
+		<collection property="attachDeVOList" resultMap="attachDeMap"></collection>
+	</resultMap>
+	
+	<resultMap type="attachDeVO" id="attachDeMap">
+		<result property="attachDeId" column="ATTACH_DEl" />
+		<result property="attachId" column="ATTACH_ID" />
+		<result property="orgNm" column="ORG_NM" />
+		<result property="fileNm" column="FILE_NM" />
+		<result property="savePath" column="SAVE_PATH" />
+		<result property="fileSz" column="FILE_SZ" />
+		<result property="fileTy" column="FILE_TY" />
+		<result property="fileDel" column="FILE_DEL" />
+	</resultMap>
+
+	<sql id="orderByMgz">
+		<choose>
+			<when test="sort=='dateAsc'">
+				ORDER BY A.FRST_DT ASC
+			</when>
+			<when test="sort=='dateDesc'">
+				ORDER BY A.FRST_DT DESC
+			</when>
+			<when test="sort=='tourNmAsc'">
+				ORDER BY A.TOUR_ID ASC
+			</when>
+			<when test="sort=='tourNmDesc'">
+				ORDER BY A.TOUR_ID DESC
+			</when>
+			<otherwise>
+				ORDER BY A.LAST_DT DESC
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<select id="tourMagazineList" parameterType="hashMap" resultMap="brdMagazineMap">
+		WITH T AS(
+			SELECT
+				   ROW_NUMBER() OVER(<include refid="orderByMgz"></include>) RNUM
+				 , A.BRD_ID AS BRD_ID
+			     , A.BRD_TT AS BRD_TT
+			     , E.TOUR_NM AS TOUR_ID
+			     , A.FRST_DT AS FRST_DT
+			     , A.LAST_DT AS LAST_DT
+			     , B.ADMIN_NM AS LAST_WRTR
+			     , A.INQ_CNT AS INQ_CNT
+			FROM BRD A
+			INNER JOIN ADMIN B ON A.LAST_WRTR = B.ADMIN_ID
+			INNER JOIN ATTACH C ON A.BRD_ID = C.ATTACH_ID
+			INNER JOIN ATTACH_DE D ON C.ATTACH_ID = D.ATTACH_ID
+			INNER JOIN TOUR E ON A.TOUR_ID = E.TOUR_ID
+			WHERE 1 = 1
+			<!-- 제목 검색 -->
+			<if test="keyword!=null and !keyword.equals('')">
+				AND A.BRD_TT LIKE '%' || #{keyword} || '%'
+			</if>
+			<!-- 등록 일자 검색 -->
+			<if test="periodSt!=null and !periodSt.equals('')">
+				AND A.FRST_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+			</if>
+			<if test="periodEd!=null and !periodEd.equals('')">
+				AND A.FRST_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+			</if>
+			<if test="sort!=null and !sort.equals('')">
+				<choose>
+					<when test="sort=='dateAsc'">
+						ORDER BY A.FRST_DT ASC
+					</when>
+					<when test="sort=='dateDesc'">
+						ORDER BY A.FRST_DT DESC
+					</when>
+					<when test="sort=='tourNmAsc'">
+						ORDER BY A.TOUR_ID ASC
+					</when>
+					<when test="sort=='tourNmDesc'">
+						ORDER BY A.TOUR_ID DESC
+					</when>
+				</choose>
+			</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	<select id="tourMagazineDetail" parameterType="String" resultMap="brdMagazineMap">
+		SELECT A.BRD_ID AS BRD_ID
+			 , FN_CODE_TO_NM(A.BRD_KND) AS BRD_KND
+			 , A.BRD_TT AS BRD_TT
+			 , (SELECT TOUR_NM FROM TOUR WHERE TOUR_ID = A.TOUR_ID) AS TOUR_ID
+			 , A.FRST_DT AS FRST_DT
+			 , D.ADMIN_NM AS LAST_WRTR
+			 , A.LAST_DT AS LAST_DT
+			 , A.ATTACH_ID AS ATTACH_ID
+			 , A.INQ_CNT AS INQ_CNT
+			 , A.BRD_CNTN AS BRD_CNTN
+			 , B.ATTACH_DEL AS ATTACH_DEL
+			 , C.ATTACH_DE_ID AS ATTACH_DE_ID
+			 , C.ORG_NM AS ORG_NM
+			 , C.FILE_NM AS FILE_NM
+			 , C.SAVE_PATH AS SAVE_PATH
+			 , C.FILE_SZ AS FILE_SZ
+			 , C.FILE_TY AS FILE_TY
+			 , C.FILE_DEL AS FILE_DEL
+		FROM BRD A
+		INNER JOIN ATTACH B ON A.ATTACH_ID = B.ATTACH_ID
+		INNER JOIN ATTACH_DE C ON B.ATTACH_ID = C.ATTACH_ID
+        INNER JOIN ADMIN D ON D.ADMIN_ID = A.FRST_WRTR
+		WHERE BRD_KND = 'D05'
+		AND BRD_ID = #{brdId} 
+		AND BRD_DEL != 'Y'
+	</select>
+	
+	
+	<select id="getTotalMagazine" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM BRD A
+		INNER JOIN ADMIN B ON A.LAST_WRTR = B.ADMIN_ID
+		INNER JOIN ATTACH C ON A.BRD_ID = C.ATTACH_ID
+		INNER JOIN ATTACH_DE D ON C.ATTACH_ID = D.ATTACH_ID
+		<!-- 제목 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND A.BRD_TT LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 등록 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND A.FRST_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND A.FRST_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	<!-- 여행후기 글 수정 -->
+	<!-- 1.여행후기 게시판 테이블 수정 -->
+	<update id="magazineUpdate" parameterType="brdVO">
+		UPDATE BRD 
+		SET 
+				BRD_TT = #{brdTt}
+			  , BRD_CNTN = #{brdCntn}
+			  , TOUR_ID = #{tourId}
+			  , LAST_WRTR = (SELECT ADMIN_ID FROM ADMIN WHERE ADMIN_NM = #{lastWrtr})
+			  , LAST_DT = SYSDATE
+		WHERE BRD_ID = #{brdId}
+	</update>
+	
+	<update id="attachDeBefUpdate" parameterType="brdVO">
+		DELETE FROM ATTACH_DE
+		WHERE  ATTACH_ID = #{brdId}
+	</update>
+	
+	<!-- 2.첨부파일 상세 테이블 업데이트-->
+	<update id="attachDeUpdate" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(
+					ATTACH_DE_ID
+				  , ATTACH_ID 
+				  , ORG_NM
+				  , FILE_NM
+				  , SAVE_PATH
+				  , FILE_SZ
+				  , FILE_TY
+				  , FILE_DEL
+				  , FILE_DT
+			) VALUES(
+					#{idx} + 1
+				  , (SELECT ATTACH_ID FROM BRD WHERE BRD_ID = #{attachDeVO.brdId})
+				  , #{attachDeVO.orgNm}
+				  , #{attachDeVO.fileNm}
+				  , #{attachDeVO.savePath}
+				  , #{attachDeVO.fileSz}
+				  , #{attachDeVO.fileTy}
+				  , 'N'
+				  , SYSDATE
+			)
+		</foreach>
+	</update>
+	
+	<delete id="magazineDeleteAtcDe" parameterType="String">
+		DELETE FROM ATTACH_DE
+		WHERE ATTACH_ID = #{attachId}
+	</delete>
+
+	<delete id="magazineDeleteAtc" parameterType="String">
+		DELETE FROM ATTACH
+		WHERE ATTACH_ID = #{attachId}
+	</delete>
+
+	<delete id="magazineDeleteBrd" parameterType="String">
+		DELETE FROM BRD
+		WHERE BRD_ID = #{attachId}
+	</delete>
+</mapper>

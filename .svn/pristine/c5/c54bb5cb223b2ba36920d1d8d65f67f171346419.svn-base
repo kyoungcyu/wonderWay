@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.member.mapper.QnaBoardMapper">
+
+
+	<sql id="where">
+		<!-- 전체검색 -->
+		<!-- 제목, 작성자, 내용 -->
+		<if test="keyword!=null">
+			AND (
+			BRD_TT LIKE '%' || #{keyword} || '%' OR
+			FRST_WRTR LIKE '%' || #{keyword} || '%' OR
+			BRD_CNTN LIKE '%' || #{keyword}|| '%'
+			)
+		</if>
+	</sql>
+
+	<sql id="sort">
+		<!-- 정렬 -->
+		<if test="sort!=''">
+			<choose>
+				<when test="sort=='frstDt'">
+					ORDER BY FRST_DT DESC
+				</when>
+				<when test="sort=='brdLike'">
+					ORDER BY BRD_LIKE DESC
+				</when>
+				<when test="sort=='inqCnt'">
+					ORDER BY INQ_CNT DESC
+				</when>
+			</choose>
+		</if>
+	</sql>
+
+
+
+
+	<!-- 오늘의 질문 조회 (질문 최근순 정렬 + 미답변 상태) -->
+	<select id="qnaBoardList" parameterType="hashMap" resultType="brdVO">
+		WITH T AS(
+			SELECT ROW_NUMBER() OVER(ORDER BY S.RNUM DESC) RNUM1, S.* FROM
+			(
+				SELECT
+				ROW_NUMBER() OVER(ORDER BY A.BRD_ID ASC) RNUM,
+				A.BRD_ID, A.BRD_KND, A.BRD_TT,
+				A.BRD_DEL, A.INTR, A.INTR_RESN, A.BRD_LIKE,
+				A.REPRT, A.TOUR_ID, A.REPRT_CK, A.FRST_WRTR, A.FRST_DT, A.LAST_WRTR,
+				A.LAST_DT,
+				A.ATTACH_ID, A.INQ_CNT, A.BRD_CNTN
+				FROM BRD A
+				LEFT JOIN ANS B ON A.BRD_ID = B.BRD_ID
+				WHERE B.BRD_ID IS NULL AND A.BRD_KND='D02' AND A.BRD_DEL='N'
+			) S
+			ORDER BY S.RNUM DESC
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM1 BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+
+	<!-- QNA : 답변 있는 질문만 조회 
+	data2 : {size2=5, sort=, currentPage2=1, keyword=}
+	-->
+	<select id="qnaBoardAnsList" parameterType="hashMap"
+		resultType="brdVO">
+WITH T AS(
+			SELECT ROW_NUMBER() OVER(ORDER BY S.RNUM DESC) RNUM1, S.* FROM
+			(
+		SELECT
+		ROW_NUMBER() OVER(ORDER BY A.BRD_ID ASC) RNUM,
+		A.BRD_ID, A.BRD_KND, A.BRD_TT, A.BRD_DEL, A.INTR, A.INTR_RESN, A.BRD_LIKE,
+		A.REPRT, A.TOUR_ID, A.REPRT_CK, A.FRST_WRTR, A.FRST_DT, A.LAST_WRTR,
+		A.LAST_DT, A.ATTACH_ID, A.INQ_CNT, A.BRD_CNTN
+		FROM
+		BRD A
+		INNER JOIN (
+		SELECT BRD_ID
+		FROM ANS
+		WHERE BRD_ID IS NOT NULL
+		GROUP BY BRD_ID
+		) B ON A.BRD_ID = B.BRD_ID
+		WHERE A.BRD_DEL = 'N'
+			) S
+			ORDER BY S.RNUM DESC
+		)
+		SELECT T.*
+		FROM   T
+<!-- 		WHERE T.RNUM1 BETWEEN 1 AND 10 -->
+		WHERE  T.RNUM1 BETWEEN (#{currentPage2} * #{size2}) - (#{size2} - 1) 
+						  AND (#{currentPage2} * #{size2})
+		
+
+	</select>
+
+	<!-- 질문답변 게시판 목록 리스트 조회 (답변,미답변 질문 상관x) -->
+	<select id="allQnaBoardList" parameterType="brdVO" resultType="brdVO">
+	WITH T AS (
+    SELECT 
+        ROW_NUMBER() OVER(ORDER BY 
+            <choose>
+                <when test="sort=='frstDt'">A.FRST_DT DESC</when>
+                <when test="sort=='brdLike'">A.BRD_LIKE DESC</when>
+                <when test="sort=='inqCnt'">A.INQ_CNT DESC</when>
+                <otherwise>A.FRST_DT DESC</otherwise>
+            </choose>
+        ) RNUM,
+        A.BRD_ID,
+        A.BRD_KND,
+        A.BRD_TT,
+        A.BRD_DEL,
+        A.INTR,
+        A.INTR_RESN,
+        A.BRD_LIKE,
+        A.REPRT,
+        A.TOUR_ID,
+        A.REPRT_CK,
+        A.FRST_WRTR,
+        A.FRST_DT,
+        A.LAST_WRTR,
+        A.LAST_DT,
+        A.ATTACH_ID,
+        A.INQ_CNT,
+        A.BRD_CNTN,
+        DECODE((SELECT COUNT(*) FROM ANS B WHERE B.BRD_ID = A.BRD_ID), 0, '미답변', '답변완료') IS_OK
+    FROM BRD A
+    WHERE 
+        A.BRD_KND = 'D02' AND A.BRD_DEL = 'N'
+        <include refid="where"></include>
+)
+SELECT T.*
+FROM T
+WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+                  AND (#{currentPage} * #{size})
+
+
+	</select>
+	
+	<!-- 답변 유무 조회  -->
+	<select id="hasAns" parameterType="brdVO" resultType="brdVO">
+	SELECT COUNT(*) FROM BRD A, ANS B
+	WHERE A.BRD_ID=B.BRD_ID AND B.BRD_ID=#{brdId}
+	</select>
+
+
+
+	<!-- 페이징 처리 -->
+	<!-- 답변없는 질문 개수 -->
+	<select id="qnaBoardListCnt" parameterType="hashMap" resultType="int">
+		SELECT
+		COUNT(*)
+		FROM BRD A
+		LEFT JOIN ANS B ON A.BRD_ID = B.BRD_ID
+		WHERE B.BRD_ID IS NULL
+		AND A.BRD_KND='D02' AND A.BRD_DEL='N'
+		ORDER BY FRST_DT DESC
+	</select>
+
+	<!-- 답변있는 질문 개수 -->
+	<select id="qnaBoardAnsListCnt" parameterType="hashMap"
+		resultType="int">
+		SELECT
+		COUNT(*)
+		FROM
+		BRD A
+		INNER JOIN (
+		SELECT BRD_ID
+		FROM ANS
+		WHERE BRD_ID IS NOT NULL
+		GROUP BY BRD_ID
+		) B ON A.BRD_ID = B.BRD_ID
+		WHERE A.BRD_DEL = 'N'
+		ORDER BY FRST_DT DESC
+	</select>
+	
+	<!-- 모든 게시판 질문 수 조회(삭제처리 포함 X) -->
+
+	<select id="allQnaBoardListCnt" parameterType="hashMap" resultType="int">
+		SELECT
+		COUNT(*)
+		FROM BRD
+		WHERE BRD_KND='D02' AND BRD_DEL='N'
+	</select>
+
+
+
+
+	<!-- 질문 기능 -->
+	<!-- QNA 질문 상세보기 -->
+	<select id="qnaBoardDetail" parameterType="brdVO" resultType="brdVO">
+		SELECT *
+		FROM BRD A
+		LEFT JOIN ANS B ON A.BRD_ID = B.BRD_ID
+		LEFT JOIN ATTACH C ON A.ATTACH_ID=C.ATTACH_ID
+		LEFT JOIN ATTACH_DE D ON C.ATTACH_ID=D.ATTACH_ID
+		WHERE A.BRD_KND='D02' AND A.BRD_ID=#{brdId}
+		ORDER BY B.ANS_DT DESC
+	</select>
+
+
+	<!-- 질문 등록하기 -->
+	<!-- 1.글 등록 -->
+	<insert id="queWrite" parameterType="brdVO">
+		<selectKey resultType="String" order="BEFORE"
+			keyProperty="brdId">
+			SELECT
+			NVL(SUBSTR(MAX(BRD_ID),1,11)||TRIM(TO_CHAR(SUBSTR(MAX(BRD_ID),-3,3)+1,'000')),#{brdKnd}||TO_CHAR(SYSDATE,'YYYYMMDD')||'001')
+			FROM BRD
+			WHERE BRD_KND = #{brdKnd} AND SUBSTR(BRD_ID,4,8) = TO_CHAR(SYSDATE,'YYYYMMDD')
+		</selectKey>
+		INSERT INTO BRD (BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, FRST_WRTR,
+		FRST_DT,LAST_WRTR, LAST_DT)
+		VALUES (#{brdId}, #{brdKnd}, #{brdTt}, #{brdCntn}, #{frstWrtr}, SYSDATE,
+		#{lastWrtr}, SYSDATE)
+	</insert>
+	
+	<!-- 2.첨부파일 테이블 등록 -->
+	<insert id="attachInsert" parameterType="attachVO">
+		<selectKey resultType="String" order="BEFORE" keyProperty="attachId">
+		SELECT NVL(
+           (SELECT 'AT' || TO_CHAR(SYSDATE, 'YYYYMMDD') || 
+                   LPAD(COALESCE(MAX(TO_NUMBER(SUBSTR(ATTACH_ID, 12))), 0) + 1, 3, '0')
+            FROM ATTACH
+            WHERE ATTACH_ID LIKE 'AT' || TO_CHAR(SYSDATE, 'YYYYMMDD') || '%'),
+           'AT' || TO_CHAR(SYSDATE, 'YYYYMMDD') || '001'
+         ) FROM DUAL
+	</selectKey>
+		INSERT INTO ATTACH(ATTACH_ID, ATTACH_DEL) 
+		VALUES(#{attachId},'N')
+	</insert>
+	
+	<!-- 3.첨부파일_상세 테이블  등록-->
+	<update id="attachDeInsert" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(ATTACH_DE_ID, ATTACH_ID, ORG_NM, FILE_NM, SAVE_PATH, FILE_SZ, FILE_TY, FILE_DEL,FILE_DT) 
+			VALUES(#{idx}+1,#{attachDeVO.attachId},#{attachDeVO.orgNm},#{attachDeVO.fileNm},
+			#{attachDeVO.savePath},#{attachDeVO.fileSz},#{attachDeVO.fileTy},'N',SYSDATE)
+		</foreach>
+	</update>
+	
+	<!-- 4.brd 테이블의  ATTACH_ID 처리 -->
+	<update id="attachIdUpdate" parameterType="brdVO">
+		UPDATE BRD
+		SET ATTACH_ID = #{attachId}
+		WHERE BRD_ID = #{brdId}
+	</update>	
+	
+
+	<!-- 질문 수정하기 -->
+	<update id="qnaUpdate" parameterType="brdVO">
+		UPDATE BRD SET BRD_TT = #{brdTt},
+		BRD_CNTN = #{brdCntn},
+		LAST_WRTR = #{lastWrtr},
+		LAST_DT=SYSDATE
+		WHERE BRD_ID = #{brdId}
+	</update>
+
+	<update id="attachDeBefUpdate" parameterType="brdVO">
+		DELETE FROM ATTACH_DE
+		WHERE ATTACH_ID = (SELECT ATTACH_ID FROM BRD WHERE BRD_ID = #{brdId})
+	</update>
+	
+	<!-- 2.첨부파일 상세 테이블 업데이트-->
+	<update id="attachDeUpdate" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(ATTACH_DE_ID, ATTACH_ID, ORG_NM, FILE_NM, SAVE_PATH, FILE_SZ, FILE_TY, FILE_DEL,FILE_DT) 
+			VALUES(#{idx}+1,(SELECT ATTACH_ID FROM BRD WHERE BRD_ID = #{attachDeVO.brdId}),#{attachDeVO.orgNm},#{attachDeVO.fileNm},
+			#{attachDeVO.savePath},#{attachDeVO.fileSz},#{attachDeVO.fileTy},'N',SYSDATE)
+		</foreach>
+	</update>
+
+	<!-- 질문 삭제하기 -->
+	<update id="queDelete" parameterType="brdVO">
+		UPDATE BRD SET BRD_DEL = 'Y'
+		WHERE BRD_ID=#{brdId}
+	</update>
+	
+
+
+	<!-- 답변기능 -->
+	<!-- QNA 답변 리스트 가져오기 -->
+	<select id="ansDetail" parameterType="ansVO" resultType="ansVO">
+		SELECT A.ANS_ID, A.ANS_TT, A.ANS_CNTN, A.ANS_WR, A.BRD_ID,
+		A.ATTACH_ID,A.ANS_LIKE FROM ANS A
+		LEFT JOIN BRD B ON B.BRD_ID=A.BRD_ID WHERE A.BRD_ID=#{brdId}
+		ORDER BY A.ANS_DT DESC
+	</select>
+
+
+
+	<!-- 답변 등록하기 -->
+	<insert id="ansWrite" parameterType="ansVO">
+		<selectKey resultType="String" order="BEFORE"
+			keyProperty="ansId">
+			SELECT
+			NVL(SUBSTR(MAX(ANS_ID),1,11)||TRIM(TO_CHAR(SUBSTR(MAX(ANS_ID),-3,3)+1,'000')),'ANS'||TO_CHAR(SYSDATE,'YYYYMMDD')||'001')
+			FROM ANS
+			WHERE SUBSTR(ANS_ID,4,8) = TO_CHAR(SYSDATE,'YYYYMMDD')
+		</selectKey>
+
+		INSERT INTO ANS (
+		ANS_ID,
+		ANS_TT,
+		ANS_CNTN,
+		ANS_WR,
+		BRD_ID,
+		ANS_DT
+
+		) VALUES (
+		#{ansId},
+		#{ansTt},
+		#{ansCntn},
+		#{ansWr},
+		#{brdId},
+		SYSDATE
+		)
+	</insert>
+
+	<!-- 답변 삭제하기 -->
+	<delete id="ansDelete" parameterType="ansVO">
+		DELETE FROM ANS WHERE ANS_ID=#{ansId}
+	</delete>
+	
+	<!-- 답변에 달린 댓글 삭제 -->
+	<delete id="ansCmtDelete" parameterType="cmtVO">
+		DELETE FROM CMT WHERE ANS_ID=#{ansId}
+	</delete>
+ 	
+ 	<!-- 답변 수정하기 -->
+ 	<update id="ansUpdate" parameterType="ansVO">
+	UPDATE ANS
+	SET
+	ANS_TT = #{ansTt},
+	ANS_CNTN =#{ansCntn}
+	WHERE
+	ANS_ID =#{ansId}
+ 	</update>
+ 
+ 
+
+	<!-- 조회수 기능 -->
+	<update id="qnaViewCnt" parameterType="String">
+		UPDATE BRD
+		SET INQ_CNT = INQ_CNT + 1
+		WHERE BRD_ID = #{brdId}
+	</update>
+
+
+
+	<!-- 오늘의 질문 -->
+	<select id="todayQna" parameterType="brdVO" resultType="int">
+		SELECT COUNT(*)
+		FROM BRD
+		WHERE BRD_KND='D02' AND BRD_DEL ='N' AND TRUNC(FRST_DT)=TRUNC(SYSDATE)
+	</select>
+
+	<!-- 오늘의 답변 -->
+	<select id="todayAns" parameterType="ansVO" resultType="int">
+		SELECT COUNT(*)
+		FROM ANS
+		WHERE TRUNC(ANS_DT)=TRUNC(SYSDATE)
+	</select>
+	<!-- 누적질문수 / 질문 수 -->
+	<select id="countQna" parameterType="brdVO" resultType="int">
+		SELECT COUNT(*)
+		FROM BRD
+		WHERE BRD_KND='D02'
+	</select>
+	<!-- 누적답변수 -->
+	<select id="countAns" parameterType="ansVO" resultType="int">
+		SELECT COUNT(*)
+		FROM ANS
+	</select>
+	
+<!-- 댓글 기능 -->
+<!-- 1. 댓글 작성 -->
+<insert id="cmtWrite" parameterType="cmtVO">
+<selectKey resultType="String" order="BEFORE" keyProperty="cmtId">
+SELECT NVL(SUBSTR(MAX(CMT_ID),1,11)||TRIM(TO_CHAR(SUBSTR(MAX(CMT_ID),-3,3)+1,'000')),'CMT'||TO_CHAR(SYSDATE,'YYYYMMDD')||'001')
+		FROM CMT WHERE SUBSTR(CMT_ID,4,8) = TO_CHAR(SYSDATE,'YYYYMMDD')
+</selectKey>
+INSERT INTO CMT (
+    CMT_ID, 
+    CMT_WR,
+    CMT_CNTN,
+    CMT_DT,
+    BRD_ID,
+    REP_LEVEL,
+    ANS_ID
+) VALUES (
+    #{cmtId},
+    #{cmtWr},
+    #{cmtCntn},
+    SYSDATE,
+    #{brdId},
+    1,
+    #{ansId}
+)
+</insert>
+
+<!-- 2.. 댓글 수정 -->
+<update id="cmtUpdate" parameterType="cmtVO">
+UPDATE CMT
+    SET
+        CMT_CNTN = #{cmtCntn}
+WHERE
+	CMT_ID =#{cmtId}
+</update>
+
+<!-- 3. 댓글삭제 -->
+<delete id="cmtDelete" parameterType="cmtVO">
+DELETE FROM CMT
+WHERE
+	CMT_ID =#{cmtId}
+</delete>	
+
+<!-- 4. 댓글 조회-->
+<select id="cmtDetail" parameterType="hashMap" resultType="cmtVO">
+SELECT 
+	A.CMT_ID, A.CMT_WR, A.CMT_CNTN, A.CMT_DT, A.BRD_ID, A.ANS_ID,B.SAVE_PATH
+FROM CMT A
+LEFT JOIN ATTACH_DE B ON A.CMT_WR = B.ATTACH_ID
+WHERE A.BRD_ID=#{brdId} AND A.ANS_ID=#{ansId}
+ORDER BY A.CMT_DT DESC
+</select>
+
+<!-- 5. 댓글 개수 -->
+<select id="cmtCount" parameterType="cmtVO" resultType="int">
+	SELECT COUNT(*) FROM CMT WHERE ANS_ID=#{ansId}
+</select>
+
+
+<!-- 게시글 좋아요 기능 -->
+<!-- 좋아요 눌렀는지 안 눌렀는지 확인 -->
+<select id="findLike" resultType="Integer">
+	SELECT COUNT(*) FROM LIKE_BRD WHERE BRD_ID=#{brdId} AND MEM_ID=#{memId}
+</select>
+<!-- 1-1) 게시글 좋아요 클릭 시  -->
+<update id="likeBrd" parameterType="likeBrdVO">
+	UPDATE BRD SET BRD_LIKE=BRD_LIKE+1 WHERE BRD_ID=#{brdId}
+</update>
+<!-- 1-2) (LIKE_BRD 테이블)게시글 좋아요를 클릭한 회원아이디, 게시판아이디, 언제 INSERT-->
+<insert id="insertBrd" parameterType="likeBrdVO">
+	INSERT INTO LIKE_BRD(MEM_ID, BRD_ID, LIKE_DT) VALUES(#{memId},#{brdId},SYSDATE)
+</insert>
+
+<!-- 2-1) 게시글 좋아요 한번 더 클릭하면 비활성화 -->
+<update id="dislikeBrd" parameterType="likeBrdVO">
+	UPDATE BRD SET BRD_LIKE=BRD_LIKE-1 WHERE BRD_ID=#{brdId}
+</update>
+
+<!-- 2-2) (LIKE_BRD 테이블)게시글 좋아요를 클릭한 회원아이디, 게시판아이디, 언제 DELETE-->
+<delete id="deleteBrd" parameterType="likeBrdVO">
+	DELETE FROM LIKE_BRD WHERE MEM_ID = #{memId} AND BRD_ID=#{brdId}
+</delete>
+
+<!-- 많이 본 qna 조회 -->
+<select id="manyQnaList" parameterType="brdVO" resultType="brdVO">
+SELECT *
+FROM (
+    SELECT BRD_ID, BRD_KND, BRD_TT, BRD_DEL, INTR, INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT, ATTACH_ID, INQ_CNT, BRD_CNTN
+    FROM BRD
+    WHERE BRD_KND = 'D02'
+    ORDER BY INQ_CNT DESC
+)
+WHERE ROWNUM &lt;= 4
+
+</select>
+
+
+
+
+
+
+
+
+
+
+</mapper>

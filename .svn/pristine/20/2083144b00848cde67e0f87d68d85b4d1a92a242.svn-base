@@ -1,0 +1,50 @@
+package kr.or.ddit.member.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.LikeBrdVO;
+
+public interface TripBoardService {
+	
+	//여행후기 메인 - 최근순 정렬
+	public List<BrdVO> tripRecList(Map<String, String> map);
+	//여행후기 메인 - 인기순 정렬
+	public List<BrdVO> tripLikeList(Map<String, String> map);
+	//여행후기 글 목록
+	public List<BrdVO> tripBoardList(Map<String, String> map);
+	
+	//여행후기 글 상세보기
+	public BrdVO tripDetail(BrdVO brdVO);
+	//조회수 기능
+	public int tripViewCnt(String brdId);
+	
+	
+	//여행후기 글 등록하기
+	public int tripAddWrite(BrdVO brdVO);
+
+	
+	
+	//여행후기 글 수정
+	public int tripUpdate(String brdId);
+	//여행후기 글 삭제
+	public int tripDelete(String brdId);
+	
+	
+	
+	
+	
+	//글 좋아요 기능
+	//좋아요 클릭
+	public int likeBrd(LikeBrdVO likeBrdVO);
+	//좋아요 비활성화
+	public int dislikeBrd(LikeBrdVO likeBrdVO);
+	
+	
+	//총 게시글 수
+	public int countBoard(Map<String,String> map);
+
+}

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdMemMapper">
+	<!-- 자주 사용되는 구문을 따로 관리 -->
+	<sql id="where">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+    	AND    (
+            MEM_ID   LIKE '%' || #{keyword} || '%' OR
+            MEM_NM LIKE '%' || #{keyword} || '%'
+        )
+        </if>
+	</sql>
+	
+	<sql id="order">
+	   <choose>
+	      <when test="sort == 'memNm'">
+	         ORDER BY MEM_NM
+	      </when>
+	      <when test="sort == 'joinDt'">
+	         ORDER BY JOIN_DT DESC
+	      </when>
+	      <when test="sort == 'enabled'">
+	         ORDER BY ENABLED DESC
+	      </when>
+	      <when test="sort == 'wrnCnt'">
+	         ORDER BY WRN_CNT DESC
+	      </when>
+	      <when test="sort == 'wrnSt'">
+	         ORDER BY WRN_ST DESC
+	      </when>
+	      <otherwise>
+	         ORDER BY MEM_ID ASC
+	      </otherwise>
+	   </choose>
+	</sql>
+
+	
+	<sql id="brdWhere">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+	    	AND    (
+	    		BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, BRD_DEL, INTR, 
+		        INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, 
+		        FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT
+	            BRD_KND   LIKE '%' || #{keyword} || '%' OR
+	            BRD_TT LIKE '%' || #{keyword} || '%' OR
+	            BRD_CNTN  LIKE '%' || #{keyword} || '%' OR
+	            FRST_WRTR  LIKE '%' || #{keyword} || '%' OR
+	        )
+        </if>
+	</sql>
+
+	<!-- 전체 회원 목록 -->
+	<select id="memList" parameterType="hashMap" resultType="memVO">
+		WITH T AS(
+		    SELECT
+		    	ROW_NUMBER() OVER(<include refid="order"></include>) RNUM,
+			    MEM_ID, MEM_NM, MEM_ENM, MEM_FMNM, MEM_PW, MEM_BIR, MEM_GEN, 
+			    MEM_TEL, MEM_EMAIL, MEM_ADDR1, MEM_ADDR2, MAIL_AGR, MEM_MLG, 
+			    WRN_CNT, WRN_ST, MEM_MBTI, GRAD_ID, MEM_IMG, ENABLED, JOIN_DT, WHDWL_DT
+			FROM MEM
+		    WHERE  1 = 1
+		    <include refid="where"></include>
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+
+	<!-- 회원 상세 -->
+	<select id="memDetail" parameterType="memVO" resultType="memVO">
+		SELECT
+		    MEM_ID, MEM_NM, MEM_ENM, MEM_FMNM, MEM_PW, MEM_BIR, MEM_GEN, 
+		    MEM_TEL, MEM_EMAIL, MEM_ADDR1, MEM_ADDR2, MAIL_AGR, MEM_MLG, 
+		    WRN_CNT, WRN_ST, MEM_MBTI, GRAD_ID, MEM_IMG, ENABLED, JOIN_DT, WHDWL_DT
+		FROM MEM
+		WHERE MEM_ID = #{memId}
+	</select>
+	
+	<!-- 회원 수 -->
+	<select id="memTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM MEM
+		WHERE 1 = 1
+		<include refid="where"></include>
+	</select>
+	
+	<!-- 회원 작성 게시글 -->
+	<select id="memBrdList" parameterType="memVO" resultType="brdVO">
+		SELECT
+			BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, BRD_DEL, INTR, 
+			INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, 
+			FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT
+		FROM BRD
+		WHERE FRST_WRTR = #{memId}
+	</select>
+	
+	<select id="brdReprtList" parameterType="hashMap" resultType="brdVO">
+		WITH T AS(
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY BRD_ID ASC) RNUM,
+		        BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, BRD_DEL, INTR, 
+		        INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, 
+		        FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT
+		    FROM BRD
+		    WHERE REPRT_CK = 'N' AND REPRT >= '1'
+			<include refid="brdWhere"></include>
+		    ORDER BY BRD_ID
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 미처리 신고 수 -->
+	<select id="brdReptTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM BRD
+		WHERE REPRT_CK = 'N' AND REPRT >= '1'
+		<include refid="brdWhere"></include>
+	</select>
+	
+	<!-- 회원 경고 상태 변경 -->
+	<update id="updateWarningStatus" parameterType="memVO">
+		UPDATE MEM
+		    SET
+		        WRN_ST = #{wrnSt}
+		WHERE
+		    MEM_ID = #{memId}
+	</update>
+	
+	<!-- 회원 경고 개수 증가 -->
+	<update id="updateWarningCnt" parameterType="memVO">
+		UPDATE MEM
+		    SET
+		        WRN_CNT = #{wrnCnt} + 1
+		WHERE
+		    MEM_ID = #{memId}
+	</update>
+	
+	<!-- 차단 회원 등록-->
+	<insert id="insertInrtMem" parameterType="hashMap">
+		<selectKey resultType="int" order="BEFORE" keyProperty="intrId">
+			SELECT NVL(MAX(INTR_ID),0)+1 FROM INTR_MEM
+		</selectKey>
+		INSERT INTO INTR_MEM (
+		    INTR_ID, MEM_ID, INTR_RESN,
+		    INTR_ST, INTR_ED
+		)
+		SELECT
+		    #{intrId}, MEM.MEM_ID, #{intrResn}, SYSDATE, SYSDATE + 30
+		FROM
+		    MEM
+		WHERE
+		    MEM.MEM_ID = #{memId}
+	</insert>
+	
+	<!-- 차단 회원 등록 삭제 -->
+	<delete id="deleteIntrMem" parameterType="hashMap">
+		DELETE FROM INTR_MEM
+		WHERE
+		    MEM_ID =#{memId}
+	</delete>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

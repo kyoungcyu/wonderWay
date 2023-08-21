@@ -1,0 +1,96 @@
+package kr.or.ddit.business.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.business.service.BsMsgService;
+import kr.or.ddit.business.service.BsBusiService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MsgVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RequestMapping("/business/inquiry")
+@Controller
+public class BsInquryController {
+	
+	@Autowired
+	BsMsgService bsMsgService;
+	@Autowired
+	BsBusiService bsBusiService;
+
+	
+	@GetMapping("/recvMsg")
+	public String recvMsg(Model model, HttpSession session) {
+		
+		BusiVO vo = (BusiVO) session.getAttribute("vo");
+		List<MsgVO> data = this.bsMsgService.recvMsg(vo.getBusiId());
+		model.addAttribute("data", data);
+		return "business/inquiry/recvMsg";
+		
+	}
+	@GetMapping("/msgbox")
+	public String sendMsg(Model model, HttpSession session) {
+		
+		BusiVO vo = (BusiVO) session.getAttribute("vo");
+		List<MsgVO> recvdata = this.bsMsgService.recvMsg(vo.getBusiId());
+		List<MsgVO> senddata = this.bsMsgService.sendMsg(vo.getBusiId());
+		model.addAttribute("recvdata", recvdata);
+		model.addAttribute("senddata", senddata);
+		
+		return "business/inquiry/msgbox";
+		
+	}
+	
+	@ResponseBody
+	@PostMapping("/msgInsert")
+	public int msgInsert(@RequestBody MsgVO msgVO, HttpSession session) {
+		log.info("sessionn:"+session.getAttribute("vo"));
+		BusiVO busiVO = (BusiVO) session.getAttribute("vo");
+		
+		msgVO.setSendId(busiVO.getBusiId());
+		log.info("msgVO00:"+ msgVO);
+		
+		int cnt = 0;
+//		int cnt = this.bsMsgService.msgInsert(msgVO);
+		return cnt;
+		
+	}
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@GetMapping("/chatting")
+	public String chattings(Model model, HttpSession session) {
+		
+		
+
+		return "business/inquiry/chatting";
+	}
+	
+	
+	
+	
+	
+}

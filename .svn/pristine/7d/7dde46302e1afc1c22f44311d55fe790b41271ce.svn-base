@@ -1,0 +1,470 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ page import="java.security.Principal"%>
+<%
+  HttpServletRequest requestFM = (HttpServletRequest) pageContext.getRequest();
+  Principal principal = requestFM.getUserPrincipal();
+  String username = (principal != null) ? principal.getName() : "Guest";
+%>
+<head>
+	<title>Wonderway-메인페이지</title>
+<style type="text/css">
+.hi{
+	height: 120px;
+}
+
+</style>
+</head>
+<main>
+<!-- =======================
+메인광고배너 START -->
+<section class="pt-0 ">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-lg-11 mx-auto">
+				
+				<!-- 메인광고 START -->
+				<div class="tiny-slider arrow-round arrow-blur arrow-hover rounded-3 overflow-hidden">
+					<div class="tiny-slider-inner" data-gutter="0" data-arrow="true" data-dots="false" data-items="1">
+						
+						
+						<!-- 1번째 광고이미지 START -->
+						<div class="card overflow-hidden h-400px h-sm-600px rounded-0" style="background-image:url(/resources/booking/assets/images/advertise/main/005.png); background-position: center left; background-size: cover;">
+							<!-- Card image overlay -->
+							<div class="card-img-overlay d-flex align-items-center"> 
+								<div class="container">
+									<div class="row">
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- 1번째 광고이미지 END -->
+						<!-- 2번째 광고이미지 START -->
+						<div class="card overflow-hidden h-400px h-sm-600px rounded-0" style="background-image:url(/resources/booking/assets/images/advertise/main/004.png); background-position: center left; background-size: cover;">
+							<!-- Card image overlay -->
+							<div class="card-img-overlay d-flex align-items-center"> 
+								<div class="container">
+									<div class="row">
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- 2번째 광고이미지 END -->
+						<!-- 3번째 광고이미지 START -->
+						<div class="card overflow-hidden h-400px h-sm-600px rounded-0" style="background-image:url(/resources/booking/assets/images/advertise/main/001.png); background-position: center left; background-size: cover;">
+							<!-- Card image overlay -->
+							<div class="card-img-overlay d-flex align-items-center"> 
+								<div class="container">
+									<div class="row">
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- 3번째 광고이미지 END -->
+						<!-- 4번째 광고이미지 START -->
+						<div class="card overflow-hidden h-400px h-sm-600px rounded-0" style="background-image:url(/resources/booking/assets/images/advertise/main/002.png); background-position: center left; background-size: cover;">
+							<!-- Card image overlay -->
+							<div class="card-img-overlay d-flex align-items-center"> 
+								<div class="container">
+									<div class="row">
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- 4번째 광고이미지 END -->
+						<!-- 5번째 광고이미지 START -->
+						<div class="card overflow-hidden h-400px h-sm-600px rounded-0" style="background-image:url(/resources/booking/assets/images/advertise/main/003.png); background-position: center left; background-size: cover;">
+							<!-- Card image overlay -->
+							<div class="card-img-overlay d-flex align-items-center"> 
+								<div class="container">
+									<div class="row">
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- 5번째 광고이미지 END -->
+
+						
+
+					</div>
+				</div>
+				<!-- 메인광고 END -->
+			</div>
+		</div>
+	</div>
+</section>
+<!-- =======================
+메인광고배너END -->
+
+
+<!-- ======================= ai추천 START -->
+<section class="pt-0 pt-md-5">
+	<div class="container">
+		<!-- Title -->
+		<div class="row mb-3 mb-sm-4">
+			<div class="col-12 text-center">
+				<h2 class="mb-0">AI 추천 서비스를 경험해보세요!</h2>
+				<h5>여러분의 선택을 더욱 쉽게 도와드릴게요</h5>
+				<span style="opacity: 0.5; font-size: small;">*수집된 개인정보는 추천이외의 용도로는 사용되지 않습니다.</span>
+			</div>
+		</div>
+
+		<div class="row g-4 g-xl-5">
+			<!-- Category item -->
+			<div class="col-sm-6 col-lg-4 col-xl-6 hi">
+				<div class="row g-2 g-md-3 align-items-center position-relative">
+					<!-- Image -->
+					<div class="col-md-6">
+						<img src="/resources/booking/assets/images/memmain/rcm/001.png" class="rounded-3" alt="">
+					</div>
+					<!-- Content -->
+					<div class="col-md-6">
+						<div class="p-2 p-md-0">
+							<h5 class="mb-1"><a href="/member/rcm/styMbtiMain" class="stretched-link">mbti별 숙소 추천</a></h5>
+							<span>나는 어떤 숙소랑 잘맞을까?</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Category item -->
+			<div class="col-sm-6 col-lg-4 col-xl-6 hi">
+				<div class="row g-2 g-md-3 align-items-center position-relative">
+					<!-- Image -->
+					<div class="col-md-6">
+						<img src="/resources/booking/assets/images/memmain/rcm/002.png" class="rounded-3" alt="">
+					</div>
+					<!-- Content -->
+					<div class="col-md-6">
+						<div class="p-2 p-md-0">
+							<h5 class="mb-1"><a href="/member/rcm/mbtiTour" class="stretched-link">mbti별 여행지 추천</a></h5>
+							<span>어디로 놀러가야 <br/>잘 놀러갔다 소문이나지?</span>
+						</div>	
+					</div>
+				</div>
+			</div>
+
+			<!-- Category item -->
+			<div class="col-sm-6 col-lg-4 col-xl-6 hi">
+				<div class="row g-2 g-md-3 align-items-center position-relative">
+					<!-- Image -->
+					<div class="col-md-6">
+						<img src="/resources/booking/assets/images/memmain/rcm/003.png" class="rounded-3" alt="">
+					</div>
+					<!-- Content -->
+					<div class="col-md-6">
+						<div class="p-2 p-md-0">
+							<h5 class="mb-1"><a href="/member/rcm/sty" class="stretched-link<%if(principal == null){%> lginReq <%}%>">맞춤 숙소 추천</a></h5>
+							<span>회원님의 정보에 따른<br/> 최적의 숙소추천!</span><br/>
+							<span style="opacity: 0.5; font-size: small;">*로그인이 필요한 서비스입니다.</span>
+						</div>	
+					</div>
+				</div>
+			</div>
+
+			<!-- Category item -->
+			<div class="col-sm-6 col-lg-4 col-xl-6 hi">
+				<div class="row g-2 g-md-3 align-items-center position-relative">
+					<!-- Image -->
+					<div class="col-md-6">
+						<img src="/resources/booking/assets/images/memmain/rcm/004.png" class="rounded-3" alt="">
+					</div>
+					<!-- Content -->
+					<div class="col-md-6">
+						<div class="p-2 p-md-0">
+							<h5 class="mb-1"><a href="member/rcm/car" class="stretched-link<%if(principal == null){%> lginReq <%}%>">맞춤 렌터카 추천</a></h5>
+							<span>내 나이와 성별에<br/>추천하는 렌터카 기종은?</span><br/>
+							<span style="opacity: 0.5; font-size: small;">*로그인이 필요한 서비스입니다.</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Category item -->
+			<div class="col-sm-6 col-lg-4 col-xl-6 hi">
+				<div class="row g-2 g-md-3 align-items-center position-relative">
+					<!-- Image -->
+					<div class="col-md-6">
+						<img src="/resources/booking/assets/images/memmain/rcm/005.png" class="rounded-3" alt="">
+					</div>
+					<!-- Content -->
+					<div class="col-md-6">
+						<div class="p-2 p-md-0">
+							<h5 class="mb-1"><a href="/member/rcm/psnlPrfr" class="stretched-link<%if(principal == null){%> lginReq <%}%>">선호도 조사 여행지 추천</a></h5>
+							<span>여행 설문조사 후<br/> 여행지를 추천해드려요!</span><br/>
+							<span style="opacity: 0.5; font-size: small;">*로그인이 필요한 서비스입니다.</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div> <!-- Row END -->
+	</div>
+</section>
+<!-- ======================= AI추천 END -->
+
+
+<!-- ======================= 여행지 매거진 START -->
+<section class="pt-0 pt-lg-5">
+	<div class="container">
+
+		<!-- Title -->
+		<div class="row mb-4">
+			<div class="col-12 text-center">
+				<h2 class="mb-0">요즘 인기있는 여행지</h2>
+			</div>
+		</div>
+
+		<div class="row g-4">
+			<!-- 1번째 여행지  START -->
+			<div class="col-sm-6 col-lg-3">
+				<!-- Card START -->
+				<div class="card card-img-scale overflow-hidden bg-transparent">	
+
+					<!-- Image -->
+					<div class="card-img-scale-wrapper rounded-3">
+						<img src="/resources/booking/assets/images/memmain/tour/kyungju_land.jpg" class="card-img" alt="kyungju_land">
+					</div>
+
+					<!-- Card body -->
+					<div class="card-body px-2">
+						<!-- Title -->
+						<div class="d-flex justify-content-between align-items-center">
+							<h5 class="card-title"><a href="flight-list.html" class="stretched-link">경주월드 어뮤즈먼트</a></h5>
+						</div>
+							<h6 class="mb-0">18명<span style="font-size: medium; opacity: 0.5;">의 회원이 다녀오셨어요</span><i class="bi bi-suit-heart-fill text-danger ms-1"></i></h6>
+							<span style="font-size: small; opacity: 0.3;">*최근 30일 통계</span>
+					</div>
+				</div>
+				<!-- Card END -->
+			</div>
+			<!-- 1번째 여행지  END -->
+
+			<!-- 2번째 여행지  START -->
+			<div class="col-sm-6 col-lg-3">
+				<!-- Card START -->
+				<div class="card card-img-scale overflow-hidden bg-transparent">
+					<!-- Image -->
+					<div class="card-img-scale-wrapper rounded-3">
+						<img src="/resources/booking/assets/images/memmain/tour/jeju_dawon.jpg" class="card-img" alt="jeju_dawon">
+					</div>
+					
+					<!-- Card body -->
+					<div class="card-body px-2">
+						<!-- Title -->
+						<div class="d-flex justify-content-between align-items-center">
+							<h5 class="card-title"><a href="flight-list.html" class="stretched-link">제주다원 녹차미로</a></h5>
+						</div>
+							<h6 class="mb-0">20명<span style="font-size: medium; opacity: 0.5;">의 회원이 다녀오셨어요</span><i class="bi bi-suit-heart-fill text-danger ms-1"></i></h6>
+							<span style="font-size: small; opacity: 0.3;">*최근 30일 통계</span>
+					</div>
+				</div>
+				<!-- Card END -->
+			</div>
+			<!-- 2번째 여행지 END -->
+
+			<!-- 3번째 여행지 START -->
+			<div class="col-sm-6 col-lg-3">
+				<!-- Card START -->
+				<div class="card card-img-scale overflow-hidden bg-transparent">
+
+					<!-- Image -->
+					<div class="card-img-scale-wrapper rounded-3">
+						<img src="/resources/booking/assets/images/memmain/tour/hajodea.jpg" class="card-img" alt="hajodea">
+					</div>
+
+					<!-- Card body -->
+					<div class="card-body px-2">
+						<!-- Title -->
+						<div class="d-flex justify-content-between align-items-center">
+							<h5 class="card-title"><a href="flight-list.html" class="stretched-link">하조대 둘레길</a></h5>
+						</div>
+							<h6 class="mb-0">22명<span style="font-size: medium; opacity: 0.5;">의 회원이 다녀오셨어요</span><i class="bi bi-suit-heart-fill text-danger ms-1"></i></h6>
+							<span style="font-size: small; opacity: 0.3;">*최근 30일 통계</span>
+					</div>
+				</div>
+				<!-- Card END -->
+			</div>
+			<!-- 3번째 여행지 END -->
+			
+			<!-- 4번째 여행지 START -->
+			<div class="col-sm-6 col-lg-3">
+				<!-- Card START -->
+				<div class="card card-img-scale overflow-hidden bg-transparent">
+
+					<!-- Image -->
+					<div class="card-img-scale-wrapper rounded-3">
+						<img src="/resources/booking/assets/images/memmain/tour/hea_un_dea.jpg" class="card-img" alt="hea_un_dea">
+					</div>
+
+					<!-- Card body -->
+					<div class="card-body px-2">
+						<!-- Title -->
+						<div class="d-flex justify-content-between align-items-center">
+							<h5 class="card-title"><a href="flight-list.html" class="stretched-link">해운대 달맞이길</a></h5>
+						</div>
+							<h6 class="mb-0">18명<span style="font-size: medium; opacity: 0.5;">의 회원이 다녀오셨어요</span><i class="bi bi-suit-heart-fill text-danger ms-1"></i></h6>
+							<span style="font-size: small; opacity: 0.3;">*최근 30일 통계</span>
+					</div>
+				</div>
+				<!-- Card END -->
+			</div>
+			<!-- 4번째 여행지 END -->
+
+		</div> <!-- Row END -->
+	</div>
+</section>
+<!-- =======================
+여행지 매거진 END -->
+
+
+
+
+
+<!-- =======================
+주간베스트 여행후기 START-->
+<section class="pt-0 pt-md-5">
+	<div class="container">
+
+		<div class="row g-4 g-lg-5 align-items-center">
+
+			<div class="col-lg-4">
+				<!-- Title -->
+				<h2 class="mb-0">주간 베스트<br> 여행 후기🔥</h2>
+
+				<div class="d-sm-flex justify-content-sm-between align-items-center mt-4">
+
+					<!-- Rating -->
+					<h5 class="m-0" style=" font-size: small; opacity: 0.5;">
+					<i class="fa-solid fa-star text-warning me-2"></i>
+						주간 베스트로 선정되신분들께는 <br/><p style="padding-left: 80px; ">할인쿠폰이 지급됩니다&nbsp;&nbsp;&nbsp;&nbsp;
+						<i class="fa-solid fa-star text-warning me-2"></i></p></h5>
+				</div>
+
+				<!-- Button -->
+				<a href="/member/tripBoard/tripMain" class="btn btn-lg btn-primary-soft mb-0 mt-4">더 많은 여행후기 확인하기 <i class="bi fa-fw bi-arrow-right ms-2"></i></a>
+			</div>
+
+			<div class="col-lg-8">
+				<div class="row">
+					<div class="col-md-6">
+						<!-- Card item -->
+						<div class="card card-element-hover card-overlay-hover overflow-hidden">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/category/tour/06.jpg" class="rounded-3" alt="">
+								
+							<!-- 1등 표시 -->
+							<span class="notif-badge animation-blink"></span>
+							
+							<!-- Full screen button -->
+							<a class="hover-element position-absolute w-100 h-100" data-glightbox data-gallery="gallery" href="/resources/booking/assets/images/gallery/01.jpg">
+								<i class="bi bi-fullscreen fs-6 text-white position-absolute top-50 start-50 translate-middle bg-dark rounded-1 p-2 lh-1"></i>
+							</a>
+						</div>
+
+						<!-- Testimonials START -->
+						<div class="tiny-slider arrow-round arrow-blur arrow-hover arrow-xs my-4 mb-md-0">
+							<div class="tiny-slider-inner pb-1" data-autoplay="true" data-arrow="true" data-dots="false" data-items="1">
+								<!-- Testimonial item -->
+								<div class="card bg-transparent">
+									<div class="row align-items-center">
+										<!-- Image -->
+										<div class="col-4">
+											<img src="/resources/booking/assets/images/team/01.jpg" class="card-img" alt="">
+										</div>
+										<!-- Card body -->
+										<div class="col-8">
+											<div class="card-body p-0">
+												<p class="mb-0">Farther-related bed and passage comfort civilly.</p>
+												<h6 class="card-title mb-0 mt-2">Louis Ferguson</h6>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Testimonial item -->
+								<div class="card bg-transparent">
+									<div class="row align-items-center">
+										<!-- Image -->
+										<div class="col-4">
+											<img src="/resources/booking/assets/images/team/02.jpg" class="card-img" alt="">
+										</div>
+										<!-- Card body -->
+										<div class="col-8">
+											<div class="card-body p-0">
+												<p class="mb-0">Farther-related bed and passage comfort civilly.</p>
+												<h6 class="card-title mb-0 mt-2">Lori Stevens</h6>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>		
+						<!-- Testimonials END -->
+					</div>
+
+					<div class="col-md-6">
+						<!-- Card item -->
+						<div class="card card-element-hover card-overlay-hover overflow-hidden mb-4">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/gallery/02.jpg" class="rounded-3" alt="">
+							<!-- Full screen button -->
+							<a class="hover-element position-absolute w-100 h-100" data-glightbox data-gallery="gallery" href="https://www.youtube.com/embed/tXHviS-4ygo">
+								<span class="btn text-danger btn-round btn-white position-absolute top-50 start-50 translate-middle mb-0">
+									<i class="fas fa-play"></i>
+								</span>
+							</a>
+						</div>
+						<!-- Card item -->
+						<div class="card card-element-hover card-overlay-hover overflow-hidden">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/gallery/03.jpg" class="rounded-3" alt="">
+							<!-- Full screen button -->
+							<a class="hover-element position-absolute w-100 h-100" data-glightbox data-gallery="gallery" href="/resources/booking/assets/images/gallery/03.jpg">
+								<i class="bi bi-fullscreen fs-6 text-white position-absolute top-50 start-50 translate-middle bg-dark rounded-1 p-2 lh-1"></i>
+							</a>
+						</div>
+					</div>
+				</div><!-- Row END -->
+			</div>
+		</div> <!-- Row END -->
+	</div>
+</section>
+<!-- =======================
+주간베스트 여행후기  END-->
+
+<!-- =======================
+업체소개  START-->
+<!-- <section class="pt-0 py-md-5"> 
+<!-- 	<div class="container"> 
+<!-- 		<div class="row g-4 align-items-center"> -->
+<!-- 			<!-- Image --> 
+<!-- 			<div class="col-6 col-sm-4 col-lg-3 col-xl-2"> -->
+<!-- 				<img src="/resources/booking/assets/images/client/01.svg" class="grayscale px-3 px-sm-4" alt=""> -->
+<!-- 			</div> -->
+<!-- 			<!-- Image --> 
+<!-- 			<div class="col-6 col-sm-4 col-lg-3 col-xl-2"> -->
+<!-- 				<img src="/resources/booking/assets/images/client/02.svg" class="grayscale px-3 px-sm-4" alt=""> -->
+<!-- 			</div> -->
+<!-- 			<!-- Image --> 
+<!-- 			<div class="col-6 col-sm-4 col-lg-3 col-xl-2"> -->
+<!-- 				<img src="/resources/booking/assets/images/client/03.svg" class="grayscale px-3 px-sm-4" alt=""> -->
+<!-- 			</div> -->
+<!-- 			<!-- Image --> 
+<!-- 			<div class="col-6 col-sm-4 col-lg-3 col-xl-2"> -->
+<!-- 				<img src="/resources/booking/assets/images/client/04.svg" class="grayscale px-3 px-sm-4" alt=""> -->
+<!-- 			</div> -->
+<!-- 			<!-- Image --> 
+<!-- 			<div class="col-6 col-sm-4 col-lg-3 col-xl-2"> -->
+<!-- 				<img src="/resources/booking/assets/images/client/05.svg" class="grayscale px-3 px-sm-4" alt=""> -->
+<!-- 			</div> -->
+<!-- 			<!-- Image --> 
+<!-- 			<div class="col-6 col-sm-4 col-lg-3 col-xl-2"> -->
+<!-- 				<img src="/resources/booking/assets/images/client/06.svg" class="grayscale px-3 px-sm-4" alt=""> -->
+<!-- 			</div> -->
+<!-- 		</div> -->
+<!-- 	</div> -->
+<!-- </section> -->
+<!-- =======================
+업체소개  END-->
+</main>
+
+

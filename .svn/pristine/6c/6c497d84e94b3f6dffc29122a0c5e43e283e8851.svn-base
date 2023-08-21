@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.business.mapper.BsAdMapper">
+
+	<select id="adInUse" parameterType="java.lang.String"
+		resultType="advReqListVO">
+		SELECT
+		B.AD_DC,
+		A.AD_ST,
+		A.Ad_Ed,
+		B.Ad_Pr,
+		B.Cm_Code,
+		A.CNFM,
+		A.CNFM_DT,
+		SYSDATE AS AD_REQ_TM
+		FROM AD_REQ A
+		INNER JOIN AD B ON A.Ad_Id
+		= B.Ad_Id
+		WHERE BUSI_ID = #{busiId}
+		ORDER BY AD_ED
+	</select>
+
+	<insert id="insertAdReq" parameterType="adadVO">
+		<selectKey order="BEFORE" resultType="String"
+			keyProperty="adReqId">
+			SELECT 'AQ' ||
+			LPAD(MAX(SUBSTR(ad_req_id,3)) + 1,4,'0')
+			FROM AD_REQ
+		</selectKey>
+
+
+		INSERT INTO ad_req (
+		ad_req_id,
+		busi_id,
+		ad_id,
+		ad_st,
+		ad_ed
+		) VALUES (
+		#{adReqId},
+		#{busiId},
+		#{adId},
+		#{startDt},
+		#{endDt}
+		)
+
+	</insert>
+
+	<insert id="insertAdReqTwo" parameterType="adadVO">
+		<selectKey order="BEFORE" resultType="String"
+			keyProperty="payId">
+			SELECT NVL(SUBSTR(MAX(PAY_ID), 1, 11)
+			||
+			TRIM(TO_CHAR(SUBSTR(MAX(PAY_ID), -3, 3) + 1, '0000')), 'P' ||
+			TO_CHAR(SYSDATE, 'YYYYMMDD') || '0001')
+			FROM PAY
+		</selectKey>
+
+		INSERT
+		INTO PAY (
+		PAY_ID,
+		PAY_PR,
+		PAY_DT,
+		AD_REQ_ID
+		) VALUES (
+		#{payId},
+		#{adPr},
+		SYSDATE,
+		#{adReqId}
+		)
+
+	</insert>
+</mapper>

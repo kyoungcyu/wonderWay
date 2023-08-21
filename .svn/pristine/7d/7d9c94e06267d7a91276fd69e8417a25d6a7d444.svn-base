@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<%@ page language="java" contentType="text/html; charset=utf-8"
+	pageEncoding="utf-8"%>
+<html lang="en">
+<head>
+<!-- Meta Tags -->
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="Webestica.com">
+<meta name="description"
+	content="Booking - Multipurpose Online Booking Theme">
+
+
+<!-- Favicon -->
+<link rel="shortcut icon" href="assets/images/favicon.ico">
+
+<!-- Google Font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet"
+	href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Poppins:wght@400;500;700&display=swap">
+
+<!-- Plugins CSS -->
+<link rel="stylesheet" type="text/css"
+	href="assets/vendor/font-awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css"
+	href="assets/vendor/bootstrap-icons/bootstrap-icons.css">
+<link rel="stylesheet" type="text/css"
+	href="assets/vendor/overlay-scrollbar/css/overlayscrollbars.min.css">
+<link rel="stylesheet" type="text/css"
+	href="assets/vendor/choices/css/choices.min.css">
+
+<!-- Theme CSS -->
+<link rel="stylesheet" type="text/css" href="assets/css/style.css">
+
+</head>
+
+<body>
+
+	<!-- **************** MAIN CONTENT START **************** -->
+	<main>
+
+		<!-- Page main content START -->
+		<div class="page-content-wrapper p-xxl-4">
+
+			<!-- Title -->
+			<div class="row">
+				<div class="col-12 mb-4 mb-sm-5">
+					<div class="d-sm-flex justify-content-between align-items-center">
+						<h1 class="h3 mb-3 mb-sm-0">광고 요청</h1>
+						<div class="d-grid">
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Filters START -->
+			<div class="row g-4 align-items-center">
+				<!-- Tabs -->
+				<div class="col-lg-6"></div>
+
+				<!-- Search -->
+				<div class="col-md-6 col-lg-3">
+					<form class="rounded position-relative">
+						<input class="form-control bg-transparent" type="search"
+							placeholder="Search" aria-label="Search"
+							style="display: inline-block;">
+						<button
+							class="bg-transparent p-2 position-absolute top-50 end-0 translate-middle-y border-0 text-primary-hover text-reset"
+							type="submit" style="display: inline-block;">
+							<i class="fas fa-search fs-6"></i>
+						</button>
+					</form>
+				</div>
+
+				<!-- Select -->
+				<div class="col-md-6 col-lg-3">
+					<form>
+						<select class="form-select js-choice" aria-label=".form-select-sm">
+							<option>업체 분류</option>
+							<option value="">숙박 업체</option>
+							<option value="">렌터카 업체</option>
+							<option value="">제휴사</option>
+						</select>
+					</form>
+				</div>
+			</div>
+			<!-- Filters END -->
+
+			<!-- Guest list START -->
+			<div class="card shadow mt-5">
+				<!-- Card body START -->
+				<div class="card-body">
+					<!-- Table head -->
+					<div class="bg-light rounded p-3 d-none d-lg-block">
+						<div class="row row-cols-7 g-4">
+							<div class="col"><h6 class="mb-0">업체명</h6></div>
+							<div class="col"><h6 class="mb-0">업체 분류</h6></div>
+							<div class="col"><h6 class="mb-0">요청 광고 기간</h6></div>
+							<div class="col"></div>
+						</div>
+					</div>
+
+					<!-- Table data -->
+					<div class="row row-cols-xl-7 align-items-lg-center border-bottom g-4 px-2 py-4">
+						<!-- Data item -->
+						<div class="col">
+							<small class="d-block d-lg-none">업체명:</small>
+							<div class="d-flex align-items-center">
+								<!-- Avatar -->
+								<div class="avatar avatar-xs flex-shrink-0">
+									<img class="avatar-img rounded-circle" src="/resources/booking/assets/images/avatar/09.jpg" alt="avatar">
+								</div>
+								<!-- Info -->
+								<div class="ms-2">
+									<h6 class="mb-0 fw-light">Lori Stevens</h6>
+								</div>
+							</div>
+						</div>	
+
+						<!-- Data item -->
+						<div class="col">
+							<small class="d-block d-lg-none">업체 분류:</small>
+							<h6 class="mb-0 fw-normal">숙박 업체</h6>
+						</div>
+
+						<!-- Data item -->
+						<div class="col">
+							<small class="d-block d-lg-none">요청 광고 기간:</small>
+							<h6 class="mb-0 fw-normal">22 Dec 2022</h6>
+							~
+							<h6 class="mb-0 fw-normal">22 Dec 2022</h6>
+						</div>
+
+						<!-- Data item -->
+						<div class="col"><a href="admin-guest-detail.html" class="btn btn-lg btn-info-soft" >상세</a></div>
+					</div>
+				</div>
+				<!-- Card body END -->
+
+				<!-- Card footer START -->
+				<div class="card-footer pt-0">
+					<!-- Pagination and content -->
+					<div class="d-sm-flex justify-content-sm-between align-items-sm-center">
+						<!-- Content -->
+						<p class="mb-sm-0 text-center text-sm-start">Showing 1 to 8 of 20 entries</p>
+						<!-- Pagination -->
+						<nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
+							<ul class="pagination pagination-sm pagination-primary-soft mb-0">
+								<li class="page-item">
+									<a class="page-link" href="#" tabindex="-1">Prev</a>
+								</li>
+								<li class="page-item"><a class="page-link" href="#">1</a></li>
+								<li class="page-item active"><a class="page-link" href="#">2</a></li>
+								<li class="page-item disabled"><a class="page-link" href="#">..</a></li>
+								<li class="page-item"><a class="page-link" href="#">15</a></li>
+								<li class="page-item">
+									<a class="page-link" href="#">Next</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+				</div>
+				<!-- Card footer END -->
+			</div>
+			<!-- Guest list END -->
+		</div>
+		<!-- Page main content END -->
+	</main>
+	<!-- **************** MAIN CONTENT END **************** -->
+</body>
+</html>

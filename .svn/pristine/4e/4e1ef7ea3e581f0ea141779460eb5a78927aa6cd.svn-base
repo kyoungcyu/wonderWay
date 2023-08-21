@@ -1,0 +1,140 @@
+package kr.or.ddit.member.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.member.mapper.MypageMapper;
+import kr.or.ddit.member.service.MypageService;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.CupnVO;
+import kr.or.ddit.vo.GradVO;
+import kr.or.ddit.vo.HCupnVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.MmRsvListVO;
+import kr.or.ddit.vo.MmRsvRntcarListVO;
+import kr.or.ddit.vo.RsvVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class MypageServiceImpl implements MypageService {
+	@Inject
+	MypageMapper mypageMapper;
+	//마이페이지 - 내 프로필 
+	@Override
+	public MemVO detailMyInfo(String memId) {
+		return this.mypageMapper.detailMyInfo(memId);
+	}
+	
+	//마이페이지 - 내 프로필 - 내 정보 수정
+	@Override
+	public int updateMyInfo(MemVO memVO) {
+		return this.mypageMapper.updateMyInfo(memVO);
+	}
+	//마이페이지 - 내 프로필 - 이메일 변경
+	@Override
+	public int updateMyEmail(MemVO memVO) {
+		return this.mypageMapper.updateMyEmail(memVO);
+	}
+	//마이페이지 - 내 프로필 - 비밀번호 변경
+	@Override
+	public int updateMyPass(MemVO memVO) {
+		return this.mypageMapper.updateMyPass(memVO);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//예약내역
+	//숙박 전체조회
+	@Override
+	public List<MmRsvListVO> allBooking(Map<String, String> map) {
+		return this.mypageMapper.allBooking(map);
+	}
+	//렌터카 예약 조회
+	@Override
+	public List<MmRsvRntcarListVO> rntBooking(Map<String, String> map) {
+		return this.mypageMapper.rntBooking(map);
+	}	
+	
+	
+	
+	
+	
+	
+	
+	
+	//쿠폰함
+	//등급조회
+	@Override
+	public GradVO myGrad(String memId) {
+		return this.mypageMapper.myGrad(memId);
+	}
+	//쿠폰함 조회
+	public List<CupnVO> myCoupon(String memId) {
+		return this.mypageMapper.myCoupon(memId);
+	}	
+	//쿠폰존조회
+	@Override
+	public List<CupnVO> couponZone(CupnVO cupnVO) {
+		return this.mypageMapper.couponZone(cupnVO);
+	}	
+	//쿠폰 다운로드
+	@Override
+	public int downCoupon(HCupnVO hCupnVO) {
+		return this.mypageMapper.downCoupon(hCupnVO);
+	}
+	
+	
+	
+	//나의 작성글 내역
+	//이용완료 상품 조회
+	@Override
+	public List<MmRsvRntcarListVO> completeBooking(String memId) {
+		return this.mypageMapper.completeBooking(memId);
+	}
+	//리뷰 조회
+	@Override
+	public List<BrdVO> myReviewList(String frstWrtr) {
+		return this.mypageMapper.myReviewList(frstWrtr);
+	}
+	
+	
+	
+	
+	
+	
+	
+	//회원 탈퇴
+		@Override
+		public int deleteMem(MemVO memVO) {
+			return this.mypageMapper.deleteMem(memVO);
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}

@@ -1,0 +1,331 @@
+package kr.or.ddit.member.service.impl;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.member.mapper.TripBoardMapper;
+import kr.or.ddit.member.service.TripBoardService;
+import kr.or.ddit.util.CommonFile;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.CmtVO;
+import kr.or.ddit.vo.LikeBrdVO;
+import kr.or.ddit.vo.TourVO;
+import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnailator;
+
+@Slf4j
+@Service
+public class TripBoardServiceImpl implements TripBoardService {
+
+	@Autowired
+	TripBoardMapper tripBoardMapper;
+
+	// 여행후기 메인 - 최신순 조회
+	@Override
+	public List<BrdVO> tripRecList(Map<String, String> map) {
+		return this.tripBoardMapper.tripRecList(map);
+	}
+
+	// 여행후기 메인 - 인기순 조회
+	@Override
+	public List<BrdVO> tripLikeList(Map<String, String> map) {
+		return this.tripBoardMapper.tripLikeList(map);
+	}
+
+	// 글 목록 리스트
+	@Override
+	public List<BrdVO> tripBoardList(Map<String, String> map) {
+		// TODO Auto-generated method stub
+		return this.tripBoardMapper.tripBoardList(map);
+	}
+
+	// 글 상세보기
+	@Override
+	public BrdVO tripDetail(BrdVO brdVO) {
+		return this.tripBoardMapper.tripDetail(brdVO);
+	}
+
+	// 조회수 기능
+	@Override
+	public int tripViewCnt(String brdId) {
+		return this.tripBoardMapper.tripViewCnt(brdId);
+	}
+
+	// 첨부파일 가져오기
+	@Override
+	public String savePath(String brdId) {
+		return this.tripBoardMapper.savePath(brdId);
+	}
+
+	// 여행후기 글 등록
+	@Transactional
+	@Override
+	public int tripAddWrite(BrdVO brdVO) {
+		AttachVO attachVO = new AttachVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+		List<TourVO> tourList = new  ArrayList<TourVO>();
+
+		int result = this.tripBoardMapper.tripAddWrite(brdVO);
+		System.out.println("result1 : " + result);
+		result += this.tripBoardMapper.attachInsert(attachVO);
+		System.out.println("result2 : " + result);
+
+		// <input name="picture" type="file"
+		MultipartFile picture = brdVO.getAttachVOList().get(0).getAttachDeVOList().get(0).getPicture();
+		String orgNm = picture.getOriginalFilename();
+
+		// UUID 처리 시작
+		UUID uuid = UUID.randomUUID();
+		String fileNm = uuid.toString() + "_" + orgNm;
+
+		// 파일 업로드 시작 ===
+		File uploadPath = new File(CommonFile.uploadFolder+"\\tripBoard", CommonFile.getFolder());
+		if (uploadPath.exists() == false) {
+			uploadPath.mkdirs();
+		}
+
+		// 설계
+		File saveFile = new File(uploadPath, fileNm);
+		try {
+			picture.transferTo(saveFile);
+
+			AttachDeVO attachDeVO = new AttachDeVO();
+			attachDeVO.setAttachId(attachVO.getAttachId());
+			attachDeVO.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm); // 파일 저장 경로
+			attachDeVO.setOrgNm(orgNm);// 파일 원본 명
+			attachDeVO.setFileNm(fileNm);// 파일 저장명
+			attachDeVO.setFileSz(picture.getSize()); // 파일 사이즈
+			attachDeVO.setFileTy(picture.getContentType()); // 파일 컨텐츠 타입
+
+			log.info("insert할 attachDeVO : " + attachDeVO);
+
+			attachDeVOlist.add(attachDeVO);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+		// AttachDeVO(attachDeId=null, attachId=null, orgNm=다운로드.jpg
+		// , fileNm=3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		// , savePath=/2023/06/26/3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		// , fileSz=4687, fileTy=image/jpeg, fileDel=null, picture=null)
+
+		result += this.tripBoardMapper.attachDeInsert(attachDeVOlist);
+		System.out.println("result3 : " + result);
+
+		brdVO.setAttachId(attachVO.getAttachId());
+		System.out.println("result3->brdVO : " + brdVO);// attachId, brdId
+
+		result += this.tripBoardMapper.attachIdUpdate(brdVO);
+		System.out.println("result4 : " + result);
+		return result;
+	}
+	
+	
+
+	//여행지 목록 불러오기
+	@Override
+	public List<TourVO> tourList(Map<String, String> map) {
+		return this.tripBoardMapper.tourList(map);
+	}
+	//여행지명 가져오기
+	@Override
+	public String tourNm(String tourId) {
+		return this.tripBoardMapper.tourNm(tourId);
+	}
+
+	// 여행후기 글 수정
+	@Override
+	public int tripUpdate(BrdVO brdVO) {
+
+		AttachVO attachVO = new AttachVO();
+		AttachDeVO attachDeVO = new AttachDeVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+		
+		//게시글 내용 변경
+		int result = this.tripBoardMapper.tripUpdate(brdVO);
+		System.out.println("result1 : " + result);
+		
+		// 수정모드에서 이미지를 업로드하면 다시 보정 - 저장경로
+		brdVO.getAttachVOList().get(0).getAttachDeVOList().get(0).setSavePath("");
+		// 이미지도 함께 변경 시 처리 시작
+		MultipartFile picture = brdVO.getAttachVOList().get(0).getAttachDeVOList().get(0).getPicture();
+
+		// 원래 파일명
+		String orgNm = "";
+		orgNm = picture.getOriginalFilename();
+		// uuid 처리
+		UUID uuid = UUID.randomUUID();
+		String fileNm = uuid.toString() + "_" + orgNm;
+		// 연월일 폴더
+		File uploadPath = new File(CommonFile.uploadFolder+"//tripBoard", CommonFile.getFolder());
+		if (uploadPath.exists() == false) {
+			uploadPath.mkdirs();
+		}
+		// 설계 (연월일 폴더 + uuid 파일명)
+		File saveFile = new File(uploadPath, fileNm);
+		try {
+			// 복사 실행
+			picture.transferTo(saveFile);
+			// 썸네일
+//			if (CommonFile.checkImageType(saveFile)) {
+//				FileOutputStream thumbnail = new FileOutputStream(new File(uploadPath, "s_" + fileNm));
+//				// 실행
+//				Thumbnailator.createThumbnail(picture.getInputStream(), thumbnail, 100, 100);
+//				thumbnail.close();
+//			}
+			attachDeVO.setAttachId(attachVO.getAttachId());
+			attachDeVO.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm); // 파일 저장 경로
+			attachDeVO.setOrgNm(orgNm);// 파일 원본 명
+			attachDeVO.setFileNm(fileNm);// 파일 저장명
+			attachDeVO.setFileSz(picture.getSize()); // 파일 사이즈
+			attachDeVO.setFileTy(picture.getContentType()); // 파일 컨텐츠 타입
+			attachDeVO.setBrdId(brdVO.getBrdId());
+
+			log.info("insert할 attachDeVO : " + attachDeVO);
+
+			attachDeVOlist.add(attachDeVO);
+
+			brdVO.getAttachVOList().get(0).getAttachDeVOList().get(0)
+					.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm);
+
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+		//먼저 지우고
+		result += this.tripBoardMapper.attachDeBefUpdate(brdVO);
+		log.info("attachDeVOlist : " + attachDeVOlist);
+		//지워진 자리에 새로 등록
+		result += this.tripBoardMapper.attachDeUpdate(attachDeVOlist);
+		System.out.println("result3 : " + result);
+
+		return result;
+	}
+
+	/* 게시글 좋아요 기능 */
+	// 좋아요 확인
+	@Override
+	public int findLike(LikeBrdVO likeBrdVO) {
+		return this.tripBoardMapper.findLike(likeBrdVO);
+
+	}
+
+	// 게시글 좋아요 기능
+	@Transactional
+	@Override
+	public int likeBrd(LikeBrdVO likeBrdVO) {
+		int result = this.tripBoardMapper.likeBrd(likeBrdVO);
+		result += this.tripBoardMapper.insertBrd(likeBrdVO);
+		return result;
+	}
+
+	// 게시글 좋아요 취소
+	@Transactional
+	@Override
+	public int dislikeBrd(LikeBrdVO likeBrdVO) {
+		int result = this.tripBoardMapper.dislikeBrd(likeBrdVO);
+		result += this.tripBoardMapper.deleteBrd(likeBrdVO);
+		return result;
+	}
+
+	// 여행후기 글 삭제
+	@Transactional
+	@Override
+	public int tripDelete(BrdVO brdVO) {
+//		AttachVO attachVO = new AttachVO();
+//		System.out.println("attachVO : " + attachVO);
+//		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+//		System.out.println("attachDeVOlist : " + attachDeVOlist);
+		int result = this.tripBoardMapper.tripDelete(brdVO);
+		System.out.println("result5 : " + result);
+		result += this.tripBoardMapper.tripAttachDelete(brdVO);
+		System.out.println("result6 : " + result);
+		result += this.tripBoardMapper.tripAttachDeDelete(brdVO);
+		System.out.println("result7 : " + result);
+		
+		return result;
+	}
+
+	// 게시글 수
+	@Override
+	public int countBoard(Map<String, String> map) {
+		return this.tripBoardMapper.countBoard(map);
+	}
+
+	// 글 신고하기
+	@Override
+	public int tripReprt(BrdVO brdVO) {
+		return this.tripBoardMapper.tripReprt(brdVO);
+	}
+	
+	//댓글 기능
+	//댓글 작성
+	@Override
+	public int cmtWrite(CmtVO cmtVO) {
+		return this.tripBoardMapper.cmtWrite(cmtVO);
+	}
+	//댓글 수정
+	@Override
+	public int cmtUpdate(CmtVO cmtVO) {
+		return this.tripBoardMapper.cmtUpdate(cmtVO);
+	}
+	//댓글 삭제
+	@Override
+	public int cmtDelete(CmtVO cmtVO) {
+		return this.tripBoardMapper.cmtDelete(cmtVO);
+	}
+	//댓글 상세보기
+	@Override
+	public  List<CmtVO> cmtDetail(String brdId) {
+		return this.tripBoardMapper.cmtDetail(brdId);
+	}
+	
+	//대댓글기능
+	//대댓글 조회하기
+	@Override
+	public List<CmtVO> replyDetail(String cmtId) {
+		return this.tripBoardMapper.replyDetail(cmtId);
+	}
+	//대댓글 등록하기
+	@Override
+	public int replyWrite(CmtVO cmtVO) {
+		return this.tripBoardMapper.replyWrite(cmtVO);
+	}
+	//댓글 총 개수
+	@Override
+	public int cmtCount(String repCmtId) {
+		return this.tripBoardMapper.cmtCount(repCmtId);
+	}
+
+	//대댓글 총 개수
+	public int repCmtCount(String brdId) {
+		return this.tripBoardMapper.repCmtCount(brdId);
+	}
+
+	@Override
+	public List<BrdVO> magazineList(Map<String, String> map) {
+		return this.tripBoardMapper.magazineList(map);
+	}
+
+	@Override
+	public int getTotalMagazine(Map<String, String> map) {
+		return this.tripBoardMapper.getTotalMagazine(map);
+	}
+
+	@Override
+	public BrdVO magazineDetail(String brdId) {
+		return this.tripBoardMapper.magazineDetail(brdId);
+	}
+
+
+}
+

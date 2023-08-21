@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mapper.MemRcmMapper">
+
+	<!-- 회원 맞춤 숙소 추천 -->
+	<select id="rcmStyList" parameterType="rcmStVO" resultType="rcmStVO">
+		SELECT
+		     AGE, GEN, LOC, BUSI_CODE, BUSI_ID_1, BUSI_ID_2, BUSI_ID_3
+		FROM
+		    STY_RCM
+		WHERE AGE = #{age} 
+		  and GEN = #{gen}
+		  and LOC = #{loc}
+		  and BUSI_CODE = #{busiCode} 
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

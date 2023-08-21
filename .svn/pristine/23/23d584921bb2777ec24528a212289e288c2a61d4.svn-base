@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdAdvMapper">
+
+	<!-- 광고 resultMap 선언 -->
+	<resultMap id="advListMap" type="advListVO">
+		<result column="AD_REQ_ID" property="adReqId" />
+		<result column="BUSI_NM" property="busiNm" />
+		<result column="ADMIN_NM" property="adminNm" />
+		<result column="CM_CODE" property="cmCode" />
+		<result column="CNFM" property="cnfm" />
+		<result column="CNFM_DT" property="cnfmDt" />
+		<result column="AD_PERIOD" property="adPeriod" />
+		<result column="AD_DC" property="adDc" />
+		<result column="AD_PR" property="adPr" />
+		<result column="AD_EXP" property="adExp" />
+		<result column="REMAIN_DATE" property="remainDate" />
+	</resultMap>
+	
+	<sql id="orderBy">
+		<choose>
+			<when test="sort=='advKind'">
+				ORDER BY A.CM_CODE ASC
+			</when>
+			<when test="sort=='advMtAsc'">
+				ORDER BY A.AD_PR ASC
+			</when>
+			<when test="sort=='advMtDesc'">
+				ORDER BY A.AD_PR DESC
+			</when>
+			<when test="sort=='busiNmAsc'">
+				ORDER BY C.BUSI_NM ASC
+			</when>
+			<when test="sort=='busiNmDesc'">
+				ORDER BY C.BUSI_NM DESC
+			</when>
+			<when test="sort=='active'">
+				ORDER BY B.AD_EXP ASC
+			</when>
+			<otherwise>
+				ORDER BY B.CNFM_DT DESC
+			</otherwise>
+		</choose>
+	</sql>
+
+	<!-- 광고 목록 -->
+	<select id="advList" parameterType="hashMap" resultMap="advListMap">
+		WITH T AS(
+			SELECT
+			    ROW_NUMBER() OVER(<include refid="orderBy"></include>) RNUM
+			    , B.AD_REQ_ID AS AD_REQ_ID
+			    , C.BUSI_NM AS BUSI_NM
+			    , (SELECT ADMIN_NM
+				  FROM ADMIN
+				  WHERE ADMIN_ID = B.ADMIN_ID) AS ADMIN_NM
+			    , A.CM_CODE AS CM_CODE
+			    , B.CNFM AS CNFM
+			    , B.CNFM_DT AS CNFM_DT
+			    , TO_CHAR(B.AD_ST, 'YYYY/MM/DD') || CHR(13) || CHR(126) || CHR(13) || TO_CHAR(B.AD_ED, 'YYYY/MM/DD') AS AD_PERIOD
+			    , A.AD_DC AS AD_DC
+			    , A.AD_PR AS AD_PR
+			    , B.AD_EXP AS AD_EXP
+			    , TRUNC(B.AD_ED - SYSDATE) AS REMAIN_DATE
+			FROM AD A
+			INNER JOIN AD_REQ B ON B.AD_ID = A.AD_ID
+			INNER JOIN BUSI C ON C.BUSI_ID = B.BUSI_ID
+			WHERE B.CNFM = 'Y'
+			AND B.AD_EXP = 'N'
+		<!-- 예약자명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND C.BUSI_NM LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND B.CNFM_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND B.CNFM_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		<!-- 정렬 검색 -->
+		<if test="sort!=null and !sort.equals('')">
+			<choose>
+				<when test="sort=='advKind'">
+					ORDER BY CM_CODE ASC
+				</when>
+				<when test="sort=='advMtAsc'">
+					ORDER BY AD_PR ASC
+				</when>
+				<when test="sort=='advMtDesc'">
+					ORDER BY AD_PR DESC
+				</when>
+				<when test="sort=='busiNmAsc'">
+					ORDER BY BUSI_NM ASC
+				</when>
+				<when test="sort=='busiNmDesc'">
+					ORDER BY BUSI_NM DESC
+				</when>
+				<when test="sort=='active'">
+					ORDER BY AD_EXP ASC
+				</when>
+			</choose>
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+
+	<!-- 광고 상세 -->
+	<select id="advDetail" parameterType="String" resultMap="advListMap">
+		SELECT
+		        B.AD_REQ_ID AS AD_REQ_ID
+		      , (SELECT BUSI_NM FROM BUSI WHERE BUSI_ID = B.BUSI_ID) AS BUSI_NM
+		      , (SELECT ADMIN_NM FROM ADMIN WHERE ADMIN_ID = B.ADMIN_ID) AS ADMIN_NM
+		      , B.CNFM AS CNFM
+		      , B.CNFM_DT AS CNFM_DT
+		      , CONCAT(CONCAT(TO_CHAR(B.AD_ST, 'YYYY/MM/DD'), CHR(126)), TO_CHAR(B.AD_ED, 'YYYY/MM/DD')) AS AD_PERIOD
+		      , A.AD_DC AS AD_DC
+		      , A.AD_PR AS AD_PR
+		      , B.AD_EXP AS AD_EXP
+		      , TRUNC(B.AD_ED - SYSDATE) AS REMAIN_DATE
+		FROM AD A, AD_REQ B
+		WHERE A.AD_ID = B.AD_ID
+		AND B.AD_REQ_ID = #{adReqId}
+		AND B.CNFM IS NOT NULL
+	</select>
+
+	<!-- 총 데이터 개수(광고목록) -->
+	<select id="getTotalAdv" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) 
+		FROM AD A
+		INNER JOIN AD_REQ B ON B.AD_ID = A.AD_ID
+		INNER JOIN BUSI C ON C.BUSI_ID = B.BUSI_ID
+		WHERE B.CNFM = 'Y'
+		AND B.AD_EXP = 'N'
+		<if test="keyword!=null and !keyword.equals('')">
+			AND C.BUSI_ID LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND B.CNFM_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND B.CNFM_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	<!-- 광고 요청 resultMap 선언 -->
+	<resultMap id="advReqListMap" type="advReqListVO">
+		<result column="AD_REQ_ID" property="adReqId" />
+		<result column="BUSI_NM" property="busiNm" />
+		<result column="BUSI_CODE" property="busiCode" />
+		<result column="AD_PIOD" property="adPiod" />
+		<result column="AD_DETAIL_PIOD" property="adDetailPiod" />
+		<result column="AD_PR" property="adPr" />
+		<result column="AD_REQ_TM" property="adReqTm" />
+	</resultMap>
+	
+	<sql id="orderByReq">
+		<choose>
+			<when test="sort=='advReqKindAsc'">
+				ORDER BY D.BUSI_CODE ASC
+			</when>
+			<when test="sort=='advReqKindDesc'">
+				ORDER BY D.BUSI_CODE DESC
+			</when>
+			<when test="sort=='advReqBusiAsc'">
+				ORDER BY D.BUSI_NM ASC
+			</when>
+			<when test="sort=='advReqBusiDesc'">
+				ORDER BY D.BUSI_NM DESC
+			</when>
+			<otherwise>
+				ORDER BY C.PAY_DT DESC
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 광고 요청 목록 -->
+	<select id="advReqList" parameterType="hashMap" resultMap="advReqListMap">
+		WITH T AS(
+			SELECT  ROW_NUMBER() OVER(<include refid="orderByReq"></include>) RNUM
+			      , A.AD_REQ_ID AS AD_REQ_ID
+			      , D.BUSI_NM AS BUSI_NM
+			      , FN_CODE_TO_NM(D.BUSI_CODE) AS BUSI_CODE
+			      , A.AD_ST || CHR(13) || CHR(126) || CHR(13) || A.AD_ED AS AD_PIOD
+			 	  , A.AD_ST || CHR(126) || A.AD_ED AS AD_DETAIL_PIOD
+			      , B.AD_PR AS AD_PR
+			      , B.AD_DC AS AD_DC
+			      , C.PAY_DT AS AD_REQ_TM
+			FROM AD_REQ A 
+			INNER JOIN AD B ON A.AD_ID = B.AD_ID
+			INNER JOIN PAY C ON A.AD_REQ_ID = C.AD_REQ_ID
+			INNER JOIN BUSI D ON A.BUSI_ID = D.BUSI_ID
+			WHERE A.CNFM IS NULL
+			AND B.AD_ID LIKE #{adId} || '%'
+		<if test="keyword!=null and !keyword.equals('')">
+			AND C.BUSI_NM LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 광고 요청 일시 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND AD_REQ_TM &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND AD_REQ_TM &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		<!-- 정렬 검색 -->
+		<if test="sort!=null and !sort.equals('')">
+			<choose>
+				<when test="sort=='advReqKindAsc'">
+					ORDER BY BUSI_CODE ASC
+				</when>
+				<when test="sort=='advReqKindDesc'">
+					ORDER BY BUSI_CODE DESC
+				</when>
+				<when test="sort=='advReqBusiAsc'">
+					ORDER BY BUSI_NM ASC
+				</when>
+				<when test="sort=='advReqBusiDesc'">
+					ORDER BY BUSI_NM DESC
+				</when>
+			</choose>
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 광고 요청 상세 -->
+	<select id="advReqDetail" parameterType="String" resultMap="advReqListMap">
+		SELECT  A.AD_REQ_ID AS AD_REQ_ID
+		      , D.BUSI_NM AS BUSI_NM
+		      , FN_CODE_TO_NM(D.BUSI_CODE) AS BUSI_CODE
+		      , A.AD_ST || CHR(13) || CHR(126) || CHR(13) || A.AD_ED AS AD_PIOD
+			  , A.AD_ST || CHR(126) || A.AD_ED AS AD_DETAIL_PIOD
+		      , B.AD_PR AS AD_PR 
+		      , C.PAY_DT AS AD_REQ_TM
+		      , B.AD_DC AS AD_DC
+		FROM AD_REQ A 
+		INNER JOIN AD B ON A.AD_ID = B.AD_ID
+		INNER JOIN PAY C ON A.AD_REQ_ID = C.AD_REQ_ID
+		INNER JOIN BUSI D ON A.BUSI_ID = D.BUSI_ID
+		WHERE A.CNFM IS NULL
+		AND A.AD_REQ_ID = #{adReqId}
+	</select>
+	
+	<!-- 총 데이터 개수(광고요청목록) -->
+	<select id="getTotalAdvReq" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) 
+		FROM AD_REQ A 
+		INNER JOIN AD B ON A.AD_ID = B.AD_ID
+		INNER JOIN PAY C ON A.AD_REQ_ID = C.AD_REQ_ID
+		INNER JOIN BUSI D ON A.BUSI_ID = D.BUSI_ID
+		WHERE A.CNFM IS NULL
+		AND B.AD_ID LIKE #{adId} || '%'
+		<if test="keyword!=null and !keyword.equals('')">
+			AND BUSI_ID LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND CNFM_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND CNFM_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	<!-- 광고 요청 응답 -->
+	<update id="processRequest" parameterType="hashMap">
+		UPDATE AD_REQ
+		SET
+			<if test="btnName!=null and !btnName.equals('')">
+				<choose>
+					<when test="btnName=='accept'">
+						CNFM = 'Y'
+					  , CNFM_DT = SYSDATE
+					  , ADMIN_ID = #{adminId}
+					</when>
+					<when test="btnName=='denied'">
+						CNFM = 'N'
+					  , AD_EXP = 'Y'
+					</when>
+				</choose>
+			</if>
+		WHERE AD_REQ_ID = #{adReqId}
+	</update>
+	
+	<update id="adSetting" parameterType="hashMap">
+		UPDATE AD
+		SET AD_PR = #{pr}
+		WHERE AD_ID = #{adId}
+	</update>
+	
+	<select id="selectAdDc" parameterType="String" resultType="adadVO">
+		SELECT AD_DC
+		FROM AD
+		WHERE AD_ID = #{adId}
+	</select>
+
+	<select id="selectAdList" parameterType="hashMap" resultType="adadVO">
+		WITH T AS(
+			SELECT  ROW_NUMBER() OVER(ORDER BY AD_ID ASC) RNUM
+			      , AD_ID
+			      , AD_DC
+			      , AD_PR
+			      , AD_IMG
+			      , CM_CODE
+			      , AD_PERIOD
+			FROM AD
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	<select id="getTotalAdSet" resultType="int">
+		SELECT COUNT(*)
+		FROM AD
+	</select>
+	
+	<select id="cntAdvActive" resultType="int">
+		SELECT COUNT(*)
+		FROM AD A
+		INNER JOIN AD_REQ B ON B.AD_ID = A.AD_ID
+		INNER JOIN BUSI C ON C.BUSI_ID = B.BUSI_ID
+		WHERE B.CNFM = 'Y'
+		AND B.AD_EXP = 'N'
+	</select>
+
+	<select id="cntAdvExp" resultType="int">
+		SELECT COUNT(*)
+		FROM AD A
+		INNER JOIN AD_REQ B ON B.AD_ID = A.AD_ID
+		INNER JOIN BUSI C ON C.BUSI_ID = B.BUSI_ID
+		WHERE B.CNFM = 'Y'
+		AND B.AD_EXP = 'N'
+		AND (B.AD_ED - SYSDATE) &lt; 30
+	</select>
+
+	<select id="sumAdvActive" resultType="int">
+		SELECT ROUND(NVL(SUM(A.AD_PR) , 0), -2)
+		FROM AD A
+		INNER JOIN AD_REQ B ON B.AD_ID = A.AD_ID
+		INNER JOIN BUSI C ON C.BUSI_ID = B.BUSI_ID
+		WHERE B.CNFM = 'Y'
+		AND B.AD_EXP = 'N'
+	</select>
+	
+	<select id="cntAdvReqAll" resultType="int">
+		SELECT COUNT(*)
+		FROM AD_REQ A 
+		INNER JOIN AD B ON A.AD_ID = B.AD_ID
+		INNER JOIN PAY C ON A.AD_REQ_ID = C.AD_REQ_ID
+		INNER JOIN BUSI D ON A.BUSI_ID = D.BUSI_ID
+		WHERE A.CNFM IS NULL
+	</select>
+
+	<select id="cntAdvReqMain" resultType="int">
+		SELECT COUNT(*)
+		FROM AD_REQ A 
+		INNER JOIN AD B ON A.AD_ID = B.AD_ID
+		INNER JOIN PAY C ON A.AD_REQ_ID = C.AD_REQ_ID
+		INNER JOIN BUSI D ON A.BUSI_ID = D.BUSI_ID
+		WHERE A.CNFM IS NULL
+		AND B.AD_ID LIKE 'V01' || '%'
+	</select>
+
+	<select id="cntAdvReqUnder" resultType="int">
+		SELECT COUNT(*)
+		FROM AD_REQ A 
+		INNER JOIN AD B ON A.AD_ID = B.AD_ID
+		INNER JOIN PAY C ON A.AD_REQ_ID = C.AD_REQ_ID
+		INNER JOIN BUSI D ON A.BUSI_ID = D.BUSI_ID
+		WHERE A.CNFM IS NULL
+		AND B.AD_ID LIKE 'V02' || '%'
+	</select>
+
+	<select id="cntAdvReqSearch" resultType="int">
+		SELECT COUNT(*)
+		FROM AD_REQ A 
+		INNER JOIN AD B ON A.AD_ID = B.AD_ID
+		INNER JOIN PAY C ON A.AD_REQ_ID = C.AD_REQ_ID
+		INNER JOIN BUSI D ON A.BUSI_ID = D.BUSI_ID
+		WHERE A.CNFM IS NULL
+		AND B.AD_ID LIKE 'V03' || '%'
+	</select>
+</mapper>

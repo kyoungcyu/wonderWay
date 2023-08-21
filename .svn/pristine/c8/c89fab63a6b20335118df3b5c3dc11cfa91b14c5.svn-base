@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mapper.MmInsuMapper">
+	<resultMap type="insuVO" id="insuMap">
+		<result property="insuId" column="INSU_ID" />
+		<result property="insuNm" column="INSU_NM" />
+		<result property="insuTrTy" column="INSU_TR_TY" />
+		<result property="insuNat" column="INSU_NAT" />
+		<result property="insuPrcs" column="INSU_PRCS" />
+		<result property="insuAge" column="INSU_AGE" />
+		<result property="company" column="COMPANY" />
+		<result property="withdrawal" column="WITHDRAWAL" />
+		<result property="insuType" column="INSU_TYPE" />
+		<result property="deposit" column="DEPOSIT" />
+		<result property="insuImg" column="INSU_IMG" />
+		<result property="features1" column="FEATURES1" />
+		<result property="features2" column="FEATURES2" />
+		<result property="features3" column="FEATURES3" />
+		<collection property="insuDetailVOList" column="INSU_ID" select="detailInsu"></collection>
+		
+	</resultMap>
+
+
+	<!-- 보험 검색 -->
+	<select id="searchInsu" parameterType="hashMap" resultMap="insuMap">
+		SELECT INSU_ID, INSU_NM, INSU_TR_TY, INSU_NAT, INSU_PRCS, INSU_AGE, COMPANY, WITHDRAWAL, INSU_TYPE, DEPOSIT, INSU_IMG
+		FROM INSU
+		WHERE INSU_TR_TY=#{tripType}
+		AND INSU_NAT LIKE '%' || #{nation} || '%'
+		<![CDATA[
+		AND SUBSTR(INSU_AGE,0,INSTR(INSU_AGE,'-')-1) <= #{age}
+		AND SUBSTR(INSU_AGE,INSTR(INSU_AGE,'-')+1) >= #{age}
+		]]>
+	</select>
+	
+	
+	
+	<!-- 보험 정보-->
+	<select id="getInsuVO" parameterType="String" resultType="insuVO">
+		SELECT INSU_ID, 
+				INSU_NM, 
+				INSU_TR_TY, 
+				INSU_NAT, 
+				INSU_PRCS, 
+				INSU_AGE, 
+				COMPANY, 
+				WITHDRAWAL, 
+				INSU_TYPE, 
+				DEPOSIT,
+				FEATURES1,
+				FEATURES2,
+				FEATURES3,
+				INSU_IMG
+		FROM INSU
+		WHERE INSU_ID=#{insuId}
+	</select>
+	
+	
+	
+
+	<!-- 보험 상세 디테일 -->
+	<select id="detailInsu" parameterType="String" resultType="insuDetailVO">
+		SELECT ACC_DEATH, 
+				DIS_DEATH, 
+				ACC_MEDI, 
+				DIS_MEDI, 
+				LOSS, 
+				DAMAGES, 
+				HIJACKING, 
+				PROD_ID, 
+				INSU_KND, 
+				INSU_ID, 
+				INSU_FEE, 
+				PASSPORT, 
+				INFECTIOUS, 
+				LAWYER	
+		FROM INSU_DETAIL
+		WHERE INSU_ID=#{iusuId}
+		ORDER BY INSU_FEE ASC
+	</select>
+	
+	
+	<!-- 보험 가입  -->
+	<select id="getInsuDeVO" parameterType="String" resultType="insuDetailVO">
+        SELECT I.INSU_NM, 
+        		I.INSU_TR_TY, 
+        		I.INSU_NAT, 
+        		I.INSU_PRCS, 
+        		I.INSU_AGE, 
+        		I.COMPANY, 
+        		I.WITHDRAWAL, 
+        		I.INSU_TYPE, 
+        		I.DEPOSIT,
+        		I.INSU_IMG,
+        		ID.PROD_ID,
+        		ID.INSU_KND,
+        		ID.INSU_FEE
+        FROM INSU_DETAIL ID
+        JOIN INSU I ON ID.INSU_ID=I.INSU_ID
+	    WHERE PROD_ID=#{prodId}
+	 </select>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

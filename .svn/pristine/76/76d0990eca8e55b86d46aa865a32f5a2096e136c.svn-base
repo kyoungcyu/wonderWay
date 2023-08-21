@@ -1,0 +1,34 @@
+package kr.or.ddit.business.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RequestMapping("/business/advertize")
+@Controller
+public class BsAdController {
+	
+//	@Autowired
+//	BsAdService bsAdService;
+	
+	@GetMapping("/bsAd") // 업체 정산 내역 페이지
+	public void bsAd() {
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	}
+	
+	
+	
+	
+
+}

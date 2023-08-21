@@ -1,0 +1,38 @@
+package kr.or.ddit.admin.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AdSalesStatVO;
+import kr.or.ddit.vo.AdSalesVO;
+import kr.or.ddit.vo.AdStatsVO;
+
+public interface AdSalesMapper {
+	public List<AdSalesVO> salesList(Map<String, String> map);
+
+	public List<AdSalesVO> salesListExcel(Map<String, String> map);
+	
+	public int getTotal(Map<String, String> map);
+	
+	public int lastYearSales();
+	
+	public int thisYearSales();
+	
+	public int lastMthSales();
+	
+	public int thisMthSales();
+	
+	public AdSalesStatVO popularBusi();
+	
+	public int thisMthSignIn();
+	
+	public int lastMthSignIn();
+	
+	public List<AdStatsVO> salesYMStats(String year);
+	
+	public List<AdStatsVO> rsvYMStats(String year);
+
+	public List<AdStatsVO> memYMStats(String year);
+	
+	public List<AdStatsVO> memAgeStats();
+}

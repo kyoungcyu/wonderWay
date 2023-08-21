@@ -1,0 +1,358 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+
+<head>
+<!-- Meta Tags -->
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="Webestica.com">
+<meta name="description"
+	content="Booking - Multipurpose Online Booking Theme">
+
+
+<!-- Plugins CSS -->
+<link rel="stylesheet" type="text/css" href="/resources/booking/assets/vendor/choices/css/choices.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="/resources/booking/assets/vendor/choices/js/choices.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script type="text/javascript">
+	$(function() {
+		$("#sort").on("change",function(){
+			$("#frm01").submit();
+		});
+		
+		let fp = $("#calender").flatpickr({
+			enableTime: false,
+		    dateFormat: "Y/m/d"
+		});
+		
+		fp.config.onClose.push(function() {
+			let date = $("#calender").val();
+			console.log("flag : ", date);
+			$("#calender").val(date);
+			$("#frm01").submit();
+		});
+		
+		$("#init").on("click", function() {
+			$("#calender").val("");
+			$("input[name=keyword]").val("");
+			$("#sort").val("");
+			
+			$("#frm01").submit();
+		});
+		
+		$("#downloadExcel").on("click", function() {
+			$.ajax({
+				url : "/admin/sales/downloadExcelPost",
+				data : {
+					"period" : $("#calender").val()
+				},
+				type : "get",
+				xhrFields:{
+			        responseType: 'blob'
+			    },
+				beforeSend : function (xhr) {
+					xhr.setRequestHeader("${_csrf.headerName}","${_csrf.token}");
+				},
+				success : function(result) {
+					console.log(result);	
+					var blob = result;
+				    var downloadUrl = URL.createObjectURL(blob);
+				    var a = document.createElement("a");
+				    a.href = downloadUrl;
+				    if($("#calender").val() == "") {
+					    a.download = "매출내역_전체.xlsx";
+				    } else {
+					    a.download = "매출내역_" + $("#calender").val() + ".xlsx";
+				    }
+				    document.body.appendChild(a);
+				    a.click();
+				}
+			});
+		});
+	});
+	
+	
+</script>
+
+
+</head>
+
+
+<!-- **************** MAIN CONTENT START **************** -->
+<main>
+		<div class="page-content-wrapper p-xxl-4">
+			<!-- Earning block START -->
+			<div class="row g-4">
+				<!-- Block item -->
+				<div class="col-sm-6 col-xxl-3">
+					<div class="card card-body bg-light p-4 h-100">
+						<h6 class="mb-0">누적 연 순수익
+							<a tabindex="0" class="h6 mb-0" role="button" data-bs-toggle="popover" data-bs-trigger="focus" data-bs-placement="top" 
+							   data-bs-content="총 매출: &#8361;<fmt:formatNumber type="number" pattern="#,###" value="${totalSales}" />">
+								<i class="bi bi-info-circle-fill small"></i>
+							</a>
+						</h6>
+						<h4 class="mb-2 mt-2">
+							&#8361; <fmt:formatNumber type="number" pattern="#,###" value="${vo.thisYearSales}" />
+						</h4>
+						<p class="mt-auto mb-0">전년 대비 
+						<c:if test="${vo.thisYearSales > vo.lastYearSales}">
+							<span class="badge bg-success bg-opacity-10 text-success">${vo.increaseYearSales}% <i class="bi bi-graph-up"></i></span></p>
+						</c:if>
+						<c:if test="${vo.thisYearSales < vo.lastYearSales}">
+							<span class="badge bg-danger bg-opacity-10 text-danger">${vo.increaseYearSales}% <i class="bi bi-graph-up"></i></span></p>
+						</c:if>
+					</div>
+				</div>
+
+				<!-- Block item -->
+				<div class="col-sm-6 col-xxl-3">
+					<div class="card card-body bg-light p-4 h-100">
+						<h6 class="mb-0">누적 월 순수익</h6>
+						<h4 class="mb-2 mt-2">
+							&#8361; <fmt:formatNumber type="number" pattern="#,###" value="${vo.thisMthSales}" />
+						</h4>
+						<p class="mt-auto mb-0">전월 대비 
+						<c:if test="${vo.thisMthSales > vo.lastMthSales}">
+							<span class="badge bg-success bg-opacity-10 text-success">${vo.increaseMthSales}% <i class="bi bi-graph-up"></i></span></p>
+						</c:if>
+						<c:if test="${vo.thisMthSales < vo.lastMthSales}">
+							<span class="badge bg-danger bg-opacity-10 text-danger">${vo.increaseMthSales}% <i class="bi bi-graph-up"></i></span></p>
+						</c:if>
+					</div>
+				</div>
+	
+				<!-- Block item -->
+				<div class="col-sm-6 col-xxl-3">
+					<div class="card card-body bg-light p-4 h-100">
+						<h6 class="mb-0">전월 최고 매출 업체</h6>
+						<h4 class="mb-2 mt-2">${vo.popularBusiNm}</h4>
+						<p class="mt-auto mb-0">총 
+						<span class="badge bg-info bg-opacity-10 text-success">
+							&#8361; <fmt:formatNumber type="number" pattern="#,###" value="${vo.popularBusiSales}" />
+						</span></p>
+					</div>
+				</div>
+	
+				<!-- Block item -->
+				<div class="col-sm-6 col-xxl-3">
+					<div class="card card-body bg-light p-4 h-100">
+						<h6>현월 누적 가입자 수
+							<a tabindex="0" class="h6 mb-0" role="button" data-bs-toggle="popover" data-bs-trigger="focus" data-bs-placement="top" data-bs-content="총 회원 수: ${vo.memCount}명">
+								<i class="bi bi-info-circle-fill small"></i>
+							</a>
+						</h6>
+						<h4>${vo.thisMthSignIn}명</h4>
+						<p class="mt-auto mb-0">전월 대비 
+						<c:if test="${vo.thisMthSignIn > vo.lastMthSignIn}">
+							<span class="badge bg-success bg-opacity-10 text-success">${vo.increaseMthMem}% <i class="bi bi-graph-up"></i></span></p>
+						</c:if>
+						<c:if test="${vo.thisMthSignIn < vo.lastMthSignIn}">
+							<span class="badge bg-danger bg-opacity-10 text-danger">${vo.increaseMthMem}% <i class="bi bi-graph-up"></i></span></p>
+						</c:if>
+					</div>
+				</div>
+			</div>
+			<!-- Earning block END -->
+
+			<!-- Payment history START -->
+			<div class="card shadow mt-5">
+				<!-- Card header -->
+				<form class="card-header border-bottom" id="frm01">
+					<div class="row g-4 align-items-center">
+						<div class="col-lg-4">
+							<h5 class="h4 mb-3 mb-sm-0">매출 내역
+								<a id="init" href="#s" class="h5 mb-0 text-body">
+									<i class="bi bi-arrow-clockwise"></i>
+								</a>
+								&ensp;&ensp;<a id="downloadExcel" href="#" class="btn btn-outline-primary btn-round mb-0"><i class="bi bi-cloud-download"></i></a>
+							</h5>
+						</div>
+						
+						<!-- 검색 -->
+						<div class="d-flex align-items-center col-md-6 col-lg-3">
+							<input class="form-control bg-transparent pe-5" type="search" placeholder="업체명" aria-label="Search" name="keyword" value="">
+							<button class="bg-transparent p-2 position-absolute translate-middle-y border-0 text-primary-hover text-reset" type="submit" style="margin-left: 220px; margin-top: 45px">
+								<i class="fas fa-search fs-6"></i>
+							</button>
+						</div>
+						
+						<!-- 기간 설정 -->
+						<div class="d-flex align-items-center col-md-6 col-lg-3">
+							<i class="bi bi-calendar fs-5 me-2 mt-2"></i>
+							<div class="d-flex">
+								<!-- Icon -->
+								<!-- Date input -->
+								<div class="form-control-border form-control-transparent form-fs-md">
+									<input id="calender" type="text" class="form-control flatpickr-input" data-mode="range" placeholder="기간 선택" 
+										   name="period" value="<c:if test="${param.period!=''}">${param.period}</c:if>" readonly>
+								</div>
+							</div>
+						</div>
+						
+						<!-- 정렬 -->
+						<div class="col-md-6 col-lg-2">
+							<select class="form-select js-choice" aria-label=".form-select-sm" name="sort" id="sort">
+								<option value="" >선택해주세요</option>
+								<option value="payDtAsc" <c:if test="${param.sort=='rsvAsc'}">selected</c:if>>결제 일시 &#8593;</option>
+								<option value="payDtDesc" <c:if test="${param.sort=='rsvDesc'}">selected</c:if>>결제 일시 &#8595;</option>
+								<option value="payPrAsc" <c:if test="${param.sort=='busiNmAsc'}">selected</c:if>>순수익 &#8593;</option>
+								<option value="payPrDesc" <c:if test="${param.sort=='busiNmDesc'}">selected</c:if>>순수익 &#8595;</option>
+							</select>
+						</div>
+					</div>
+				</form>
+
+				<!-- Card body START -->
+				<div class="card-body">
+					<!-- Table head -->
+					<div class="bg-light rounded p-3 d-none d-sm-block">
+						<div class="row row-cols-7 g-4">
+							<div class="col" style="text-align: center;"><h6 class="mb-0">이름</h6></div>
+							<div class="col" style="text-align: center;"><h6 class="mb-0">매출 분류</h6></div>
+							<div class="col" style="text-align: center; margin-left: 10px;"><h6 class="mb-0">결제 일시</h6></div>
+							<div class="col" style="text-align: center;"><h6 class="mb-0">순수익</h6></div>
+						</div>
+					</div>
+
+					<c:forEach var="adSalesVO" items="${data.content}" varStatus="stat">
+						<!-- Table data -->
+						<div class="row row-cols-xl-7 g-4 align-items-sm-center border-bottom px-2 py-4">
+
+							<!-- Data item -->
+							<div class="col" style="text-align: center; padding-left: 21px;">
+								<small class="d-block d-sm-none">이름:</small>
+								<c:choose>
+									<c:when test="${adSalesVO.payKnd eq '숙박/렌터카 예약'}">
+										<h6 class="fw-light mb-0">${adSalesVO.busiNm}</h6>
+									</c:when>
+									<c:when test="${adSalesVO.payKnd eq '교통 예약'}">
+										<h6 class="fw-light mb-0">${adSalesVO.trNm}</h6>
+									</c:when>
+									<c:when test="${adSalesVO.payKnd eq '상품 판매'}">
+										<h6 class="fw-light mb-0">${adSalesVO.buyNm}</h6>
+									</c:when>
+									<c:when test="${adSalesVO.payKnd eq '광고'}">
+										<h6 class="fw-light mb-0">${adSalesVO.adDc}</h6>
+									</c:when>
+								</c:choose>
+							</div>	
+
+							<!-- Data item -->
+							<div class="col" style="text-align: center; padding-left: 10px;">
+								<small class="d-block d-sm-none">매출 분류:</small>
+								<h6 class="fw-light mb-0">${adSalesVO.payKnd}</h6>
+							</div>	
+	
+							<!-- Data item -->
+							<div class="col" style="text-align: center;">
+								<small class="d-block d-sm-none">결제 일시:</small>
+								<h6 class="mb-0 fw-normal"><fmt:formatDate value="${adSalesVO.payDt}" pattern="yyyy/MM/dd" /></h6>
+							</div>
+	
+							<!-- Data item -->
+							<div class="col position-relative">
+								<small class="d-block d-sm-none">순수익:</small>
+	
+								<div class="d-flex" style="margin-left: 80px;">
+									<h6 class="mb-0 me-1">&#8361;<fmt:formatNumber type="number" pattern="#,###" value="${adSalesVO.payPr}" /></h6>
+									<!-- Dropdown icon -->
+									<a href="#" class="h6 mb-0" role="button" id="dropdownShare${stat.count}" data-bs-toggle="dropdown" aria-expanded="false">
+										<i class="bi bi-info-circle-fill"></i>
+									</a>
+									<!-- Dropdown items -->
+									<ul class="dropdown-menu dropdown-w-sm dropdown-menu-end min-w-auto shadow rounded" aria-labelledby="dropdownShare${stat.count}">
+										<li>
+											<div class="d-flex justify-content-between">
+												<span class="small">총 결제 금액</span>
+												<span class="h6 mb-0 small ms-2">
+													&#8361;<fmt:formatNumber type="number" pattern="#,###" value="${adSalesVO.payPrOrg}" />
+												</span>
+											</div>
+											<hr class="my-1"> <!-- Divider -->
+										</li>
+										<c:choose>
+											<c:when test="${adSalesVO.payKnd eq '광고'}">
+											</c:when>
+											<c:otherwise>
+												<c:if test="${not empty adSalesVO.usedMilage}">
+													<li>
+														<div class="d-flex justify-content-between">
+															<span class="me-4 small">사용 마일리지</span>
+															<span class="text-danger small ms-2">
+																-&#8361;<fmt:formatNumber type="number" pattern="#,###" value="${adSalesVO.usedMilage}" />
+															</span>
+														</div>
+														<hr class="my-1"> <!-- Divider -->
+													</li>
+												</c:if>
+												<li>
+													<div class="d-flex justify-content-between">
+														<span class="me-4 small">업체 이익</span>
+														<span class="text-danger small ms-2">
+															-&#8361;<fmt:formatNumber type="number" pattern="#,###" value="${adSalesVO.payPrBusi}" />
+														</span>
+													</div>
+													<hr class="my-1"> <!-- Divider -->
+												</li>
+												<li>
+													<div class="d-flex justify-content-between">
+														<span class="small">중개수수료(3%)</span>
+														<span class="h6 mb-0 small ms-2">
+															&#8361;<fmt:formatNumber type="number" pattern="#,###" value="${adSalesVO.payPr}" />
+														</span>
+													</div>
+												</li>
+											</c:otherwise>
+										</c:choose>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</c:forEach>
+				</div>
+				<!-- Card footer START -->
+				<div class="card-footer pt-0">
+					<!-- Pagination and content -->
+					<div class="d-sm-flex justify-content-sm-between align-items-sm-center">
+						<!-- Content -->
+						<c:set var="endRow" value="${data.currentPage * data.size}" />
+						<c:set var="startRow" value="${endRow - (data.size - 1)}" />
+						<c:set var="total" value="${data.total}" />
+						<c:if test="${endRow>total}">
+							<c:set var="endRow" value="${total}" />
+						</c:if>
+						<p class="mb-sm-0 text-center text-sm-start">Showing ${startRow} to ${endRow} of ${total} entries</p>
+						<!-- Pagination -->
+						<nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
+							<ul class="pagination pagination-sm pagination-primary-soft mb-0 ">
+								<li class="page-item <c:if test='${data.startPage < 6}'>disabled</c:if>" id="dataTable_previous">
+									<a class="page-link" href="/admin/sales/salesList?currentPage=${data.startPage-5}&keyword=${param.keyword}&sort=${param.sort}&period=${param.period}" aria-controls="dataTable" data-dt-idx="0"  tabindex="-1">Prev</a>
+								</li>
+								<c:forEach var="pNo" begin="${data.startPage}" end="${data.endPage}">
+									<li class="page-item <c:if test='${param.currentPage eq pNo}'>active</c:if>">
+										<a href="/admin/sales/salesList?currentPage=${pNo}&keyword=${param.keyword}&sort=${param.sort}&period=${param.period}" aria-controls="dataTable" data-dt-idx="${pNo}" tabindex="0" class="page-link">${pNo}</a>
+									</li>
+								</c:forEach>
+								<li class="page-item <c:if test='${data.endPage == data.totalPages}'>disabled</c:if>" id="dataTable_next">
+									<a class="page-link" href="/admin/sales/salesList?currentPage=${data.startPage+5}&keyword=${param.keyword}&sort=${param.sort}&period=${param.period}" aria-controls="dataTable" data-dt-idx="7"  tabindex="-1">Next</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+				</div>
+				<!-- Card footer END -->
+			</div>
+			<!-- Payment history END -->
+
+		</div>
+		<!-- Page main content END -->
+</main>
+<!-- **************** MAIN CONTENT END **************** -->

@@ -1,0 +1,166 @@
+package kr.or.ddit.member.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.member.mapper.MmAcmMapper;
+import kr.or.ddit.member.mapper.MmMemMapper;
+import kr.or.ddit.member.service.MmAcmService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CvfcVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RmVO;
+import kr.or.ddit.vo.RvwVO;
+
+@Service
+public class MmAcmServiceImpl implements MmAcmService {
+
+	@Inject
+	MmAcmMapper mmAcmMapper;
+	
+	@Inject
+	MmMemMapper mmMemMapper;
+
+	//숙소 검색-체크인날짜,인원,방개수로 - 기본정렬 최근인기순
+	@Override
+	public List<BusiVO> searchAcm(Map<String, String> map) {
+
+		return this.mmAcmMapper.searchAcm(map);
+	}
+
+	//숙소검색-숙소명으로
+	@Override
+	public List<BusiVO> searchForName(Map<String, String> map) {
+
+		return this.mmAcmMapper.searchForName(map);
+	}
+	
+	//별점순정렬
+	@Override
+	public List<BusiVO> orderByStar(Map<String, String> map) {
+		
+		return this.mmAcmMapper.orderByStar(map);
+	}
+
+	//역대인기순정렬
+	@Override
+	public List<BusiVO> orderByCntAll(Map<String, String> map) {
+		
+		return this.mmAcmMapper.orderByCntAll(map);
+	}
+	
+	//방 최대값 가져오기
+	@Override
+	public int getMaxRmPr(Map<String, String> map) {
+		
+		return this.mmAcmMapper.getMaxRmPr(map);
+	}
+
+	
+	// 검색 필터
+	@Override
+	public List<BusiVO> searchFilter( Map<String, Object> map) {
+
+		return 	this.mmAcmMapper.searchFilter(map);
+	}
+	
+	// 숙소 상세페이지
+	@Override
+	public BusiVO detailAcm(BusiVO busiVO) {
+
+		return this.mmAcmMapper.detailAcm(busiVO);
+	}
+	
+
+	//편의시설 가져오기
+	@Override
+	public List<CvfcVO> getCvfc(String busiId) {
+		
+		return this.mmAcmMapper.getCvfc(busiId);
+	}
+	
+	//아동,펫,장애인,흡연 여부 
+	@Override
+	public Map<String, String> availKPDS(String busiId) {
+		
+		return this.mmAcmMapper.availKPDS(busiId);
+	}
+
+	
+
+	//예약가능 객실 가져오기
+	@Override
+	public List<RmVO> getRm(Map<String, String> map) {
+
+		return this.mmAcmMapper.getRm(map);
+	}
+	
+	
+	//예약된 객실 가져오기
+	@Override
+	public List<RmVO> getReservedRm(Map<String, String> map) {
+
+		return this.mmAcmMapper.getReservedRm(map);
+	}
+
+	
+	//방 상세정보
+	@Override
+	public List<RmVO> rmDetail(String rmId) {
+
+		return this.mmAcmMapper.rmDetail(rmId);
+	}
+
+	// 리뷰 가져오기
+	@Override
+	public List<RvwVO> getRvw(Map<String, String> map) {
+
+		return this.mmAcmMapper.getRvw(map);
+	}
+
+	// 리뷰 총개수
+	@Override
+	public int getTotalRvw(String busiId) {
+		
+		return this.mmAcmMapper.getTotalRvw(busiId);
+	}
+
+	//예약정보 넘겨주기
+	@Override
+	public BusiVO rsvInfo(Map<String, String> map) {
+		
+		return this.mmAcmMapper.rsvInfo(map);
+	}
+	
+	
+	//로그인한 회원정보 가져오기 
+	@Override
+	public MemVO getMemInfo(String memId) {
+		return this.mmMemMapper.getMemInfo(memId);
+	}
+
+	
+
+	//테이블에 인서트
+	@Override
+	public int rsvInsert(Map<String, String> map) {
+
+		return this.mmAcmMapper.rsvInsert(map);
+	}
+
+	
+	
+	
+
+
+
+
+
+	
+
+}

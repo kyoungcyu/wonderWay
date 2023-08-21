@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdRvwMapper">
+	<!-- 자주 사용되는 구문을 따로 관리 -->
+	<sql id="where">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+    	AND    (
+            A.RSV_ID LIKE '%' || #{keyword} || '%' OR
+            A.RVW_CNTN LIKE '%' || #{keyword} || '%' OR
+            B.BUSI_ID LIKE '%' || #{keyword} || '%' OR
+            B.MEM_ID LIKE '%' || #{keyword} || '%'
+        )
+        </if>
+        <if test="sort!=null and !sort.equals('')">
+	        	<choose>
+	        		<when test="sort=='호텔'">
+	        			AND C.ACMD_CODE = 'A01'
+	        		</when>
+	        		<when test="sort=='모텔'">
+	        			AND C.ACMD_CODE = 'A02'
+	        		</when>
+	        		<when test="sort=='리조트'">
+	        			AND C.ACMD_CODE = 'A03'
+	        		</when>
+	        		<when test="sort=='게스트하우스'">
+	        			AND C.ACMD_CODE = 'A04'
+	        		</when>
+	        		<when test="sort=='펜션'">
+	        			AND C.ACMD_CODE = 'A05'
+	        		</when>
+	        		<when test="sort=='렌터카'">
+	        			AND C.BUSI_CODE = 'B02'
+	        		</when>
+	        	</choose>
+	        </if>
+	</sql>
+
+	<!-- 전체 리뷰 -->
+	<select id="rvwList" parameterType="hashMap" resultType="adReviewListVO">
+		WITH T AS(
+		    SELECT ROW_NUMBER() OVER(ORDER BY A.RSV_ID ASC) RNUM,
+			       A.RSV_ID, A.RVW_CNTN, A.RVW_STAR, A.RVW_CMT, 
+			       A.RVW_BLIND, A.RVW_DT, B.BUSI_ID, C.BUSI_CODE,
+			       B.MEM_ID, C.BUSI_NM, C.ACMD_CODE, D.SAVE_PATH
+			FROM RVW A
+			JOIN RSV B ON A.RSV_ID = B.RSV_ID
+			JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+			LEFT JOIN ATTACH_DE D ON B.MEM_ID = D.ATTACH_ID 
+			WHERE  1 = 1
+		    <include refid="where"></include>
+		    ORDER BY A.RVW_DT DESC
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 리뷰 수 -->
+	<select id="rvwTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM RVW A
+		JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		<include refid="where"></include>
+	</select>
+	
+	<!-- 리뷰 차단 -->
+	<update id="blindRvw" parameterType="adReviewListVO">
+		UPDATE RVW
+		SET RVW_BLIND = #{rvwBlind}
+		WHERE RSV_ID = #{rsvId}
+	</update>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

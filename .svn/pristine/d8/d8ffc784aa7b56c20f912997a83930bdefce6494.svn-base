@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdBrdMapper">
+	<!-- 자주 사용되는 구문을 따로 관리 -->
+	<sql id="where">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+    	AND    (
+            BRD_ID   LIKE '%' || #{keyword} || '%' OR
+            BRD_TT   LIKE '%' || #{keyword} || '%' OR
+            BRD_CNTN   LIKE '%' || #{keyword} || '%' OR
+            FRST_WRTR LIKE '%' || #{keyword} || '%'
+        )
+        </if>
+        <if test="sort!=null and !sort.equals('')">
+	        	<choose>
+	        		<when test="sort=='reprtCk'">
+	        			AND REPRT_CK = 'N'
+	        			AND REPRT >= '1'
+	        		</when>
+	        		<when test="sort=='D01'">
+	        			AND BRD_KND = 'D01'
+	        		</when>
+	        		<when test="sort=='D02'">
+	        			AND BRD_KND = 'D02'
+	        		</when>
+	        		<when test="sort=='intrN'">
+	        			AND INTR = 'N'
+	        		</when>
+	        		<when test="sort=='intrY'">
+	        			AND INTR = 'Y'
+	        		</when>
+	        	</choose>
+	        </if>
+	</sql>
+
+	<!-- 전체 게시물 -->
+	<select id="brdList" parameterType="hashMap" resultType="brdVO">
+		WITH T AS(
+		    SELECT
+		    	ROW_NUMBER() OVER(ORDER BY BRD_ID) RNUM,
+		        BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, BRD_DEL, INTR, 
+		        INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, 
+		        FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT
+		    FROM BRD
+		     WHERE  BRD_KND != 'D03'
+		    <include refid="where"></include>
+		    ORDER BY FRST_DT DESC
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 게시글 수 -->
+	<select id="brdTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM BRD
+		WHERE 1 = 1
+		<include refid="where"></include>
+	</select>
+	
+	<!-- 공지사항 -->
+	<select id="brdNotice" parameterType="hashMap" resultType="brdVO">
+		WITH T AS(
+		    SELECT
+		    	ROW_NUMBER() OVER(ORDER BY BRD_ID) RNUM,
+		        BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, BRD_DEL, INTR, 
+		        INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, 
+		        FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT
+		     FROM BRD
+		     WHERE  BRD_KND = 'D03'
+		    <include refid="where"></include>
+		    ORDER BY FRST_DT DESC
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 공지글 수 -->
+	<select id="noticeTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM BRD
+		WHERE  BRD_KND = 'D03'
+		<include refid="where"></include>
+	</select>
+	
+	<!-- 공지사항 작성 -->
+	<!-- 1.글 등록 -->
+	<insert id="noticeRegistration" parameterType="brdVO">
+		<selectKey resultType="String" order="BEFORE" keyProperty="brdId">
+			SELECT NVL(SUBSTR(MAX(BRD_ID),1,11)||TRIM(TO_CHAR(SUBSTR(MAX(BRD_ID),-3,3)+1,'000')),#{brdKnd}||TO_CHAR(SYSDATE,'YYYYMMDD')||'001')
+			FROM BRD WHERE BRD_KND = #{brdKnd} AND SUBSTR(BRD_ID,4,8) = TO_CHAR(SYSDATE,'YYYYMMDD')
+		</selectKey>
+		INSERT INTO BRD (BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, FRST_WRTR, FRST_DT, LAST_DT)
+		VALUES (#{brdId}, #{brdKnd}, #{brdTt}, #{brdCntn}, #{frstWrtr}, SYSDATE, SYSDATE)
+	</insert>
+	
+	<!-- 2.첨부파일 테이블 등록 -->
+	<insert id="attachInsert" parameterType="attachVO">
+		<selectKey resultType="String" order="BEFORE" keyProperty="attachId">
+			SELECT NVL(MAX(TO_NUMBER(ATTACH_ID)),0)+1 
+			FROM ATTACH
+		</selectKey>
+		INSERT INTO ATTACH(ATTACH_ID, ATTACH_DEL) 
+		VALUES(#{attachId},'N')
+	</insert>
+	
+	<!-- 3.첨부파일_상세 테이블  등록-->
+	<update id="attachDeInsert" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(ATTACH_DE_ID, ATTACH_ID, ORG_NM, FILE_NM, SAVE_PATH, FILE_SZ, FILE_TY, FILE_DEL,FILE_DT) 
+			VALUES(#{idx}+1,#{attachDeVO.attachId},#{attachDeVO.orgNm},#{attachDeVO.fileNm},
+			#{attachDeVO.savePath},#{attachDeVO.fileSz},#{attachDeVO.fileTy},'N',SYSDATE)
+		</foreach>
+	</update>
+	
+	<!-- 4.brd 테이블의  ATTACH_ID 처리 -->
+	<update id="attachIdUpdate" parameterType="brdVO">
+		UPDATE BRD
+		SET ATTACH_ID = #{attachId}
+		WHERE BRD_ID = #{brdId}
+	</update>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

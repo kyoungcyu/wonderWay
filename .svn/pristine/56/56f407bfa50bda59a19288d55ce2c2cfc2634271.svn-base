@@ -1,0 +1,225 @@
+package kr.or.ddit.member.controller;
+
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import kr.or.ddit.member.service.TripBoardService;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.LikeBrdVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RsvVO;
+
+
+@RequestMapping("/member/tripBoard")
+@Controller
+public class tripBoardController {
+	
+	private final Logger log = 
+			LoggerFactory.getLogger(this.getClass());
+	
+	@Autowired
+	TripBoardService tripBoardService;
+	
+	//여행후기 메인 페이지 글 목록
+	@GetMapping("/tripMain")
+	public String tripBoard(@ModelAttribute BrdVO brdVO, Model model) {
+		
+		
+		Map<String,String> data = new HashMap<String,String>();
+		//최근순정렬
+		List<BrdVO> list = this.tripBoardService.tripRecList(data);
+		//인기순정렬
+		List<BrdVO> like = this.tripBoardService.tripLikeList(data);
+		
+		log.info("list: " + list);
+		log.info("like: " + like);
+		
+		//select 결과 목록을 데이터로 넣어줘서 jsp로 리턴
+		model.addAttribute("list",list);
+		model.addAttribute("like",like);
+		
+		return "member/tripBoard/tripMain";
+	}
+	
+	//여행후기 글 목록
+	@RequestMapping(value="/tripBoardList")
+	public String tripBoardList(Model model, @RequestParam(value="keyword",required=false)String keyword,
+										     @RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+											 @RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+		
+		Map<String,String> map = new HashMap<String,String>();
+		
+		map.put("keyword", keyword);
+		map.put("sort", sort);
+		map.put("currentPage", Integer.toString(currentPage));
+		//한 페이지에 9개씩
+		int size = 9;
+		map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+		List<BrdVO> list = this.tripBoardService.tripBoardList(map);
+		log.info("list : "+list);
+		model.addAttribute("boardList", list);
+		
+		int total = this.tripBoardService.countBoard(map);
+		log.info("total : " + total);
+		
+		PagingDTO<BrdVO> brdPage = new PagingDTO<BrdVO>(total, currentPage, size, list);
+		log.info("brdPage : " + brdPage);
+		model.addAttribute("brdPage", brdPage);
+		
+		return "member/tripBoard/tripBoardList";
+		
+	}	
+	
+	
+	//여행후기 글 상세보기 //조회수 기능
+	@GetMapping("/tripDetail")
+	public String tripDetail(@RequestParam("brdId") String brdId, BrdVO brdVO, Model model) {
+		brdVO.setBrdId(brdId);
+		log.info("brdId: " + brdId);
+		BrdVO data = this.tripBoardService.tripDetail(brdVO);
+		log.info("data" + data);
+		model.addAttribute("data", data);
+		
+		model.addAttribute("brdVO",brdVO);
+		//this.tripBoardService.tripViewCnt(brdId)
+		int inqCnt = 0;
+		log.info("inqCnt",inqCnt);
+		model.addAttribute("inqCnt", inqCnt);
+		
+		
+		return "member/tripBoard/tripDetail";
+	}
+	
+	//여행후기 글 좋아요 기능
+	@ResponseBody
+	@PostMapping("/likeBrd")
+	public String likeBrd(@RequestBody LikeBrdVO likeBrdVO) {
+		log.info("likeBrdVO : " + likeBrdVO);
+		
+		int updatedLikeCount = 0;
+		log.info("updatedLikeCount : " + updatedLikeCount);
+		updatedLikeCount = this.tripBoardService.likeBrd(likeBrdVO);
+		
+		log.info("result : " + updatedLikeCount);
+		
+		return updatedLikeCount + "";
+	}
+	
+	//여행후기 글 좋아요 안함 기능
+	@ResponseBody
+	@PostMapping("/dislikeBrd")
+	public String dislikeBrd(@RequestBody LikeBrdVO likeBrdVO) {
+		log.info("likeBrdVO : " + likeBrdVO);
+		
+		int updatedDislikeCount = 0;
+		log.info("updatedDislikeCount"+updatedDislikeCount);
+		log.info("updateDisLikeCount : " + updatedDislikeCount);
+		
+		updatedDislikeCount = this.tripBoardService.dislikeBrd(likeBrdVO);
+		
+		log.info("result : " + updatedDislikeCount);
+		
+		
+		
+		return updatedDislikeCount + "";
+	}
+	
+	
+	//여행후기 글 등록 페이지
+	@GetMapping("/tripWrite")
+	public String tripWrite(@ModelAttribute("brdVO")BrdVO brdVO) {
+		log.info("brdVO:" + brdVO);
+		
+		return "member/tripBoard/tripWrite";
+	}
+	
+	//여행후기 글 등록 페이지- 등록
+	@PostMapping("/tripWritePost")
+	public ModelAndView tripWritePost(@RequestParam("brdKnd") String brdId, 
+										@ModelAttribute AttachVO attachVO,
+										@ModelAttribute AttachDeVO attachDeVO,
+										String brdKnd, String brdTt, String brdCntn, String tourId, String attachId,
+										Principal principal
+										,ModelAndView mav) {
+		log.info("brdKnd: "+ brdKnd);
+		log.info("username: " + principal.getName());
+		
+		BrdVO brdVO = new BrdVO();
+		
+		brdVO.setBrdKnd(brdKnd);
+		brdVO.setBrdTt(brdTt);
+		brdVO.setAttachId(attachId);
+		
+		log.info("brdVO : " + brdVO);
+		
+		int result = this.tripBoardService.tripAddWrite(brdVO);
+			
+		log.info("brdVO: " + brdVO);
+		
+		if(result < 1) {
+			mav.setViewName("member/tripBoard/tripWrite");
+		}else {
+			mav.setViewName("redirect:/member/tripBoard/tripDetail="+brdVO.getBrdId());
+		}
+		
+		
+		return mav;
+	}
+	
+	
+	//여행후기 글 수정
+	@PostMapping("/tripUpdate")
+	public ModelAndView tripUpdate(@RequestParam("brdId") String brdId, ModelAndView mav) {
+		int result = this.tripBoardService.tripUpdate(brdId);
+		log.info("Result: " +result);
+		//수정 성공
+		if(result > 0) {
+			mav.setViewName("redirect:/member/tripBoard/tripDetail?brdId="+brdId);
+		}else { //수정실패
+			mav.setViewName("redirect:/member/tripBoard/tripUpdate?brdId="+brdId);
+		}
+		
+		return mav;
+	}	
+
+	//여행후기 글 삭제
+	@PostMapping("/tripDelete")
+	public ModelAndView tripDelete(@RequestParam("brdId") String brdId, ModelAndView mav) {
+		int result = this.tripBoardService.tripDelete(brdId);
+		log.info("Result: " +result);
+		//삭제 성공
+		if(result > 0) {
+			mav.setViewName("redirect:member/tripBoard/tripList");
+		}else {
+			mav.setViewName("redirect:member/tripBoard/tripDetail?brdId="+brdId);
+		}
+		
+		return mav;
+	}	
+
+	
+
+}

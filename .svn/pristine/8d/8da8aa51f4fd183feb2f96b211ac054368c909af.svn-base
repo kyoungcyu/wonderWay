@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdMainMapper">
+
+	<!-- 숙박 업체 수 -->
+	<select id="styCount" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE BUSI_CODE = 'B01'
+	</select>
+	
+	<!-- 렌터카 업체수 -->
+	<select id="rntCount" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE BUSI_CODE = 'B02'
+	</select>
+	
+	<!-- 전체 회원 수 -->
+	<select id="memCount" resultType="int">
+		SELECT COUNT(*) FROM MEM WHERE ENABLED = 1
+	</select>
+	
+	<!-- 지난 30일 매출 -->
+	<select id="totalSales" resultType="int">
+		SELECT SUM(PAY_PR)
+		FROM PAY 
+		WHERE PAY_DT > SYSDATE - 30
+		  AND (RFD_CK IS NULL OR RFD_CK = 'N')
+	</select>
+	
+	<!-- 숙박 업체 지난 30일 매출 TOP4 -->
+	<select id="popularSty" resultType="adPopularStayVO">
+		SELECT *
+		FROM (
+		    SELECT 
+		        ROW_NUMBER() OVER (ORDER BY SUM(A.PAY_PR) DESC) AS RANK,
+		        B.BUSI_ID, SUM(A.PAY_PR) AS TOTAL, C.BUSI_NM, C.BUSI_LOC
+		    FROM PAY A
+		    JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		    JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		    WHERE (A.RFD_CK = 'N' OR A.RFD_CK IS NULL)
+		    AND A.PAY_DT > SYSDATE - 30
+		    AND C.BUSI_CODE = 'B01'
+		    GROUP BY B.BUSI_ID, C.BUSI_NM, C.BUSI_LOC
+		)
+		WHERE RANK &lt; 5
+	</select>
+	
+	<!-- 체크인 체크아웃 통계 -->
+	<select id="checkDays" resultType="adCheckDaysVO">
+		SELECT
+		    TO_CHAR(TRUNC(RSV_ST), 'DAY') AS DAYS,
+		    COUNT(*) AS CHECK_IN,
+		    COUNT(DISTINCT TO_CHAR(TRUNC(RSV_ED), 'DAY')) AS CHECK_OUT,
+		    SUM(COUNT(*)) OVER () AS TOTAl_IN,
+		    SUM(COUNT(DISTINCT TO_CHAR(TRUNC(RSV_ED), 'DAY'))) OVER () AS TOTAL_OUT
+		FROM
+		    RSV_STY
+		GROUP BY
+		    TO_CHAR(TRUNC(RSV_ST), 'DAY')
+		ORDER BY
+		    CASE TO_CHAR(TRUNC(RSV_ST), 'DAY')
+		        WHEN '일요일' THEN 1
+		        WHEN '월요일' THEN 2
+		        WHEN '화요일' THEN 3
+		        WHEN '수요일' THEN 4
+		        WHEN '목요일' THEN 5
+		        WHEN '금요일' THEN 6
+		        WHEN '토요일' THEN 7
+		    END
+	</select>
+	
+	<!-- 전체 방 수와 예약 중인 방 수 -->
+	<select id="countRooms" resultType="adCountRoomsVO">
+		SELECT
+		    (SELECT COUNT(*) FROM RM) AS TOTAL,
+		    (SELECT COUNT(A.RM_ID)
+		        FROM RSV_STY A
+		        JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		        WHERE A.RSV_ED > SYSDATE
+		        AND (B.RSV_CODE = 'K02' OR B.RSV_CODE = 'K01')
+		        AND A.CHECK_IN != 'Y') AS RESERVED_ROOMS
+		FROM
+		    DUAL
+	</select>
+	
+	<!-- 렌터카 업체 지난 30일 매출 TOP4 -->
+	<select id="popularRnt" resultType="adPopularRntVO">
+		SELECT *
+		FROM (
+		    SELECT 
+		        ROW_NUMBER() OVER (ORDER BY SUM(A.PAY_PR) DESC) AS RANK,
+		        B.BUSI_ID, SUM(A.PAY_PR) AS TOTAL, C.BUSI_NM, C.BUSI_LOC
+		    FROM PAY A
+		    JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		    JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		    WHERE A.RFD_CK = 'N'
+		    AND A.PAY_DT > SYSDATE - 30
+		    AND C.BUSI_CODE = 'B02'
+		    GROUP BY B.BUSI_ID, C.BUSI_NM, C.BUSI_LOC
+		)
+		WHERE RANK &lt; 5
+	</select>
+	
+	<!-- 렌트시작 렌트종료 통계 -->
+	<select id="rntDays" resultType="adRntDaysVO">
+		SELECT
+		    TO_CHAR(TRUNC(RSV_ST), 'DAY') AS DAYS,
+		    COUNT(*) AS RNT_START,
+		    COUNT(DISTINCT TO_CHAR(TRUNC(RSV_ED), 'DAY')) AS RNT_END,
+		    SUM(COUNT(*)) OVER () AS TOTAl_START,
+		    SUM(COUNT(DISTINCT TO_CHAR(TRUNC(RSV_ED), 'DAY'))) OVER () AS TOTAL_END
+		FROM
+		    RSV_RNTCAR
+		GROUP BY
+		    TO_CHAR(TRUNC(RSV_ST), 'DAY')
+		ORDER BY
+		    CASE TO_CHAR(TRUNC(RSV_ST), 'DAY')
+		        WHEN '일요일' THEN 1
+		        WHEN '월요일' THEN 2
+		        WHEN '화요일' THEN 3
+		        WHEN '수요일' THEN 4
+		        WHEN '목요일' THEN 5
+		        WHEN '금요일' THEN 6
+		        WHEN '토요일' THEN 7
+		    END
+	</select>
+	
+	<!-- 전체 렌터카 수와 예약 중인 렌터카 수 -->
+	<select id="countCars" resultType="adCountCarsVO">
+		SELECT
+		    (SELECT COUNT(*) FROM CAR) AS TOTAL,
+		    (SELECT COUNT(A.CAR_NUM)
+		        FROM RSV_RNTCAR A
+		        JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		        WHERE A.RSV_ED > SYSDATE
+		        AND (B.RSV_CODE = 'K02' OR B.RSV_CODE = 'K01')
+		        AND A.RNT_ED IS NULL) AS RESERVED_CARS
+		FROM
+		    DUAL
+	</select>
+</mapper>

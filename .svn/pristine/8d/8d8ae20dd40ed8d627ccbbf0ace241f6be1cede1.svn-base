@@ -1,0 +1,23 @@
+package kr.or.ddit.business.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.CalculVO;
+
+public interface BsCalculService {
+
+	public List<CalculVO> selectCalcul(Map<String, Object> CalculMap);
+
+	public String sumCalcul(Map<String, Object> calculMap);
+
+	public String totalCalcul(Map<String, Object> calculMap);
+
+	public String vatCalcul(Map<String, Object> calculMap);
+
+	public String feeCalcul(Map<String, Object> calculMap);
+
+
+
+
+}

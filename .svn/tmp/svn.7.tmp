@@ -1,0 +1,22 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+
+@Data
+public class RsvListVO {
+	private String lginId;      // 업체로그인아이디
+	private String memId;		// 회원 아이디
+	private String rsvId;		// 예약 아이디
+	private String memNm;		// 회원 명 
+	private String memTel;		// 회원 번호 
+	private String gradId;		// 회원 등급
+	private String busiCode;	// 업체 아이디
+	private String payMth;		// 결제방법
+	private Date rsvDt;			// 예약날짜 
+	private String rsvDtStr;	// 
+	private String rsvPeriod;	// 
+	private int rmPr;			// 방 금액(결제금액)
+	private String rsvCode;		// 예약상태
+}

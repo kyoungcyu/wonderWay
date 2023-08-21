@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdTourMapper">
+
+	<!-- 광고 resultMap 선언 -->
+	<resultMap id="tourListMap" type="tourVO">
+		<result column="TOUR_ID" property="tourId" />
+		<result column="TOUR_NM" property="tourNm" />
+		<result column="TOUR_DC" property="tourDc" />
+		<result column="LATI" property="lati" />
+		<result column="LONGI" property="longi" />
+		<result column="IMG_PATH" property="imgPath" />
+		<result column="ATTACH_ID" property="attachId" />
+		<result column="TOUR_CODE" property="tourCode" />
+		<result column="TOUR_LOC" property="tourLoc" />
+	</resultMap>
+	
+	<sql id="orderBy">
+		<choose>
+			<when test="sort=='tourNmAsc'">
+				ORDER BY TOUR_NM ASC
+			</when>
+			<when test="sort=='tourNmDesc'">
+				ORDER BY TOUR_NM DESC
+			</when>
+			<when test="sort=='tourCodeAsc'">
+				ORDER BY FN_CODE_TO_NM(TOUR_CODE) ASC
+			</when>
+			<when test="sort=='tourCodeDesc'">
+				ORDER BY FN_CODE_TO_NM(TOUR_CODE) DESC
+			</when>
+			<otherwise>
+				ORDER BY TOUR_ID DESC
+			</otherwise>
+		</choose>
+	</sql>
+
+	<select id="tourList" parameterType="hashMap" resultMap="tourListMap">
+		WITH T AS(
+			SELECT
+				    ROW_NUMBER() OVER(<include refid="orderBy"></include>) RNUM
+				  , TOUR_ID AS TOUR_ID
+			      , TOUR_NM AS TOUR_NM
+			      , TOUR_DC AS TOUR_DC
+			      , LATI AS LATI
+			      , LONGI AS LONGI
+			      , ATTACH_ID AS ATTACH_ID
+			      , FN_CODE_TO_NM(TOUR_CODE) AS TOUR_CODE
+			      , TOUR_LOC AS TOUR_LOC
+			FROM TOUR
+			WHERE TOUR_DEL = 'N'
+		<!-- 여행지명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND TOUR_NM LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 정렬 검색 -->
+		<if test="sort!=null and !sort.equals('')">
+			<choose>
+				<when test="sort=='tourNmAsc'">
+					ORDER BY TOUR_NM ASC
+				</when>
+				<when test="sort=='tourNmDesc'">
+					ORDER BY TOUR_NM DESC
+				</when>
+				<when test="sort=='tourCodeAsc'">
+					ORDER BY FN_CODE_TO_NM(TOUR_CODE) ASC
+				</when>
+				<when test="sort=='tourCodeDesc'">
+					ORDER BY FN_CODE_TO_NM(TOUR_CODE) DESC
+				</when>
+			</choose>
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	<select id="tourDetail" parameterType="String" resultMap="tourListMap">
+		SELECT TOUR_ID AS TOUR_ID
+		     , TOUR_NM AS TOUR_NM
+		     , TOUR_DC AS TOUR_DC
+		     , LATI AS LATI
+		     , LONGI AS LONGI
+		     , ATTACH_ID AS ATTACH_ID
+		     , fn_code_to_nm(TOUR_CODE) AS TOUR_CODE
+		     , TOUR_LOC AS TOUR_LOC
+		FROM TOUR
+		WHERE TOUR_ID = #{tourId}
+	</select>
+	
+	<select id="getImgPath" parameterType="String" resultType="String">
+		SELECT (SELECT SAVE_PATH FROM ATTACH_DE WHERE ATTACH_ID = TOUR_ID)
+		FROM TOUR
+		WHERE TOUR_ID = #{tourId}
+	</select>
+	
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM TOUR
+		<!-- 여행지명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND TOUR_NM LIKE '%' || #{keyword} || '%'
+		</if>
+	</select>
+	
+	
+	<!-- 1. 여행지 등록 -->
+	<insert id="tourReg" parameterType="tourVO">
+		<selectKey order="BEFORE" resultType="string" keyProperty="tourId">
+			SELECT 'S'|| LPAD((SELECT MAX(SUBSTR(TOUR_ID,3))+1 FROM TOUR),4,0)
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TOUR(
+		      TOUR_ID
+		    , TOUR_NM
+		    , TOUR_DC
+		    , LATI
+		    , LONGI
+		    , TOUR_CODE
+		    , TOUR_LOC
+		) VALUES(
+		      #{tourId}
+		    , #{tourNm}
+		    , #{tourDc}
+		    , #{lati}
+		    , #{longi}
+		    , #{tourCode}
+		    , #{tourLoc}
+		)
+	</insert>
+	
+	<!-- 2. 첨부파일 테이블 등록 -->
+	<insert id="attachInsert" parameterType="attachVO">
+		<selectKey resultType="String" order="BEFORE" keyProperty="attachId">
+			SELECT 'S'|| LPAD((SELECT MAX(SUBSTR(TOUR_ID,3)) FROM TOUR),4,0) FROM DUAL
+		</selectKey>
+		INSERT INTO ATTACH(
+				ATTACH_ID
+			  , ATTACH_DEL
+		) VALUES(
+				#{attachId}
+			  , 'N'
+		)
+	</insert>
+	
+	<!-- 3. 첨부파일_상세 테이블  등록-->
+	<update id="attachDeInsert" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(
+					ATTACH_DE_ID
+				  , ATTACH_ID
+				  , ORG_NM
+				  , FILE_NM
+				  , SAVE_PATH
+				  , FILE_SZ
+				  , FILE_TY
+				  , FILE_DEL
+				  , FILE_DT
+			) VALUES(
+					#{idx}+1
+				  , #{attachDeVO.attachId}
+				  , #{attachDeVO.orgNm}
+				  , #{attachDeVO.fileNm}
+				  , #{attachDeVO.savePath}
+				  , #{attachDeVO.fileSz}
+				  , #{attachDeVO.fileTy}
+				  , 'N'
+				  , SYSDATE
+			)
+		</foreach>
+	</update>
+	
+	<!-- 4. brd 테이블의  ATTACH_ID 처리 -->
+	<update id="attachIdUpdate" parameterType="brdVO">
+		UPDATE TOUR
+		SET ATTACH_ID = #{attachId}
+		WHERE TOUR_ID = #{tourId}
+	</update>
+	
+	<update id="tourDel" parameterType="String">
+		UPDATE TOUR
+		SET TOUR_DEL = 'Y'
+		WHERE TOUR_ID = #{tourId}
+	</update>
+
+	<update id="tourAttachDel" parameterType="String">
+		UPDATE ATTACH
+   		SET ATTACH_DEL = 'Y'
+ 		WHERE ATTACH_ID = #{attachId}
+	</update>
+	
+	
+	<insert id="insertTourExcel" parameterType="tourVO">
+		<selectKey order="BEFORE" resultType="string" keyProperty="tourId">
+			SELECT 'S'|| LPAD((SELECT MAX(SUBSTR(TOUR_ID,3))+1 FROM TOUR),4,0)
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TOUR(
+		      TOUR_ID
+		    , TOUR_NM
+		    , TOUR_DC
+		    , LATI
+		    , LONGI
+		    , TOUR_CODE
+		    , TOUR_LOC
+		) VALUES(
+		      #{tourId}
+		    , #{tourNm}
+		    , #{tourDc}
+		    , #{lati}
+		    , #{longi}
+		    , #{tourCode}
+		    , #{tourLoc}
+		)
+	</insert>
+</mapper>

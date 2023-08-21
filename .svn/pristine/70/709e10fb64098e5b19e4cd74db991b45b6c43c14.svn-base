@@ -1,0 +1,17 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+@Data
+public class RsvVO {
+	private String rsvId;
+	private String rsvStt;
+	private Date rsvDt;
+	private String memId;
+	private String busiId;
+	private String hCupnId;
+	private String gstEmail;
+	private String field;
+	private String field2;
+}

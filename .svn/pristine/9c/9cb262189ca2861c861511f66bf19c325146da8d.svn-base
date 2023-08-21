@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.business.mapper.BsRvwMapper">
+
+
+	<!-- rvwMap 정의 -->
+	<resultMap id="rvwMap" type="rvwVO">
+		<!-- RVW table -->
+		<id property="rsvId" column="RSV_ID" />
+		<result property="rvwCntn" column="RVW_CNTN" />
+		<result property="rvwStar" column="RVW_STAR" />
+		<result property="rvwCmt" column="RVW_CMT" />
+		<result property="rvwBlind" column="RVW_BLIND" />
+		<result property="rvwDt" column="RVW_DT" />
+		<!-- MEM table -->
+		<result property="memImg" column="MEM_IMG" />
+		<result property="memId" column="MEM_ID" />
+		<result property="memNm" column="MEM_NM" />
+		<!-- RSV table -->
+		<result property="rsvDt" column="RSV_DT" />
+
+		<!-- ATTACH 정보 매핑 -->
+		<association property="attachVO" javaType="attachVO">
+			<id property="attachId" column="ATTACH_ID" />
+			<id property="attachDel" column="ATTACH_DEL" />
+
+			<!-- ATTACH_DE 정보 매핑 -->
+			<collection property="attachDeVOList" ofType="attachDeVO">
+				<!-- ATTACH_DE table -->
+				<result property="attachDeId" column="ATTACH_DE_ID" />
+				<result property="attachId" column="ATTACH_ID" />
+				<result property="orgNm" column="ORG_NM" />
+				<result property="fileNm" column="FILE_NM" />
+				<result property="savePath" column="SAVE_PATH" />
+				<result property="fileSz" column="FILE_SZ" />
+				<result property="fileTy" column="FILE_TY" />
+				<result property="fileDel" column="FILE_DEL" />
+				<result property="fileDt" column="FILE_DT" />
+			</collection>
+		</association>
+	</resultMap>
+	
+	<select id="selectRvw" parameterType="hashMap" resultMap="rvwMap">
+		WITH T AS(
+			SELECT
+			ROW_NUMBER() OVER(ORDER BY RVW_DT DESC) AS RNUM,
+			A.RSV_ID,
+			A.RVW_CNTN,
+			A.RVW_STAR,
+			A.RVW_CMT,
+			A.RVW_BLIND,
+			A.RVW_DT,
+	
+			B.BUSI_ID,
+			B.MEM_ID,
+			C.MEM_IMG,
+			C.MEM_NM,
+			B.RSV_DT,
+	
+			A.ATTACH_ID,
+			Ad.Attach_De_Id,
+			Ad.Save_Path,
+			Ad.File_Del
+	
+			FROM RVW A
+			INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+			INNER JOIN MEM C ON B.MEM_ID = C.MEM_ID
+			LEFT JOIN ATTACH_DE AD ON AD.ATTACH_ID = A.ATTACH_ID
+			WHERE
+			B.BUSI_ID = #{busiId}
+		
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 5) - 4 AND #{currentPage} * 5
+	
+	</select>
+	<select id="selectBlind" parameterType="hashMap" resultMap="rvwMap">
+		WITH T AS(
+			SELECT
+			ROW_NUMBER() OVER(ORDER BY RVW_DT DESC) AS RNUM,
+			A.RSV_ID,
+			A.RVW_CNTN,
+			A.RVW_STAR,
+			A.RVW_CMT,
+			A.RVW_BLIND,
+			A.RVW_DT,
+	
+			B.BUSI_ID,
+			B.MEM_ID,
+			C.MEM_IMG,
+			C.MEM_NM,
+			B.RSV_DT,
+	
+			A.ATTACH_ID,
+			Ad.Attach_De_Id,
+			Ad.Save_Path,
+			Ad.File_Del
+	
+			FROM RVW A
+			INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+			INNER JOIN MEM C ON B.MEM_ID = C.MEM_ID
+			LEFT JOIN ATTACH_DE AD ON AD.ATTACH_ID = A.ATTACH_ID
+			WHERE
+			B.BUSI_ID = #{busiId}
+			AND RVW_BLIND = 'Y'
+		
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 5) - 4 AND #{currentPage} * 5
+	
+	</select>
+	
+	<select id="selectNoCmt" parameterType="hashMap" resultMap="rvwMap">
+		WITH T AS(
+			SELECT
+			ROW_NUMBER() OVER(ORDER BY RVW_DT DESC) AS RNUM,
+			A.RSV_ID,
+			A.RVW_CNTN,
+			A.RVW_STAR,
+			A.RVW_CMT,
+			A.RVW_BLIND,
+			A.RVW_DT,
+	
+			B.BUSI_ID,
+			B.MEM_ID,
+			C.MEM_IMG,
+			C.MEM_NM,
+			B.RSV_DT,
+	
+			A.ATTACH_ID,
+			Ad.Attach_De_Id,
+			Ad.Save_Path,
+			Ad.File_Del
+	
+			FROM RVW A
+			INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+			INNER JOIN MEM C ON B.MEM_ID = C.MEM_ID
+			LEFT JOIN ATTACH_DE AD ON AD.ATTACH_ID = A.ATTACH_ID
+			WHERE
+			B.BUSI_ID = #{busiId}
+			AND RVW_CMT IS NULL
+		
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 5) - 4 AND #{currentPage} * 5
+	
+	</select>
+
+
+	<select id="totalRvw" parameterType="String" resultType="String">
+		SELECT
+		COUNT(B.BUSI_ID)
+		FROM RVW A
+		INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		WHERE B.BUSI_ID =
+		#{busiId}
+	</select>
+
+	<select id="totalCmt" parameterType="String" resultType="String">
+		SELECT
+		COUNT(RVW_CMT)
+		FROM RVW A
+		INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		WHERE B.BUSI_ID =
+		#{busiId}
+
+	</select>
+
+	<select id="totalBlind" parameterType="String"
+		resultType="String">
+		SELECT COUNT(RVW_BLIND)
+		FROM RVW A
+		INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		WHERE B.BUSI_ID =
+		#{busiId}
+		AND RVW_BLIND ='Y'
+
+	</select>
+
+	<select id="averageStar" parameterType="String"
+		resultType="String">
+		SELECT TRUNC(AVG(A.RVW_STAR),1)
+		FROM RVW A
+		INNER JOIN RSV B
+		ON A.RSV_ID = B.RSV_ID
+		WHERE B.BUSI_ID = #{busiId}
+	</select>
+	
+	<update id="updateBlind" parameterType="String">
+		UPDATE RVW
+		SET RVW_BLIND = 'Y'
+		WHERE RSV_ID = #{rsvId}
+	</update>
+	
+	<update id="deleteBlind" parameterType="String">
+		UPDATE RVW
+		SET RVW_BLIND = 'N'
+		WHERE RSV_ID = #{rsvId}
+	</update>
+	
+	<update id="insertCmt" parameterType="kr.or.ddit.vo.RvwVO">
+		UPDATE RVW
+		SET RVW_CMT = #{rvwCmt}
+		WHERE RSV_ID = #{rsvId}
+	</update>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+</mapper>
+
+

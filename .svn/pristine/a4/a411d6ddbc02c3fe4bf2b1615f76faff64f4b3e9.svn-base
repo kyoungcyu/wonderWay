@@ -1,0 +1,36 @@
+package kr.or.ddit.member.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.member.mapper.MmMemMapper;
+import kr.or.ddit.member.mapper.MmRntcarMapper;
+import kr.or.ddit.member.service.MmRntcarService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RvwVO;
+
+@Service
+public class MmRntcarServiceImpl implements MmRntcarService {
+
+	@Inject
+	MmRntcarMapper mmRntcarMapper;
+	
+	@Inject
+	MmMemMapper mmMemMapper;
+
+	//숙소 검색-체크인날짜,인원,방개수로 - 기본정렬 최근인기순
+	@Override
+	public List<BusiVO> searchRntcar(Map<String, String> map) {
+
+		return this.mmRntcarMapper.searchRntcar(map);
+	}
+
+	
+
+}

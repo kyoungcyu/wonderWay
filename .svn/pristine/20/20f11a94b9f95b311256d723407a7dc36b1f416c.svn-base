@@ -1,0 +1,17 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import lombok.Data;
+
+@Data
+public class CmtVO {
+	private String cmtId;
+	private String cmtWr;
+	private String cmtCntn;
+	@DateTimeFormat(pattern="yyyy-MM-dd")
+	private Date cmtDt;
+	private String brdId;
+}

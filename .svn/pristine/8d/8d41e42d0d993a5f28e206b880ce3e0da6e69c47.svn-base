@@ -1,0 +1,68 @@
+package kr.or.ddit.admin.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AdadVO;
+import kr.or.ddit.vo.AdvListVO;
+import kr.or.ddit.vo.AdvReqListVO;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RcmLocVO;
+import kr.or.ddit.vo.TourVO;
+
+public interface AdTourMapper {
+	// 여행지 목록
+	public List<TourVO> tourList(Map<String, String> map);
+	
+	// 전체 개수
+	public int getTotal(Map<String, String> map);
+	
+	public int tourReg(TourVO tourVO);
+	
+	public int attachInsert(AttachVO attachVO);
+	
+	public int attachDeInsert(List<AttachDeVO> attachDeVOlist);
+	
+	public int attachIdUpdate(TourVO tourVO);
+	
+	public String getImgPath(String tourId);
+	
+	public TourVO tourDetail(String tourId);
+	
+	public int tourDel(String tourId);
+	
+	public int tourAttachDel(String tourId);
+	
+	public int insertTourExcel(TourVO tourVO);
+	
+	public List<TourVO> tourListMagazine();
+	
+	public int magazineRegister(BrdVO brdVO);
+	
+	public int attachInsertMagazine(AttachVO attachVO);
+	
+	public int attachIdUpdateMagazine(BrdVO brdVO);
+	
+	public List<BrdVO> tourMagazineList(Map<String, String> map);
+	
+	public BrdVO tourMagazineDetail(String brdId);
+	
+	public int getTotalMagazine(Map<String, String> map);
+	
+	// 여행후기 글 수정
+	public int magazineUpdate(BrdVO brdVO);
+	
+	public int attachDeBefUpdate(BrdVO brdVO);
+
+	// 첨부파일 상세 아이디는 그대로 파일 정보 업데이트
+	public int attachDeUpdate(List<AttachDeVO> attachDeVOlist);
+	
+	public int magazineDeleteAtcDe(String attachId);
+	
+	public int magazineDeleteAtc(String attachId);
+	
+	public int magazineDeleteBrd(String attachId);
+}

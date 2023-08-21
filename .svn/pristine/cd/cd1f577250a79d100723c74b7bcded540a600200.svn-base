@@ -1,0 +1,26 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+
+@Data
+public class AdadVO {
+	private String adId;
+	private String adDc;
+	private int adPr;
+	private String adImg;
+	private String cmCode;
+	private int adPeriod;
+	
+	
+	
+	
+	//업체쪽 사용 필드 추가
+	private String adNm;
+	private String startDt;
+	private String endDt;
+	private String inUse;
+	private String adReqId;
+	private String busiId;
+}

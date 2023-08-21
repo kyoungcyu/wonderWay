@@ -1,0 +1,679 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@page import="java.util.Date"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+<%@ page import="java.util.Date" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<script
+	src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+	integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+	crossorigin="anonymous"></script>
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+	integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+	crossorigin="anonymous"></script>
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/font-awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/bootstrap-icons/bootstrap-icons.css">
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/splide-master/dist/css/splide.min.css">
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/glightbox/css/glightbox.css">
+
+<style>
+.modal-dialog {
+	max-width: 800px;
+	max-height: 800px;
+}
+
+.modal-dialog {
+    max-width: 600px; 
+}
+#chkEtc {
+    width: 233%;
+}
+.card-img{
+	width : 245px;
+	height: 150px;
+}
+</style>
+
+<%
+  // 현재 날짜와 시간을 가져오기 위해 Date 객체를 생성합니다.
+  Date today = new Date();
+  // 날짜를 원하는 형식으로 포맷팅하기 위해 SimpleDateFormat을 사용합니다.
+  SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+  // 현재 날짜를 yyyy/mm/dd 형태로 변환하여 문자열로 저장합니다.
+  String formattedDate = dateFormat.format(today);
+%>
+<!-- Main content START -->
+<div class="col-lg-8 col-xl-9 ps-xl-5">
+
+	<!-- Offcanvas menu button -->
+	<div class="d-grid mb-0 d-lg-none w-100">
+		<button class="btn btn-primary mb-4" type="button"
+			data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar"
+			aria-controls="offcanvasSidebar">
+			<i class="fas fa-sliders-h"></i> Menu
+		</button>
+	</div>
+
+	<div class="card border bg-transparent">
+		<!-- Card header -->
+		<div class="card-header bg-transparent border-bottom">
+			<h4 class="card-header-title">구매내역</h4>
+		</div>
+		<!-- Card body START -->
+		<div class="card-body p-0">
+
+			<!-- ======================= Tabs START -->
+
+			<section class="py-2">
+				<div class="container">
+					<!-- Tabs START -->
+					<div class="row">
+						<div class="col-12">
+							<!-- Outer tabs START -->
+							<ul
+								class="nav nav-tabs nav-bottom-line nav-responsive nav-justified"
+								id="tour-pills-tab" role="tablist">
+								<!-- Tab item -->
+								<li class="nav-item" role="presentation">
+									<button class="nav-link active mb-0" id="tour-pills-tab-1"
+										data-bs-toggle="pill" data-bs-target="#tour-pills-tab1"
+										type="button" role="tab" aria-controls="tour-pills-tab1"
+										aria-selected="true">구매상품</button>
+								</li>
+								<!-- Tab item -->
+								<li class="nav-item" role="presentation">
+									<button class="nav-link mb-0" id="tour-pills-tab-2"
+										data-bs-toggle="pill" data-bs-target="#tour-pills-tab2"
+										type="button" role="tab" aria-controls="tour-pills-tab2"
+										aria-selected="false">취소상품</button>
+								</li>
+							</ul>
+							<!-- Outer tabs END -->
+						</div>
+					</div>
+					<!-- Tabs END -->
+				</div>
+
+			</section>
+
+<!-- ======================= Tabs END -->
+<!-- ======================= Tabs-content START -->
+<section class="pt-4 pt-md-5">
+	<div class="container">
+	
+
+
+		<div class="row g-4 g-md-5">
+			<!-- Tabs Content START -->
+			<div class="col-xl-12">
+				<div class="tab-content mb-0" id="tour-pills-tabContent">
+					<!-- 구매내역 시작 -->
+					<div class="tab-pane fade show active" id="tour-pills-tab1" role="tabpanel" aria-labelledby="tour-pills-tab-1">
+					<!-- 와이파이 -->
+						<c:forEach var="myProdList" items="${myProdList}" varStatus="stat">
+							
+						<c:if test="${myProdList.cmCode eq 'WIFI'}">
+						<fmt:formatDate var="payDt" value="${myProdList.payDt}" pattern="yyyy/MM/dd hh:mm:ss" />
+						<p> 구매일자 : ${payDt}</p>
+							<div class="card border mb-4" style="margin-bottom: 20px;">
+								<div class="card bg-transparent p-0">
+									<div class="card-body p-2 mt-2">
+										<div class="row g-2 g-sm-4">
+											<div class="col-sm-4">
+												<img src="/resources/upload/using02.jpg" class="card-img" alt="Card image">
+											</div>
+											
+											<!-- Card title and rating -->
+											<div class="col-sm-8" style="margin-top: 40px;">
+												<!-- Title -->
+												<h4 class="card-title mb-1">
+													<a href="#">${myProdList.wifiNm}</a> 
+													<c:set var="formattedDate" value="<%=formattedDate%>" />
+													<fmt:formatDate value="${myProdList.prodStrt}" pattern="yyyy/MM/dd" var="prodStrt"/>
+													<c:if test="${formattedDate lt prodStrt}">
+													<a href="cancelModal" class="btn btn-sm btn-danger-soft mb-0 float-end cancelBefPay"
+													data-bs-toggle="modal" data-bs-target="#cancelModal"
+														style="margin-right: 10px;" onclick="myProdCancel('${myProdList.payId}','${myProdList.wifiNm}','${myProdList.buyId}','${myProdList.payPr}','${payDtformat}')">취소</a>
+												</c:if>
+												</h4>
+												<span>${myProdList.wifiNat}</span>
+
+												<!-- List -->
+												<fmt:formatDate var="prodStrt" value="${myProdList.prodStrt}" pattern="yyyy/MM/dd" />
+												<fmt:formatDate var="prodEnd" value="${myProdList.prodEnd}" pattern="yyyy/MM/dd" />
+												<h6 class="mb-0 fw-light small mt-2"> 사용 기한 : ${prodStrt} ~ ${prodEnd} </h6>
+												<fmt:formatNumber var="wifiData" value="${myProdList.wifiData}" pattern="#,###.0" />
+												<h6 class="mb-0 fw-light small mt-2"> 데이터 제공량 : ${wifiData} GB | 속도 : ${myProdList.wifiSpd} Kbps</h6>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 서비스제공업체 : ${myProdList.wifiCom}</h6> --%>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 데이터 기기위치 : ${myProdList.wifiLoc} </h6> --%>
+												<fmt:formatNumber var="wifiFee" value="${myProdList.wifiFee}" pattern="#,###" />
+												<h6 class="mb-0 fw-light small mt-2"> 데이터 요금 : 일 ${wifiFee} 원 </h6>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 장치제조사: ${myProdList.wifiMaker} </h6> --%>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</c:if>
+						</c:forEach>
+						<!-- 와이파이 -->
+						
+						
+						<!-- 로밍 -->
+						<c:forEach var="myProdList" items="${myProdList}" varStatus="stat">
+						<c:if test="${myProdList.cmCode eq 'ROAM'}">
+						<fmt:formatDate var="payDt" value="${myProdList.payDt}" pattern="yyyy/MM/dd hh:mm:ss" />
+						<p> 구매일자 : ${payDt}</p>
+							<div class="card border mb-4" style="margin-bottom: 20px;">
+								<div class="card bg-transparent p-0">
+									<div class="card-body p-2 mt-2">
+										<div class="row g-2 g-sm-4">
+											<div class="col-sm-4">
+												<img src="/resources/upload/다운로드.jpg" class="card-img" alt="Card image">
+											</div>
+											
+											<!-- Card title and rating -->
+											<div class="col-sm-8" style="margin-top: 40px;">
+												<!-- Title -->
+												<h4 class="card-title mb-1">
+													<a href="#">${myProdList.roamNm}</a> 
+													<c:set var="formattedDate" value="<%=formattedDate%>" />
+													<fmt:formatDate value="${myProdList.prodStrt}" pattern="yyyy/MM/dd" var="prodStrt"/>
+													<c:if test="${formattedDate lt prodStrt}">
+													<a href="cancelModal" class="btn btn-sm btn-danger-soft mb-0 float-end cancelBefPay"
+													data-bs-toggle="modal" data-bs-target="#cancelModal"
+														style="margin-right: 10px;" onclick="myProdCancel('${myProdList.payId}','${myProdList.roamNm}','${myProdList.buyId}','${myProdList.payPr}','${payDtformat}')">취소</a>
+												</c:if>
+												</h4>
+												<span>${myProdList.roamNat}</span>
+
+												<!-- List -->
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 사용가능일수 : ${myProdList.roamDays} </h6> --%>
+												<fmt:formatDate var="prodStrt" value="${myProdList.prodStrt}" pattern="yyyy/MM/dd" />
+												<fmt:formatDate var="prodEnd" value="${myProdList.prodEnd}" pattern="yyyy/MM/dd" />
+												<h6 class="mb-0 fw-light small mt-2"> 사용 기한 : ${prodStrt} ~ ${prodEnd} </h6>
+												<fmt:formatNumber var="roamQtt" value="${myProdList.roamQtt}" pattern="#,###.0" />
+												<h6 class="mb-0 fw-light small mt-2"> 데이터 제공량 : ${roamQtt} GB | 속도 : ${myProdList.roamSpd} Kbps</h6>
+												<fmt:formatNumber var="roamFee" value="${myProdList.roamFee}" pattern="#,###" />
+												<h6 class="mb-0 fw-light small mt-2"> 데이터 요금 : 일 ${roamFee} 원 </h6>
+												<h6 class="mb-0 fw-light small mt-2"> 로밍옵션: ${myProdList.roamOpt} </h6>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 서비스제공업체: ${myProdList.roamCom} </h6> --%>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</c:if>
+						</c:forEach>
+						<!-- 로밍 -->
+						
+						
+						<!-- 보험 -->
+						<c:forEach var="myProdList" items="${myProdList}" varStatus="stat">
+						<c:if test="${myProdList.cmCode eq 'INSU'}">
+						<fmt:formatDate var="payDt" value="${myProdList.payDt}" pattern="yyyy/MM/dd hh:mm:ss" />
+						<p> 구매일자 : ${payDt}</p>
+							<div class="card border mb-4" style="margin-bottom: 20px;">
+								<div class="card bg-transparent p-0">
+									<div class="card-body p-2 mt-2">
+										<div class="row g-2 g-sm-4">
+											<div class="col-sm-4">
+												<img src="/resources/upload/다운로드 (1).jpg"
+													class="card-img" alt="Card image">
+											</div>
+											
+											<!-- Card title and rating -->
+											<div class="col-sm-8" style="margin-top: 40px;">
+												<!-- Title -->
+												<h4 class="card-title mb-1">
+													<a href="#">${myProdList.insuNm} | ${myProdList.company}</a> 
+													<c:set var="formattedDate" value="<%=formattedDate%>" />
+													<fmt:formatDate value="${myProdList.prodStrt}" pattern="yyyy/MM/dd" var="prodStrt"/>
+													<c:if test="${formattedDate lt prodStrt}">
+													<a href="cancelModal" class="btn btn-sm btn-danger-soft mb-0 float-end cancelBefPay"
+													data-bs-toggle="modal" data-bs-target="#cancelModal"
+														style="margin-right: 10px;" onclick="myProdCancel('${myProdList.payId}','${myProdList.insuNm}','${myProdList.buyId}','${myProdList.payPr}','${payDtformat}')">취소</a>
+													</c:if>												
+												</h4>
+												<span>${myProdList.insuNat}</span>
+
+												<!-- List -->
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 보험아이디 : ${myProdList.insuId} </h6> --%>
+												<fmt:formatDate var="prodStrt" value="${myProdList.prodStrt}" pattern="yyyy/MM/dd" />
+												<fmt:formatDate var="prodEnd" value="${myProdList.prodEnd}" pattern="yyyy/MM/dd" />
+												<h6 class="mb-0 fw-light small mt-2"> 사용 기한 : ${prodStrt} ~ ${prodEnd} </h6>
+												<h6 class="mb-0 fw-light small mt-2"> 보험종류 : ${myProdList.insuKnd} </h6>
+												<h6 class="mb-0 fw-light small mt-2"> 여행유형 : ${myProdList.insuTrTy} </h6>
+												
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 보험기간 : ${myProdList.insuPeri}</h6> --%>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 보장나이 : ${myProdList.insuAge} </h6> --%>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 보험회사 : ${myProdList.company} </h6> --%>
+												<fmt:formatNumber var="insuFee" value="${myProdList.insuFee}" pattern="#,###" />
+												<h6 class="mb-0 fw-light small mt-2"> 보험료 : ${insuFee} 원 </h6>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</c:if>
+						</c:forEach>
+						<!-- 보험 -->
+					</div>
+					<!-- 구매내역 끝 -->
+					
+					
+					
+					
+					<!-- 취소상품 시작-->
+					<div class="tab-pane fade" id="tour-pills-tab2" role="tabpanel" aria-labelledby="tour-pills-tab-2">
+									<!-- 와이파이 -->
+						<c:forEach var="myCancelProdList" items="${myCancelProdList}" varStatus="stat">
+						<c:if test="${myCancelProdList.cmCode eq 'WIFI'}">
+						<fmt:formatDate var="rfdDt" value="${myCancelProdList.rfdDt}" pattern="yyyy/MM/dd hh:mm:ss" />
+						<p> 취소일자 : ${rfdDt}</p>
+							<div class="card border mb-4" style="margin-bottom: 20px;">
+								<div class="card bg-transparent p-0">
+									<div class="card-body p-2 mt-2">
+										<div class="row g-2 g-sm-4">
+											<div class="col-sm-4">
+												<img src="/resources/upload/using02.jpg"
+													class="card-img" alt="Card image">
+											</div>
+											
+											<!-- Card title and rating -->
+											<div class="col-sm-8" style="margin-top: 40px;">
+												<!-- Title -->
+												<h4 class="card-title mb-1">
+													<a href="#">${myCancelProdList.wifiNm}</a> 
+													<fmt:formatDate value="${myCancelProdList.payDt}" var="payDtformat"  type="date" pattern="yyyy-MM-dd" />
+													<a href="cancelOkModal" class="btn btn-sm btn-danger-soft mb-0 float-end cancelBefPay"
+													data-bs-toggle="modal" data-bs-target="#cancelOkModal"
+														style="margin-right: 10px;" onclick="myProdCancelOk('${myCancelProdList.payId}','${myCancelProdList.wifiNm}','${myCancelProdList.buyId}')">취소완료</a>
+												</h4>
+												<span>${myCancelProdList.wifiNat}</span>
+
+												<!-- List -->
+												<fmt:formatDate var="prodStrt" value="${myCancelProdList.prodStrt}" pattern="yyyy/MM/dd" />
+												<fmt:formatDate var="prodEnd" value="${myCancelProdList.prodEnd}" pattern="yyyy/MM/dd" />
+												<h6 class="mb-0 fw-light small mt-2"> 사용 기한 : ${prodStrt} ~ ${prodEnd} </h6>
+												<fmt:formatNumber var="wifiData" value="${myCancelProdList.wifiData}" pattern="#,###.0" />
+												<h6 class="mb-0 fw-light small mt-2"> 데이터 제공량 : ${wifiData} GB | 속도 : ${myCancelProdList.wifiSpd} Kbps</h6>
+												
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 서비스제공업체 : ${myCancelProdList.wifiCom}</h6> --%>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 데이터 기기위치 : ${myCancelProdList.wifiLoc} </h6> --%>
+												<fmt:formatNumber var="wifiFee" value="${myCancelProdList.wifiFee}" pattern="#,###" />
+												<h6 class="mb-0 fw-light small mt-2"> 데이터 요금 : 일 ${wifiFee} 원</h6>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 장치제조사: ${myCancelProdList.wifiMaker} </h6> --%>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</c:if>
+						</c:forEach>
+						<!-- 와이파이 -->
+						
+						
+						<!-- 로밍 -->
+						<c:forEach var="myCancelProdList" items="${myCancelProdList}" varStatus="stat">
+						<c:if test="${myCancelProdList.cmCode eq 'ROAM'}">
+						<fmt:formatDate var="rfdDt" value="${myCancelProdList.rfdDt}" pattern="yyyy/MM/dd hh:mm:ss" />
+						<p> 취소일자 : ${rfdDt}</p>
+							<div class="card border mb-4" style="margin-bottom: 20px;">
+								<div class="card bg-transparent p-0">
+									<div class="card-body p-2 mt-2">
+										<div class="row g-2 g-sm-4">
+											<div class="col-sm-4">
+												<img
+													src="/resources/upload/usim.jpg"
+													class="card-img" alt="Card image">
+											</div>
+											
+											<!-- Card title and rating -->
+											<div class="col-sm-8" style="margin-top: 40px;">
+												<!-- Title -->
+												<h4 class="card-title mb-1">
+													<a href="#">${myCancelProdList.roamNm}</a> 
+													<fmt:formatDate value="${myCancelProdList.payDt}" var="payDtformat"  type="date" pattern="yyyy-MM-dd" />
+													<a href="cancelOkModal" class="btn btn-sm btn-danger-soft mb-0 float-end cancelBefPay"
+													data-bs-toggle="modal" data-bs-target="#cancelOkModal"
+														style="margin-right: 10px;" onclick="myProdCancelOk('${myCancelProdList.payId}','${myCancelProdList.roamNm}','${myCancelProdList.buyId}')">취소완료</a>
+												</h4>
+												<span>${myCancelProdList.roamNat}</span>
+
+												<!-- List -->
+												<fmt:formatDate var="prodStrt" value="${myCancelProdList.prodStrt}" pattern="yyyy/MM/dd" />
+												<fmt:formatDate var="prodEnd" value="${myCancelProdList.prodEnd}" pattern="yyyy/MM/dd" />
+												<h6 class="mb-0 fw-light small mt-2"> 사용 기한 : ${prodStrt} ~ ${prodEnd} </h6>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 사용가능일수 : ${myCancelProdList.roamDays} </h6> --%>
+												<fmt:formatNumber var="roamQtt" value="${myCancelProdList.roamQtt}" pattern="#,###.0" />
+												<h6 class="mb-0 fw-light small mt-2"> 데이터 제공량 : ${roamQtt} GB | 속도 : ${myCancelProdList.roamSpd}
+												<fmt:formatNumber var="roamFee" value="${myCancelProdList.roamFee}" pattern="#,###" />
+												<h6 class="mb-0 fw-light small mt-2"> 데이터 요금 : 일 ${roamFee} 원 </h6> Kbps</h6>
+												<h6 class="mb-0 fw-light small mt-2"> 로밍옵션: ${myCancelProdList.roamOpt} </h6>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 서비스제공업체: ${myCancelProdList.roamCom} </h6> --%>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</c:if>
+						</c:forEach>
+						<!-- 로밍 -->
+						
+						
+						<!-- 보험 -->
+						<c:forEach var="myCancelProdList" items="${myCancelProdList}" varStatus="stat">
+						<c:if test="${myCancelProdList.cmCode eq 'INSU'}">
+						<fmt:formatDate var="rfdDt" value="${myCancelProdList.rfdDt}" pattern="yyyy/MM/dd hh:mm:ss" />
+						<p> 취소일자 : ${rfdDt}</p>
+							<div class="card border mb-4" style="margin-bottom: 20px;">
+								<div class="card bg-transparent p-0">
+									<div class="card-body p-2 mt-2">
+										<div class="row g-2 g-sm-4">
+											<div class="col-sm-4">
+												<img
+												src="/resources/upload/다운로드 (1).jpg"
+													class="card-img" alt="Card image">
+											</div>
+											
+											<!-- Card title and rating -->
+											<div class="col-sm-8" style="margin-top: 40px;">
+												<!-- Title -->
+												<h4 class="card-title mb-1">
+													<a href="#">${myCancelProdList.insuNm} | ${myCancelProdList.company}</a> 
+													<fmt:formatDate value="${myCancelProdList.payDt}" var="payDtformat"  type="date" pattern="yyyy-MM-dd" />
+													<a href="cancelOkModal" class="btn btn-sm btn-danger-soft mb-0 float-end cancelBefPay"
+													data-bs-toggle="modal" data-bs-target="#cancelOkModal"
+														style="margin-right: 10px;" onclick="myProdCancelOk('${myCancelProdList.payId}','${myCancelProdList.insuNm}','${myCancelProdList.buyId}')">취소완료</a>
+												</h4>
+												<span>${myCancelProdList.insuNat}</span>
+
+												<!-- List -->
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 보험아이디 : ${myCancelProdList.insuId} </h6> --%>
+												<fmt:formatDate var="prodStrt" value="${myCancelProdList.prodStrt}" pattern="yyyy/MM/dd" />
+												<fmt:formatDate var="prodEnd" value="${myCancelProdList.prodEnd}" pattern="yyyy/MM/dd" />
+												<h6 class="mb-0 fw-light small mt-2"> 사용 기한 : ${prodStrt} ~ ${prodEnd} </h6>
+												<h6 class="mb-0 fw-light small mt-2"> 보험종류 : ${myCancelProdList.insuKnd} </h6>
+												
+												<h6 class="mb-0 fw-light small mt-2"> 여행유형 : ${myCancelProdList.insuTrTy} </h6>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 보장나이 : ${myCancelProdList.insuAge} </h6> --%>
+<%-- 												<h6 class="mb-0 fw-light small mt-2"> 보험회사 : ${myCancelProdList.company} </h6> --%>
+												<fmt:formatNumber var="insuFee" value="${myCancelProdList.insuFee}" pattern="#,###" />
+												<h6 class="mb-0 fw-light small mt-2"> 보험료 : ${insuFee} 원 </h6>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</c:if>
+						</c:forEach>
+						<!-- 보험 -->
+					</div>
+				</div>
+			</div>
+			<!-- Tabs Content END -->
+
+		</div>
+		<!-- Row END -->
+	</div>
+</section>
+
+
+
+	<!-- 구매취소 -->
+	<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-sm">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">구매취소</h5>
+					<button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form:form id="cancelForm" action="/member/mypage/myCancel" method="post">
+						<div class="mb-3">
+							<label for="recipient-name" class="col-form-label">상품명 : </label>
+							<input type="text" class="form-control" id="nm" name="nm" readOnly>
+						</div>
+							<input type="hidden" class="form-control" name="buyId"/> 
+							<input type="hidden" class="form-control" name="payId"/> 
+							<input type="hidden" class="form-control" name="payPr"/>
+							<input type="hidden" class="form-control" name="payDt"/>
+						<label for="recipient-name" class="col-form-label">취소 사유를 선택해주세요.</label> </br>
+					<label>
+						<input type="checkbox" id="cs_biz_form1" name="rfdResn" value="단순변심"> 단순 변심</p>
+						<input type="checkbox" id="cs_biz_form2" name="rfdResn" value="옵션변경"> 옵션 변경</p>
+						<input type="checkbox" id="cs_biz_form3" name="rfdResn" value="결제수단"> 결제수단 변경</p>
+						<input type="checkbox" id="cs_biz_form5" name="rfdResn" value="기타"> 기타</p>
+						<div class="mb-3">
+						<input type="text" class="form-control" id="chkEtc" style="display:none;" required />
+						 </div>
+					</label>
+					<sec:csrfInput/>
+					</form:form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary close" data-bs-dismiss="modal">취소</button>
+					<button type="button" class="btn btn-primary" id="cancelOk">확인</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	
+<!-- 구매취소 상세보기-->
+	<div class="modal fade" id="cancelOkModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">구매취소 상세보기</h5>
+					<button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+						<div class="mb-3">
+							<label for="recipient-name" class="col-form-label">상품명 : </label>
+							<input type="text" class="form-control" id="nm" name="nm" readOnly>
+						</div>
+						<div class="mb-3">
+						<label for="recipient-name" class="col-form-label">취소 사유</label>
+						<input type="text" class="form-control" name="rfdResn" readOnly>
+						</div>
+						<div class="mb-3">
+						<label for="recipient-name" class="col-form-label">취소 승인 일자</label>
+						<input type="text" class="form-control" name="rfdDt" readOnly>
+						</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary close" data-bs-dismiss="modal">확인</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+
+
+<!-- ======================= Tabs-content END -->
+
+<script type="text/javascript">
+//구매상품 취소하기
+function myProdCancel(data,data2,data3,data4,data5){
+	var payId= data;
+	var nm = data2;
+	var buyId = data3;
+	var payPr = data4;
+	var payDt = data5;
+	console.log("payId" + payId);
+	console.log("nm" + nm);
+	console.log("buyId" + buyId);
+	console.log("payPr" + payPr);
+	console.log("payDt" + payDt);
+	
+	$('input[name=nm]').attr('value',nm);
+	$('input[name=payId]').attr('value',payId);
+	$('input[name=buyId]').attr('value',buyId);
+	$('input[name=payPr]').attr('value',payPr);
+	$('input[name=payDt]').attr('value',payDt);
+}
+//환불 상세보기
+function myProdCancelOk(data,data2,data3){
+	var payId= data;
+	var nm = data2;
+	var buyId = data3;
+	$('input[name=nm]').attr('value',nm);
+	
+	$.ajax({
+		url:"/member/mypage/myCart/myProdCancelDetail",
+		data:data,
+		contentType:"application/json;charset:utf-8",
+		type:"post",
+		dataType:"json",
+		beforeSend : function (xhr) {
+			xhr.setRequestHeader("${_csrf.headerName}","${_csrf.token}");
+		},
+		success:function(rfdDetail){
+			//$('input[name=rfdDt]').attr('value',rfdDetail.rfdDt);
+			$('input[name=rfdResn]').attr('value',rfdDetail.rfdResn);
+			
+			console.log(rfdDetail.rfdDtStr);
+			console.log(rfdDetail.rfdResn);
+			
+			var timestamp = rfdDetail.rfdDt;
+			var date = new Date(timestamp);
+
+			var year = date.getFullYear();
+			var month = (date.getMonth() + 1).toString().padStart(2, '0');
+			var day = date.getDate().toString().padStart(2, '0');
+
+			var formattedDate = year + '년 ' + month + '월 ' + day + '일 ';
+
+			$('input[name=rfdDt]').val(formattedDate);
+
+
+		}
+		
+	})
+	
+	
+}
+
+
+
+//예약취소
+//체크박스 하나만 선택 하게
+$(document).ready(function() {
+	//x 버튼 누르면
+	$('.close').on("click",function(){
+		$('input[type="checkbox"][name="rfdResn"]').prop('checked',false);
+		$("#rfdResn").val("");
+	})
+	
+	
+	
+	//체크박스 하나만 선택 하게
+	 $('input[type="checkbox"][name="rfdResn"]').click(function(){
+	  if($(this).prop('checked')){
+	     $('input[type="checkbox"][name="rfdResn"]').prop('checked',false);
+	     $("#rfdResn").val("");
+	     $("#chkEtc").css("display","none");
+	     $(this).prop('checked',true);
+	    }
+	   });
+		
+	 	//기타 선택
+		$("#cs_biz_form5").on("click",function(){
+			console.log("ischecked : " + $(this).is(":checked"));
+			if($(this).is(":checked")){
+				$("#chkEtc").css("display","block");
+			}else{
+				$("#chkEtc").val("");
+				$("#chkEtc").css("display","none");
+			}
+		});
+		
+	 
+		//구매 취소
+		$("#cancelOk").on("click",function(){
+			alert("누름");
+			var payId=$("input[name=payId]").val();
+			var buyId=$("input[name=buyId]").val();
+			var payPr=$("input[name=payPr]").val();
+			var payDt = $("input[name=payDt]").val();
+			
+			var rfdResn = [];
+			
+			//rfdResn 이유 checked
+			$('input:checkbox[name=rfdResn]').each(function (index) {
+			    if ($(this).is(":checked") == true) {
+			        var value = $(this).val();
+			        rfdResn.push(value)
+			        }
+			});
+			
+			if(rfdResn[0]=="기타"){
+				rfdResn[0] = $("#chkEtc").val();
+			}
+
+			var data = {
+					'payId':payId,
+					'buyId':buyId,
+					'rfdPr':payPr,
+					'rfdResn':rfdResn[0]
+			};
+			
+			console.log("data : " + JSON.stringify(data));
+			
+			// 날짜 계산
+			var payDt = $('input[name="payDt"]').val();
+			console.log(payDt);
+			
+			let today = new Date();
+			console.log(today);
+			
+			var selectedDate = new Date(payDt);
+			console.log(selectedDate);
+			
+			var timeDiff = today.getTime() - selectedDate.getTime() 
+			var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+			console.log(diffDays);
+			
+			if(diffDays <= 7 && diffDays >= 0){
+			$.ajax({
+				url:"/member/mypage/myCart/myProdCancel",
+				contentType:"application/json;charset:utf-8",
+				data:JSON.stringify(data),
+				//data : data,
+				type:"post",
+				dataType:"text",
+				beforeSend : function (xhr) {
+					xhr.setRequestHeader("${_csrf.headerName}","${_csrf.token}");
+				},
+				success:function(result){
+					alert("구매취소가 완료되었습니다. 취소내역은 구매내역-취소내역에서 보실 수 있습니다.");
+					location.reload();
+				}
+			});
+			}else{
+				alert("구입 후 7일이 지난 상품은 환불, 취소가 불가합니다.")
+				location.reload();
+			}
+	});
+ });
+ 
+ 
+
+</script>

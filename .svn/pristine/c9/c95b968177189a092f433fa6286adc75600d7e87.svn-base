@@ -1,0 +1,30 @@
+package kr.or.ddit.vo;
+
+import java.math.BigDecimal;
+
+import lombok.Data;
+
+@Data
+public class CarVO {
+	private String carNum;
+	private String carCode;
+	private String carKnd;
+	private String carYr;
+	private String carFee;
+	private String fuelTy;
+	private String maxPp;
+	private String busiId;
+	private String carOp;
+	private String carImg;
+	
+	
+	//--------------------------
+	private String busiNm;
+	private String busiLoc;
+	private BigDecimal lati;	
+	private BigDecimal longi;
+	private String busiEmail;	// 업체 이메일
+	private String busiTel;		// 업체 전화
+	
+	
+}

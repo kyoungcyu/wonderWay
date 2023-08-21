@@ -1,0 +1,36 @@
+package kr.or.ddit.member.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@RequestMapping("/member/csc")
+@Controller
+public class CscController {
+	
+	
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	
+	//고객센터 메인 페이지
+	@GetMapping("/main")
+	private String main() {
+		return "member/csc/cscMain";
+	}
+	
+	//고객센터-공지사항 목록 리스트
+	@GetMapping("/cscNoticeList")
+	private String cscNoticeList() {
+		return "member/csc/cscNoticeList";
+	}	
+	
+	//고객센터-공지사항 상세 페이지
+	@GetMapping("/cscNoticeDetail")
+	private String cscNotice() {
+		return "member/csc/cscNoticeDetail";
+	}
+	
+
+
+}

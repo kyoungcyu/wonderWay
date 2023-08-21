@@ -1,0 +1,287 @@
+package kr.or.ddit.member.controller;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.member.service.MmAcmService;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RmVO;
+import kr.or.ddit.vo.RvwVO;
+
+@RequestMapping("/member/acm")
+@Controller
+public class AcmController{
+	private static final Logger log = LoggerFactory.getLogger(AcmController.class);
+
+	@Autowired
+	MmAcmService mmAcmService;
+
+	/** 숙소 검색 메인페이지로
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("/main")
+	public String acmMain(Model model) {
+
+		return "member/acm/acmMain";
+	}
+	
+
+	
+	/**검색 조건 처리-세션에 담아줌
+	 * @param model
+	 * @param busiLoc
+	 * @param guestRoomNum
+	 * @param checkInOut
+	 * @param session
+	 * @return
+	 */
+	@PostMapping("/search")
+	public String searchAcm(Model model,
+			@RequestParam(value="busiLoc",required=false) String busiLoc,
+		    @RequestParam(value="guestRoomNum",required=false) String guestRoomNum,
+		    @RequestParam(value="checkInOut",required=false) String checkInOut,
+			@RequestParam(value="busiNm",required=false) String busiNm,
+		    HttpSession session){
+		
+		
+		if(busiNm==null) {
+		String rsvSt=checkInOut.split("to")[0].trim();
+		String rsvEd=checkInOut.split("to")[1].trim();
+		String guestNum=guestRoomNum.split(" ")[0];
+		String rmNum=guestRoomNum.split(" ")[2];
+		
+		//검색조건 유지위해 세션처리
+		session.setAttribute("busiLoc",busiLoc);
+		session.setAttribute("guestRoomNum",guestRoomNum);
+		session.setAttribute("guestNum",guestNum);
+		session.setAttribute("rmNum",rmNum);
+		session.setAttribute("checkInOut",checkInOut);
+		session.setAttribute("rsvSt",rsvSt);
+		session.setAttribute("rsvEd",rsvEd);
+		session.setAttribute("busiNm",busiNm);
+		
+		}else {
+			session.setAttribute("busiLoc",busiLoc);
+			session.setAttribute("busiNm",busiNm);
+		}
+		
+		
+		
+		
+		return "redirect:/member/acm/search/result";
+		
+	}
+	
+	
+	
+	/**검색 결과 리스트 
+	 * @param model
+	 * @param session
+	 * @return 
+	 */
+	@GetMapping("/search/result")
+	public String searchResultAcm(Model model, HttpSession session){
+		
+		String busiLoc= (String) session.getAttribute("busiLoc");
+		String guestRoomNum= (String) session.getAttribute("guestRoomNum");
+		String guestNum= (String) session.getAttribute("guestNum");
+		String rmNum= (String) session.getAttribute("rmNum");
+		String rsvSt= (String) session.getAttribute("rsvSt");
+		String rsvEd= (String) session.getAttribute("rsvEd");
+		String busiNm= (String) session.getAttribute("busiNm");
+		
+		//숙소 검색 위해 쿼리로 들어갈 검색 조건 저장 map
+		Map<String,String> map = new HashMap<String, String>();
+		log.error("에러입니다", busiNm);
+		
+		if(busiNm==null) {
+			
+		map.put("busiLoc",busiLoc);
+		map.put("guestNum",guestNum);
+		map.put("rmNum",rmNum);
+		map.put("rsvSt",rsvSt);
+		map.put("rsvEd",rsvEd);
+		
+		log.info("map:"+map);
+		
+		//조건에 맞는 숙소,방리스트, 최대가격 얻기
+		List<BusiVO> busiVOList = this.mmAcmService.searchAcm(map);
+		int maxRmPr=0;
+		for (BusiVO busiVO : busiVOList) {
+		    List<RmVO> rmVoList = busiVO.getRmVOList();
+		    for (RmVO rmVo : rmVoList) {
+		        if(rmVo.getRmPr()>=maxRmPr) {
+		        	maxRmPr=rmVo.getRmPr();
+		        }
+		    }
+		}
+		
+		model.addAttribute("busiVOList", busiVOList);
+		model.addAttribute("busiLoc", busiLoc);
+		model.addAttribute("guestRoomNum", guestRoomNum);
+		model.addAttribute("rsvSt", rsvSt);
+		model.addAttribute("rsvEd", rsvEd);
+		model.addAttribute("maxRmPr", maxRmPr);
+		
+		
+		}else {
+			
+			map.put("busiLoc",busiLoc);
+			map.put("busiNm",busiNm);
+			
+			log.info("여기다",map);
+			
+			List<BusiVO> busiVOList = this.mmAcmService.searchForName(map);
+			int maxRmPr=0;
+			for (BusiVO busiVO : busiVOList) {
+			    List<RmVO> rmVoList = busiVO.getRmVOList();
+			    for (RmVO rmVo : rmVoList) {
+			        if(rmVo.getRmPr()>=maxRmPr) {
+			        	maxRmPr=rmVo.getRmPr();
+			        }
+			    }
+			}
+			
+			model.addAttribute("busiVOList", busiVOList);
+			model.addAttribute("busiLoc", busiLoc);
+			model.addAttribute("busiNm", busiNm);
+			model.addAttribute("maxRmPr", maxRmPr);
+
+		}
+		
+		
+		
+		return "member/acm/acmList";
+		
+	}
+	
+	
+	
+	
+
+	
+	
+	// 숙소 클릭시 숙소 디테일 정보 페이지로 
+	@GetMapping("/detail/{busiId}")
+	public String acmDetail(@PathVariable(value="busiId",required=true) String busiId,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage,
+			@ModelAttribute BusiVO busiVO,
+			Model model,
+			HttpSession session) {
+		
+		//숙소정보
+		busiVO = this.mmAcmService.detailAcm(busiVO);
+		
+		//객실정보
+		String rsvSt= (String) session.getAttribute("rsvSt");
+		String rsvEd= (String) session.getAttribute("rsvEd");
+		
+		Map<String,String> RmMap = new HashMap<String, String>();
+		RmMap.put("busiId",busiId);
+		RmMap.put("rsvSt",rsvSt);
+		RmMap.put("rsvEd",rsvEd);
+		List<RmVO> rmVO=this.mmAcmService.getRoom(RmMap);
+		
+		
+		//리뷰
+		Map<String,String> RvwMap = new HashMap<String, String>();
+		RvwMap.put("busiId",busiId);
+		RvwMap.put("currentPage", Integer.toString(currentPage));
+		List<RvwVO> rvwVOList= this.mmAcmService.getReview(RvwMap);
+		
+		log.info("busiVO:"+busiVO);
+		log.info("rvwVO:"+rvwVOList);
+		
+		int total = this.mmAcmService.getTotalReview(busiId);
+		
+		//model에 값 넣기
+		model.addAttribute("busi",busiVO);
+		model.addAttribute("rmVO",rmVO);
+		model.addAttribute("rvw11",rvwVOList);
+		model.addAttribute("rvwTotal",total);
+		model.addAttribute("rvw", new PagingDTO<RvwVO>(total, currentPage, 5, rvwVOList));
+
+		return "member/acm/acmDetail";
+	}
+
+	
+	
+	/**필터사용 재검색 
+	 * @param acmTypeList
+	 * @param minPr
+	 * @param maxPr
+	 * @param star
+	 * @param session
+	 * @returns
+	 */
+	@GetMapping("/searchfilter")
+	public String searchFilter(Model model,
+			@RequestParam(value="acmTypeList",required=false) List<String> acmTypeList, 
+			@RequestParam(value="amntList",required=false) List<String> amntList, 
+			@RequestParam(value="minPr",required=false) String minPr,
+			@RequestParam(value="maxPr",required=false) String maxPr,
+			@RequestParam(value="star",required=false) String star,
+			
+			HttpSession session
+			) {
+		
+		String busiLoc= (String) session.getAttribute("busiLoc");
+		String guestNum= (String) session.getAttribute("guestNum");
+		String rmNum= (String) session.getAttribute("rmNum");
+		String rsvSt= (String) session.getAttribute("rsvSt");
+		String rsvEd= (String) session.getAttribute("rsvEd");
+		
+		
+		//숙소 검색 위해 쿼리로 들어갈 검색 조건 저장 map
+		Map<String, Object> map = new HashMap<String, Object>();
+		
+		map.put("busiLoc",busiLoc);
+		map.put("guestNum",guestNum);
+		map.put("rmNum",rmNum);
+		map.put("rsvSt",rsvSt);
+		map.put("rsvEd",rsvEd);
+		map.put("star",star);
+		map.put("minPr",minPr);
+		map.put("maxPr",maxPr);
+		map.put("acmTypeList", acmTypeList);
+		map.put("amntList", amntList);
+		
+		log.info( "나와"+acmTypeList);
+		
+		log.info("map:"+map);
+		List<BusiVO>busiVOList = mmAcmService.searchFilter(map);
+		
+		model.addAttribute("busiVOList",busiVOList);
+		
+		return "member/acm/acmList";
+	}
+}

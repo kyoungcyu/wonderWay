@@ -1,0 +1,350 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>  
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+
+<%@page import="kr.or.ddit.vo.BrdVO"%>
+
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+
+<!-- Favicon -->
+<link rel="shortcut icon"
+	href="/resources/booking/assets/images/favicon.ico">
+
+<!-- Google Font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet"
+	href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Poppins:wght@400;500;700&display=swap">
+
+<!-- Plugins CSS -->
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/font-awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/bootstrap-icons/bootstrap-icons.css">
+
+<!-- Theme CSS -->
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/css/style.css">
+
+
+<!-- **************** MAIN CONTENT START **************** -->
+<main>
+
+	<!-- =======================
+Main banner START -->
+	<section class="py-0">
+		<div class="container">
+			<!-- Title -->
+			<div class="row g-4">
+				<!-- Image -->
+				<div class="col-12">
+					<img src="/resources/booking/assets/images/blog/13.jpg"
+						class="rounded-3" alt="">
+				</div>
+				<!-- Title and content -->
+				<div
+					class="col-11 col-lg-10 mx-auto position-relative mt-n5 mt-sm-n7 mt-md-n8">
+					<div class="bg-mode shadow rounded-3 p-4">
+						<!-- Badge -->
+						<div class="badge text-bg-success mb-2">${data.tourId}</div>
+						<!-- Title -->
+						<h1 class="fs-3">${data.brdTt}</h1>
+
+						<!-- List -->
+						<ul class="nav nav-divider align-items-center">
+							<li class="nav-item">
+								<div class="nav-link">
+									<div class="d-flex align-items-center">
+										<!-- Avatar -->
+										<div class="avatar avatar-sm">
+											<img class="avatar-img rounded-circle"
+												src="/resources/booking/assets/images/avatar/09.jpg"
+												alt="avatar">
+										</div>
+										<!-- Info -->
+										<div class="ms-2">
+											<h6 class="mb-0">
+												<a href="#">${data.frstWrtr}</a>
+											</h6>
+										</div>
+									</div>
+								</div>
+							</li>
+							<li class="nav-item"><i class="bi bi-calendar2-plus me-2"></i><fmt:formatDate var="frstDt" value="${data.frstDt}" pattern="yyyy-MM-dd"/>&nbsp;${frstDt}</li>
+							<li class="nav-item"> <i class="fa-solid fa-eye" style="color: #cdced0;"></i> ${data.inqCnt+1} </li>
+							
+							
+							<%--개똥이${memVO.memId}${data.frstWrtr}SS --%>
+							  <!-- 현재 사용자와 글 작성자가 일치하는 경우에만 버튼 표시 -->
+							  	<sec:authorize access="isAuthenticated()">
+							     <sec:authentication property="principal.memVO" var="memVO" />
+							      <c:if test="${memVO.memId==data.frstWrtr}">
+							    	<div class="float-end">
+							      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">수정</button>
+							      <a href="/member/tripBoard/tripBoardList" class="btn btn-sm btn-success">삭제</a>
+							    </div>
+							    </c:if>
+							  </sec:authorize>
+						</ul>
+					</div>
+				</div>
+				
+
+			</div>
+		</div>
+
+
+	</section>
+	<!-- =======================Main banner END -->
+
+	<!-- =======================Blog content START -->
+	<section>
+		<div class="container">
+			<div class="row">
+
+				<div class="col-lg-10 mx-auto">
+					<div>${data.brdCntn}</div>
+					
+
+					<!-- 좋아요 버튼  -->
+					
+					<%-- <a id="tripGood" class="btn btn-outline-secondary btn-sm mb-0">
+								<i class="fa-regular fa-thumbs-up me-1"></i>${data.brdLike}</a></br>
+						추천 기능은 <a href="/member/sign/signIn" type="button" id="newLogin"
+						class="btn btn-outline-success">로그인</a> 후 사용 가능합니다. --%>
+
+
+					<!-- 로그인한 사용자일 경우 -->
+					<form:form modelAttribute="likeBrdVO" id="frm01"
+						action="/member/tripBoard/likeBrd?${_csrf.parameterName}=${_csrf.token}"
+						method="post" enctype="multipart/form-data">
+						<sec:authorize access="isAuthenticated()">
+							<c:if test="${memVO.memId!=null}">
+								<div
+									class="bg-light rounded d-md-flex justify-content-center align-items-center text-center p-3 mt-4">
+									<div class="d-flex justify-content-center align-items-center">
+										<!-- 공감하기 button -->
+										<button type="button" id="tripGood"
+											class="btn btn-outline-secondary btn-sm mb-0">
+											<i class="fa-regular fa-thumbs-up me-1" id="likeImg"></i><span
+												id="likeCount">${data.brdLike}</span>
+										</button>
+									</div>
+								</div>
+							</c:if>
+						</sec:authorize>
+						<sec:csrfInput />
+					</form:form>
+
+					<!-- 비로그인 좋아요 기능 x -->
+						<sec:authorize access="isAnonymous()">
+							<div
+								class="bg-light rounded d-md-flex justify-content-center align-items-center text-center p-3 mt-4">
+								<div class="d-flex justify-content-center align-items-center">
+									<!-- 공감하기 button -->
+									<button type="button" id="noGood"
+										class="btn btn-outline-secondary btn-sm mb-0">
+										<i class="fa-regular fa-thumbs-up me-1"></i>${data.brdLike}</button>
+								</div>
+							</div>
+						</sec:authorize>
+						<sec:csrfInput />
+
+
+
+					<!-- 수정모드 -->
+
+						<!-- 버튼을 눌렀을 때 전송할 데이터 -->
+						<form name="tbInfo">
+							
+							<input type="hidden" name="brdId" value="${brdVO.brdId}">
+							<input type="hidden" name="brdKnd" value="${brdVO.brdKnd}">
+							<sec:csrfInput />
+						</form>
+					</div>
+				</div>
+				
+				<!-- 댓글, 신고하기 버튼 -->
+				<div class="col-lg-10 mx-auto">
+					<div class="d-flex justify-content-end align-items-center mt-3">
+						<a class="text-primary-hover">댓글</a> 
+						<a href="#modal-lg" class="text-primary-hover" data-bs-toggle="modal" data-bs-target="#reportModal">
+						<i class="bi bi-info-circle me-1"></i>신고하기</a>
+					</div>
+				</div>
+				<!-- 신고하기 버튼 끝 -->
+
+				<!--댓글창 Review poll START -->
+				<div class="col-lg-10 mx-auto">
+					<div class="collapse show" id="collapseComment">
+						<div class="d-flex mt-3">
+							<textarea class="form-control mb-0"
+								placeholder="Add a comment...(댓글쓰기)" rows="2" spellcheck="false"></textarea>
+							<button
+								class="btn btn-sm btn-primary ms-2 px-4 mb-0 flex-shrink-0"
+								id="commentButton">
+								<i class="fas fa-paper-plane fs-5"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+				<!-- Review poll END -->
+
+			</div>
+			<hr>
+
+		<!-- 댓글창보기 -->
+<!-- 		<div class="container">
+			<div class="row">
+				<div class="col-lg-10 mx-auto">
+				 Avatar and info 
+					<div class="collapse show" id="collapseComment">
+						<div class="d-flex mt-3">
+							<textarea class="form-control mb-0" placeholder="댓글보기" rows="2"
+								spellcheck="false"></textarea>
+							<button
+								class="btn btn-sm btn-primary ms-2 px-4 mb-0 flex-shrink-0"
+								id="commentButton">
+								<i class="fas fa-paper-plane fs-5"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div> -->
+		
+		<div class="container">
+			<div class="row">
+					<div class="col-lg-10 mx-auto">
+						<!-- Avatar and info -->
+						<div class="d-flex align-items-center">
+							<!-- Avatar -->
+							<div class="avatar avatar-xl me-2 flex-shrink-0">
+								<img class="avatar-img rounded-circle" src="/resources/booking/assetsimages/avatar/02.jpg" alt="avatar">
+							</div>
+							<!-- Info -->
+							<div class="ms-2">
+								<h5 class="mb-1">Dennis Barrett</h5>
+								<p class="mb-0">Stayed 18 Dec 2022</p>
+							</div>
+							<div class="col-md-8 col-xxl-9">
+							<textarea rows="3" cols="5">바보</textarea>
+							<p>Delivered dejection necessary objection do Mr prevailed. Mr feeling chiefly cordial in doing. Water timed folly right aware if oh truth. Large above be to means. Dashwood does provide stronger is.</p>
+
+						<!-- Button -->
+						<div class="d-flex justify-content-between align-items-center">
+							<div>
+								<a href="#" class="btn btn-sm btn-primary-soft mb-0">Direct message</a>
+								<a class="btn btn-sm btn-light mb-0">Reply</a>
+							</div>	
+							<a href="#" class="text-primary-hover"><i class="bi bi-trash3 me-1"></i>Delete</a>
+						</div>
+					</div>
+						</div>
+					</div>
+
+					
+				</div>
+		</div>
+
+	</section>
+
+
+<!-- 신고 : 모달창 -->
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog  modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">신고하기</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="recipient-name" class="col-form-label">신고유형</label></br>
+            <label>
+			      <input type="checkbox" name="option1" value="value1"> 광고 </br>
+			      <input type="checkbox" name="option2" value="value2"> 성적인 게시물</br>
+			      <input type="checkbox" name="option3" value="value3"> 거짓 또는 사기 </br>
+			      <input type="checkbox" name="option4" value="value4"> 혐오발언</br>
+			      <input type="checkbox" name="option5" value="value5"> 비방 또는 명예훼손</br>
+			      <input type="checkbox" name="option6" value="value6"> 기타사유</br>
+			      <textarea class="form-control" id="message-text" name="option7"></textarea>
+			    </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="back">Close</button>
+        <button type="button" class="btn btn-primary" id="send">Send message</button>
+      </div>
+    </div>
+  </div>
+</div>
+	<!-- =======================
+Blog content END -->
+
+</main>
+<!-- **************** MAIN CONTENT END **************** -->
+
+<!-- Back to top -->
+<div class="back-top"></div>
+
+<!-- Bootstrap JS -->
+<script
+	src="/resources/booking/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ThemeFunctions -->
+<script src="/resources/booking/assets/js/functions.js"></script>
+
+<script>
+// 좋아요 버튼 클릭 시 실행되는 함수
+$('#tripGood').on('click', function() {
+  alert("됩니다.");
+  var brdId = "${data.brdId}";
+  var likeCount = $("#likeCount").text();
+  // console.log(likeCount) o
+  var updatedLikeCount = likeCount +1;
+  console.log(updatedDislikeCount)
+  var updatedDislikeCount = likeCount - 1;
+  //console.log(likeCount) o
+  //memId 가 안찍힘. -> 누가 어느 게시물에 찍었는지 알아야함.
+  //brdId : BRD08
+  //console.log("brdId : " + brdId);
+  $.ajax({
+    url: "/member/tripBoard/tripDetail",
+    type: "POST",
+    contentType: "application/json;charset=utf-8",
+    dataType: "json",
+    data: JSON.stringify({"likeBrdVO": likeBrdVO,"memId":memId} ),
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+    },
+    success: function(data) {
+     
+		var likeCountElement = $("#likeImg"); // 좋아요 수를 표시하는 요소
+		
+      if (isLiked) {
+        // 좋아요 상태에서 클릭하면 좋아요 취소
+        likeCountElement.html('<i class="fa-solid fa-thumbs-up"></i>' + updatedDislikeCount);
+        console.log(updatedDislikeCount);
+      } else {
+        // 좋아요 상태가 아닌 경우 클릭하면 좋아요 추가
+        likeCountElement.html('<i class="fa-regular fa-thumbs-up me-1"></i>' + updatedLikeCount);
+        console.log(updatedLikeCount);
+      }
+    },
+    error: function() {
+      alert("공감 실패");
+    }
+  });
+});
+
+//비로그인 대상
+$('#noGood').on('click', function() {
+  alert("로그인한 회원만 가능합니다.");
+});
+</script>
+

@@ -1,0 +1,21 @@
+package kr.or.ddit.business.service;
+
+import java.util.List;
+
+import kr.or.ddit.vo.AdadVO;
+import kr.or.ddit.vo.AdvReqListVO;
+
+public interface BsAdService {
+
+	int insertAdReq(AdadVO adadVO);
+
+	List<AdvReqListVO> adInUse(String busiId);
+
+	int adRfdReq(String adReqId);
+
+
+
+
+
+
+}

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.business.mapper.BsMsgMapper">
+	<!-- 받은쪽지함 화면출력+ 페이징처리하기위한 쿼리 -->
+	<select id="recvMsg" parameterType="hashMap" resultType="msgVO">
+		WITH T AS(
+		    SELECT ROW_NUMBER() OVER(ORDER BY MSG_ID DESC) AS RNUM,
+			       MSG_ID,
+			       B.BUSI_NM AS RECV_ID,
+			       CNTN,
+			       SEND_DT,
+			       C.MEM_NM AS SEND_ID
+			FROM MSG A
+			LEFT JOIN BUSI B ON B.BUSI_ID = A.RECV_ID
+			LEFT JOIN MEM C ON C.MEM_ID = A.SEND_ID
+			WHERE RECV_ID = #{busiId}
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 5) - 4 AND #{currentPage} * 5
+	</select>
+	<select id="sendMsg" parameterType="hashMap" resultType="msgVO">
+		WITH T AS(
+		    SELECT ROW_NUMBER() OVER(ORDER BY MSG_ID DESC) AS RNUM,
+			       MSG_ID,
+			       B.BUSI_NM AS SEND_ID,
+			       CNTN,
+			       SEND_DT,
+			       C.MEM_NM AS RECV_ID
+			FROM MSG A
+			LEFT JOIN BUSI B ON B.BUSI_ID = A.SEND_ID
+			LEFT JOIN MEM C ON C.MEM_ID = A.RECV_ID
+			WHERE SEND_ID = #{busiId}
+			
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 5) - 4 AND #{currentPage} * 5
+	</select>
+	
+	<insert id="msgInsert"  parameterType="msgVO">
+			INSERT INTO MSG (MSG_ID, SEND_ID, RECV_ID, CNTN, SEND_DT)
+			VALUES ((SELECT MAX(msg_id) FROM MSG)+1, #{sendId}, #{recvId}, #{cntn}, SYSDATE)
+	
+	</insert>
+	<select id="recvTotal" parameterType="String" resultType="int">
+		 SELECT  COUNT(MSG_ID)
+		   FROM  MSG
+		   WHERE RECV_ID = #{busiId}
+	
+	</select>
+	<select id="sendTotal" parameterType="String" resultType="int">
+		 SELECT  COUNT(MSG_ID)
+		 FROM  MSG
+		 WHERE SEND_ID = #{busiId}
+		
+	</select>
+	
+	<select id="memFindName" parameterType="String">
+		SELECT MEM_NM
+		FROM MEM
+		WHERE MEM_ID = #{memId}
+	
+	</select>
+	<select id="busiFindName" parameterType="String">
+		SELECT BUSI_NM
+		FROM BUSI
+		WHERE BUSI_ID = #{busiId}
+	</select>
+</mapper>
+
+

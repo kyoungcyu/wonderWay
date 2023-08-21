@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.business.mapper.BsBusiMapper">
+	<select id="busiList" resultType="busiVO">
+		SELECT 
+			BUSI_ID, 
+			LGIN_ID, BUSI_PW, BUSI_NM, BUSI_LOC, RPRSV_NM, BUSI_SCR, ENABLED, 
+			BUSI_IMG, BUSI_PCY, BUSI_CODE, BUSI_NO, LATI, LONGI, BUSI_INFO, BUSI_EMAIL, 
+			BUSI_TEL, BUSI_MNY, REG_DT, WHDWL_DT, CLS_DT, RPRSV_BRDT, OPBIZ_YMD, ACMD_CODE
+		FROM BUSI
+	</select>
+		
+		
+
+	<insert id="insertAuth" parameterType="busiVO">
+		INSERT INTO AUTH (MEM_ID, MEM_AUTH)
+   		 VALUES(#{lginId}, 'ROLE_BUSI')
+	</insert>
+	
+	
+		<!-- 회원가입 -->
+	<insert id="create" parameterType="busiVO" >
+		<selectKey resultType="string" keyProperty="busiId" order="BEFORE">
+			SELECT  #{busiCode} || LPAD(MAX(SUBSTR(BUSI_ID,4,7))+1,5,'0') FROM BUSI
+		</selectKey>
+	
+		INSERT INTO BUSI(
+			BUSI_ID, 
+			LGIN_ID, BUSI_PW, BUSI_NM, BUSI_LOC, RPRSV_NM, 
+			BUSI_CODE, BUSI_NO, BUSI_EMAIL,	
+			BUSI_TEL, REG_DT, RPRSV_BRDT, OPBIZ_YMD
+			)
+			VALUES(
+			#{busiId},
+			#{lginId}, #{busiPw}, #{busiNm}, #{busiLoc}, #{rprsvNm},   
+			#{busiCode}, #{busiNo}, #{busiEmail}, 
+			#{busiTel}, SYSDATE, #{rprsvBrdt}, #{opbizYmd}
+			 )
+			 
+	</insert>
+
+		<!-- 이메일로 아이디 찾기 -->
+	<select id="findIdByEmail" parameterType="busiVO" resultType="String">
+		SELECT LGIN_ID FROM BUSI WHERE BUSI_EMAIL = #{busiEmail}
+	</select>
+	
+		<!-- 아이디 중복 체크 -->
+	<select id="checkBusiId" parameterType="busiVO" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE LGIN_ID = #{lginId}
+	</select>
+		<!-- 이메일중복 검사 -->
+	<select id="checkBsEmail" parameterType="busiVO" resultType="int">
+		SELECT COUNT(*) FROM BUSI WHERE  BUSI_EMAIL = #{busiEmail}
+	</select>
+	
+		<!-- 이메일로 비밀번호 재설정 -->
+	<update  id="resetPwByEmail" parameterType="busiVO" >
+		UPDATE BUSI SET BUSI_PW= #{busiPw} WHERE BUSI_EMAIL= #{busiEmail}
+	</update>
+		<!-- 마이페이지 비밀번호 재설정 -->
+	<update  id="resetPw" parameterType="busiVO" >
+		UPDATE BUSI SET BUSI_PW= #{busiPw}  WHERE LGIN_ID= #{lginId}
+	</update>
+		<!-- 마이페이지 전화번호 재설정 -->
+	<update  id="resetTel" parameterType="busiVO" >
+		UPDATE BUSI SET BUSI_TEL= #{busiTel}  WHERE LGIN_ID= #{lginId}
+	</update>
+		<!-- 마이페이지 계좌번호등록 -->
+	<update  id="updateBank" parameterType="busiVO" >
+		UPDATE BUSI SET ACCOUNT= #{account}  WHERE LGIN_ID= #{lginId}
+	</update>
+	
+	
+	<!-- 시큐리티세션에서 username으로 busivo가져오기 -->
+	<select id="userDetail" parameterType="String" resultType="busiVO">
+		SELECT BUSI_ID, 
+		  BUSI_ID
+		, LGIN_ID
+		, BUSI_PW
+		, BUSI_NM
+		, BUSI_LOC
+		, RPRSV_NM
+		, BUSI_SCR
+		, ENABLED
+		, BUSI_IMG
+		, BUSI_PCY
+		, BUSI_CODE
+		, BUSI_NO
+		, LATI
+		, LONGI
+		, BUSI_INFO
+		, BUSI_EMAIL
+		, BUSI_TEL
+		, BUSI_MNY
+		, REG_DT
+		, WHDWL_DT
+		, CLS_DT
+		, RPRSV_BRDT
+		, OPBIZ_YMD
+		, ACMD_CODE
+		, CHAT_ST
+		, CHAT_ED
+		, ACCOUNT
+		FROM BUSI
+		WHERE LGIN_ID = #{lginId}
+	
+	</select>
+	
+	
+	
+	
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

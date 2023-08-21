@@ -1,0 +1,293 @@
+package kr.or.ddit.admin.service.impl;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.admin.mapper.AdTourMapper;
+import kr.or.ddit.admin.service.AdTourService;
+import kr.or.ddit.util.CommonFile;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.TourVO;
+import lombok.extern.slf4j.Slf4j;
+import kr.or.ddit.vo.TourVO;
+
+@Slf4j
+@Service
+public class AdTourServiceImpl implements AdTourService{
+	
+	@Autowired
+	AdTourMapper adTourMapper;
+	
+	// 여행지 목록
+	@Override
+	public List<TourVO> tourList(Map<String, String> map) {
+		return this.adTourMapper.tourList(map);
+	}
+
+	// 여행지 총 데이터 개수
+	@Override
+	public int getTotal(Map<String, String> map) {
+		return this.adTourMapper.getTotal(map);
+	}
+	
+	// 여행지 신규 등록
+	@Transactional
+	@Override
+	public int tourReg(TourVO tourVO) {
+		AttachVO attachVO = new AttachVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+
+		int result = this.adTourMapper.tourReg(tourVO);
+		log.info("result1 : " + result);
+		result += this.adTourMapper.attachInsert(attachVO);
+		log.info("result2 : " + result);
+
+		// <input name="picture" type="file"
+		MultipartFile picture = tourVO.getAttachVOList().get(0).getAttachDeVOList().get(0).getPicture();
+		String orgNm = picture.getOriginalFilename();
+		
+		// UUID 처리 시작
+		UUID uuid = UUID.randomUUID();
+		String fileNm = uuid.toString() + "_" + orgNm;
+
+		// 파일 업로드 시작 ===
+		File uploadPath = new File(CommonFile.uploadFolder+"\\tourImage", CommonFile.getFolder());
+		if (uploadPath.exists() == false) {
+			uploadPath.mkdirs();
+		}
+
+		// 설계
+		File saveFile = new File(uploadPath, fileNm);
+		try {
+			picture.transferTo(saveFile);
+
+			AttachDeVO attachDeVO = new AttachDeVO();
+			attachDeVO.setAttachId(attachVO.getAttachId());
+			attachDeVO.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm); // 파일 저장 경로
+			attachDeVO.setOrgNm(orgNm);// 파일 원본 명
+			attachDeVO.setFileNm(fileNm);// 파일 저장명
+			attachDeVO.setFileSz(picture.getSize()); // 파일 사이즈
+			attachDeVO.setFileTy(picture.getContentType()); // 파일 컨텐츠 타입
+
+			log.info("insert할 attachDeVO : " + attachDeVO);
+
+			attachDeVOlist.add(attachDeVO);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+		// AttachDeVO(attachDeId=null, attachId=null, orgNm=다운로드.jpg
+		// , fileNm=3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		// , savePath=/2023/06/26/3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		// , fileSz=4687, fileTy=image/jpeg, fileDel=null, picture=null)
+
+		result += this.adTourMapper.attachDeInsert(attachDeVOlist);
+		log.info("result3 : " + result);
+
+		tourVO.setAttachId(attachVO.getAttachId());
+		log.info("result3->tourVO : " + tourVO);
+
+		return result;
+	}
+
+	// 등록된 여행지 이미지 경로 가져오기
+	@Override
+	public String getImgPath(String tourId) {
+		return this.adTourMapper.getImgPath(tourId);
+	}
+
+	// 여행지 상세 정보
+	@Override
+	public TourVO tourDetail(String tourId) {
+		return this.adTourMapper.tourDetail(tourId);
+	}
+
+	// 여행지 삭제
+	@Override
+	public int tourDel(String tourId) {
+		int cnt = this.adTourMapper.tourDel(tourId);
+		cnt += this.adTourMapper.tourAttachDel(tourId);
+		
+		return cnt;
+	}
+
+	// 여행지 목록 엑셀 등록
+	@Override
+	public int insertTourExcel(TourVO tourVO) {
+		return this.adTourMapper.insertTourExcel(tourVO);
+	}
+	
+	// 여행지 소개 매거진 등록 시 선택할 여행지 목록
+	@Override
+	public List<TourVO> tourListMagazine() {
+		return this.adTourMapper.tourListMagazine();
+	}
+	
+	// 여행지 소개 매거진 등록
+	@Transactional
+	@Override
+	public int magazineRegister(BrdVO brdVO) {
+		AttachVO attachVO = new AttachVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+
+		int result = this.adTourMapper.magazineRegister(brdVO);
+		log.info("result1 : " + result);
+		result += this.adTourMapper.attachInsertMagazine(attachVO);
+		log.info("result2 : " + result);
+
+		// <input name="picture" type="file"
+		MultipartFile picture = brdVO.getAttachVOList().get(0).getAttachDeVOList().get(0).getPicture();
+		String orgNm = picture.getOriginalFilename();
+		
+		// UUID 처리 시작
+		UUID uuid = UUID.randomUUID();
+		String fileNm = uuid.toString() + "_" + orgNm;
+
+		// 파일 업로드 시작 ===
+		File uploadPath = new File(CommonFile.uploadFolder, CommonFile.getFolder());
+		if (uploadPath.exists() == false) {
+			uploadPath.mkdirs();
+		}
+
+		// 설계
+		File saveFile = new File(uploadPath, fileNm);
+		try {
+			picture.transferTo(saveFile);
+
+			AttachDeVO attachDeVO = new AttachDeVO();
+			attachDeVO.setAttachId(attachVO.getAttachId());
+			attachDeVO.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm); // 파일 저장 경로
+			attachDeVO.setOrgNm(orgNm);									// 파일 원본 명
+			attachDeVO.setFileNm(fileNm);								// 파일 저장명
+			attachDeVO.setFileSz(picture.getSize());  					// 파일 사이즈
+			attachDeVO.setFileTy(picture.getContentType()); 			// 파일 컨텐츠 타입
+
+			log.info("insert할 attachDeVO : " + attachDeVO);
+
+			attachDeVOlist.add(attachDeVO);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+		/*
+		   AttachDeVO(attachDeId=null, attachId=null, orgNm=다운로드.jpg
+		 , fileNm=3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		 , savePath=/2023/06/26/3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		 , fileSz=4687, fileTy=image/jpeg, fileDel=null, picture=null)
+		*/
+
+		result += this.adTourMapper.attachDeInsert(attachDeVOlist);
+		log.info("result3 : " + result);
+
+		brdVO.setAttachId(attachVO.getAttachId());
+		log.info("result3 -> brdVO : " + brdVO);
+
+		result += this.adTourMapper.attachIdUpdateMagazine(brdVO);
+		log.info("result4 : " + result);
+		
+		return result;
+	}
+
+	// 여행지 소개 매거진 목록
+	@Override
+	public List<BrdVO> tourMagazineList(Map<String, String> map) {
+		return this.adTourMapper.tourMagazineList(map);
+	}
+
+	// 여행지 소개 매거진 상세
+	@Override
+	public BrdVO tourMagazineDetail(String brdId) {
+		return this.adTourMapper.tourMagazineDetail(brdId);
+	}
+
+	// 여행지 소개 매거진 총 데이터 수
+	@Override
+	public int getTotalMagazine(Map<String, String> map) {
+		return this.adTourMapper.getTotalMagazine(map);
+	}
+
+	// 여행후기 글 수정
+	@Override
+	public int magazineUpdate(BrdVO brdVO) {
+		AttachVO attachVO = new AttachVO();
+		AttachDeVO attachDeVO = new AttachDeVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+		
+		// 게시글 내용 변경
+		int result = this.adTourMapper.magazineUpdate(brdVO);
+		System.out.println("result1 : " + result);
+		
+		// 수정모드에서 이미지를 업로드하면 다시 보정 - 저장경로
+		brdVO.getAttachVOList().get(0).getAttachDeVOList().get(0).setSavePath("");
+		
+		// 이미지도 함께 변경 시 처리 시작
+		MultipartFile picture = brdVO.getAttachVOList().get(0).getAttachDeVOList().get(0).getPicture();
+
+		// 원래 파일명
+		String orgNm = "";
+		orgNm = picture.getOriginalFilename();
+		
+		// uuid 처리
+		UUID uuid = UUID.randomUUID();
+		String fileNm = uuid.toString() + "_" + orgNm;
+		
+		// 연월일 폴더
+		File uploadPath = new File(CommonFile.uploadFolder, CommonFile.getFolder());
+		if (uploadPath.exists() == false) {
+			uploadPath.mkdirs();
+		}
+		// 설계 (연월일 폴더 + uuid 파일명)
+		File saveFile = new File(uploadPath, fileNm);
+		try {
+			// 복사 실행
+			picture.transferTo(saveFile);
+			attachDeVO.setAttachId(attachVO.getAttachId());
+			attachDeVO.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm); // 파일 저장 경로
+			attachDeVO.setOrgNm(orgNm);																// 파일 원본 명
+			attachDeVO.setFileNm(fileNm);															// 파일 저장명
+			attachDeVO.setFileSz(picture.getSize()); 												// 파일 사이즈
+			attachDeVO.setFileTy(picture.getContentType()); 										// 파일 컨텐츠 타입
+			attachDeVO.setBrdId(brdVO.getBrdId());
+
+			log.info("insert할 attachDeVO : " + attachDeVO);
+
+			attachDeVOlist.add(attachDeVO);
+
+			brdVO.getAttachVOList().get(0).getAttachDeVOList().get(0)
+					.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm);
+
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+		
+		// 먼저 지우고
+		result += this.adTourMapper.attachDeBefUpdate(brdVO);
+		log.info("attachDeVOlist : " + attachDeVOlist);
+		
+		// 지워진 자리에 새로 등록
+		result += this.adTourMapper.attachDeUpdate(attachDeVOlist);
+		System.out.println("result3 : " + result);
+
+		return result;
+	}
+
+	// 여행지 소개 매거진 삭제
+	@Override
+	public int magazineDelete(String attachId) {
+		int cnt = this.adTourMapper.magazineDeleteAtcDe(attachId);
+		cnt += this.adTourMapper.magazineDeleteAtc(attachId);
+		cnt += this.adTourMapper.magazineDeleteBrd(attachId);
+		
+		return cnt;
+	}
+	
+	
+}

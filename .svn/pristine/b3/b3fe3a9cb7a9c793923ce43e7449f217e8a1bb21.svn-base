@@ -1,0 +1,40 @@
+package kr.or.ddit.business.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MemVO;
+
+public interface BsBusiMapper {
+   //회원 목록
+   public List<BusiVO> busiList();
+   
+   // 회원가입
+   public int create(BusiVO busiVO);
+   
+   // ?
+   public BusiVO busiOne(BusiVO busiVO);
+   
+   // 로그인한 회원정보 불러오기
+   public BusiVO userDetail(String lginId);
+   
+   // 아이디 중복 검사
+   public int checkBusiId(BusiVO busiVO);
+ 
+   // 이메일중복 검사
+   public int checkBsEmail(BusiVO busiVO);
+   
+   // 이메일 아이디 찾기
+   public String findIdByEmail(BusiVO busiVO);
+   
+   //이메일인증으로 비밀번호 재설정
+   public int resetPwByEmail(BusiVO busiVO);
+
+
+
+
+
+
+
+}
+

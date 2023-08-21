@@ -1,0 +1,27 @@
+package kr.or.ddit.vo;
+
+
+import java.util.List;
+
+import lombok.Data;
+
+@Data
+public class RmVO {
+	
+	private String rmId;
+	private String rmNm;
+	private int rmPr;
+	private String rmDc;
+	private int stdPp;
+	private int maxPp;
+	private int ppExFee;
+	private String busiId;
+	private String rmBed;
+	
+	
+	private List<RmDeVO> rmDeVOList;
+	private List<AttachDeVO> attachDeVOList;
+	private String savePath;
+
+
+}

@@ -1,0 +1,455 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="sec"
+	uri="http://www.springframework.org/security/tags"%>
+<!-- Header START -->
+<!-- **************** MAIN CONTENT START **************** -->
+<main>
+	<!-- ======================= Main banner START -->
+	
+	
+	
+	<section class="py-0">
+	<div class="container-fluid px-0">
+		<!-- Slider START -->
+		<div class="tiny-slider arrow-round arrow-blur">
+			<div class="tiny-slider-inner" data-autoplay="true" data-arrow="true" data-gutter="0" data-edge="0" data-dots="false" data-items="3" data-items-md="2" data-items-xs="1">
+				<!-- Slider item -->
+				<div>
+					<a class="w-100 h-100" data-glightbox data-gallery="gallery" href="/resources/booking/assets/images/category/directory/03.jpg">
+						<div class="card card-element-hover card-overlay-hover rounded-0 overflow-hidden">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/category/directory/03.jpg" class="" alt="">
+							<!-- Full screen button -->
+							<div class="hover-element w-100 h-100">
+								<i class="bi bi-fullscreen fs-6 text-white position-absolute top-50 start-50 translate-middle bg-dark rounded-1 p-2 lh-1"></i>
+							</div>
+						</div>
+					</a>
+				</div>
+
+				<!-- Slider item -->
+				<div>
+					<a class="w-100 h-100" data-glightbox data-gallery="gallery" href="/resources/booking/assets/images/category/directory/06.jpg">
+						<div class="card card-element-hover card-overlay-hover rounded-0 overflow-hidden">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/category/directory/06.jpg" class="" alt="">
+							<!-- Full screen button -->
+							<div class="hover-element w-100 h-100">
+								<i class="bi bi-fullscreen fs-6 text-white position-absolute top-50 start-50 translate-middle bg-dark rounded-1 p-2 lh-1"></i>
+							</div>
+						</div>
+					</a>
+				</div>
+
+				<!-- Slider item -->
+				<div>
+					<a class="w-100 h-100" data-glightbox data-gallery="gallery" href="/resources/booking/assets/images/category/directory/05.jpg">
+						<div class="card card-element-hover card-overlay-hover rounded-0 overflow-hidden">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/category/directory/05.jpg" class="" alt="">
+							<!-- Full screen button -->
+							<div class="hover-element w-100 h-100">
+								<i class="bi bi-fullscreen fs-6 text-white position-absolute top-50 start-50 translate-middle bg-dark rounded-1 p-2 lh-1"></i>
+							</div>
+						</div>
+					</a>
+				</div>
+
+				<!-- Slider item -->
+				<div>
+					<a class="w-100 h-100" data-glightbox data-gallery="gallery" href="/resources/booking/assets/images/category/directory/04.jpg">
+						<div class="card card-element-hover card-overlay-hover rounded-0 overflow-hidden">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/category/directory/04.jpg" class="" alt="">
+							<!-- Full screen button -->
+							<div class="hover-element w-100 h-100">
+								<i class="bi bi-fullscreen fs-6 text-white position-absolute top-50 start-50 translate-middle bg-dark rounded-1 p-2 lh-1"></i>
+							</div>
+						</div>
+					</a>
+				</div>
+			</div>
+		</div>
+		<!-- Slider START -->
+	</div>
+</section>
+	
+	
+	
+	
+	
+	
+	
+	
+
+	<section class="pt-4 pt-md-5">
+		<div class="container">
+			<!-- Title -->
+			<div class="row mb-5">
+				<div class="col-12 text-center">
+					<h1 class="display-1 mb-0">여행후기</h1>
+				</div>
+			</div>
+
+			<!-- Blog START -->
+			<div class="row g-4">
+
+				<div class="text mt-4">
+
+					<!-- 로그인한 회원 -->
+					<sec:authorize access="isAuthenticated()">
+						<sec:authentication property="principal.memVO" var="memVO" />
+						<c:if test="${memVO.memId!=null}">
+							<a href="/member/tripBoard/tripWrite" id="write"
+								class="btn btn-primary mb-0"
+								style="float: left; font-size: 18px; padding: 10px 20px;">등록</a>
+						</c:if>
+					</sec:authorize>
+					<!-- 비로그인  -->
+					<sec:authorize access="isAnonymous()">
+						<button type="button" id="writeNoLogin"
+							class="btn btn-primary mb-0"
+							style="float: left; font-size: 18px; padding: 10px 20px;">등록</button>
+					</sec:authorize>
+
+
+				</div>
+				<!-- Blog item START -->
+				<div class="col-lg-6">
+					<div class="card bg-transparent mb-4 mb-sm-0">
+						<!-- Image -->
+						<div class="position-relative">
+							<img src="/resources/booking/assets/images/blog/10.jpg"
+								class="card-img" alt="">
+							<!-- Badge -->
+							<div
+								class="card-img-overlay d-flex align-items-start flex-column p-3">
+								<a href="#" class="badge text-bg-warning"><i
+									class="fa-solid fa-heart" style="color: #ffffff;">
+										${like[0].brdLike}</i></a>
+							</div>
+						</div>
+						<!-- Card body -->
+						<div class="card-body px-3 pb-0">
+							<span><i class="bi bi-calendar2-plus me-2"></i>${like[0].frstDt}</span>
+
+							<!-- Title -->
+							<h5 class="card-title">
+								<a href="/member/tripBoard/tripDetail?brdId=${like[0].brdId}">${like[0].brdTt}</a>
+							</h5>
+							<!-- <p class="mb-0">Prospective agents should start broadly and then narrow their list down to.</p> -->
+
+							<!-- Author name and button -->
+							<div
+								class="d-flex justify-content-between align-items-center mt-2">
+								<h6 class="mb-0">
+									By <a href="#">${like[0].frstWrtr}</a>
+								</h6>
+								<a href="/member/tripBoard/tripDetail?brdId=${like[0].brdId}"
+									class="btn btn-link p-0 mb-0">Read more <i
+									class="bi bi-arrow-up-right"></i></a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- Blog item END -->
+				
+				
+
+				<!-- Blog list START -->
+				<div class="col-lg-6 ps-lg-5">
+					<div class="vstack gap-4">
+						<!-- Blog item START -->
+						<c:forEach var="brdVO" items="${like}" varStatus="stat" begin="1" end="3">
+							<div class="card bg-transparent">
+								<div class="row g-3 g-sm-4 align-items-sm-center">
+									<div class="col-4">
+										<img src="/resources/booking/assets/images/blog/05.jpg" class="card-img" alt="">
+										<!-- Badge -->
+										<div class="card-img-overlay d-flex align-items-start flex-column p-3">
+											<a href="#" class="badge text-bg-warning"><i class="fa-solid fa-heart" style="color: #ffffff;">${brdVO.brdLike}</i></a>
+										</div>
+									</div>
+									<div class="col-8">
+										<!-- card body -->
+										<div class="card-body p-0">
+											<h5 class="card-title mb-sm-3">
+												<a href="/member/tripBoard/tripDetail?brdId=${brdVO.brdId}" class="stretched-link">${brdVO.brdTt}</a>
+											</h5>
+											<!-- Author name and button -->
+											<span class="small">By <a href="/member/tripBoard/tripDetail?brdId=${brdVO.brdId}">${brdVO.frstWrtr}</a></span>
+											<div class="d-flex justify-content-between align-items-center">
+												<span class="small"> <i class="bi bi-calendar2-plus me-2"></i> 
+												<fmt:formatDate var="frstDt" value="${brdVO.frstDt}" pattern="yyyy-MM-dd" />${frstDt}
+												</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<hr class="my-0">
+							<!-- Divider -->
+						</c:forEach>
+						<!-- Blog item END -->
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<!-- Blog list END -->
+
+		</div>
+		<!-- Blog END -->
+		</div>
+	</section>
+	<!-- =======================
+Main banner START -->
+
+<!--이슬 사진에서 물체 지우는 ai 시작 -->
+	<section class="pt-0 pt-sm-5">
+		<div class="container bg-primary bg-opacity-10 rounded-3 overflow-hidden mt-4 p-4">
+			<div class="row g-4 align-items-center">
+				<!-- Image -->
+				<div class="col-6 col-md-3 text-center order-1">
+					<img src="/resources/booking/assets/images/element/photo.png" class="mb-n5" alt="">
+				</div>
+
+				<!-- Content -->
+				<div class="col-md-6 order-md-2 px-2">
+					<!-- Title -->
+					<h4>여행사진에서 지우고 싶은 부분이 있으신가요?</h4>
+					<!-- Content -->
+					<p class="mb-2">WonderWay의 AI기술을 이용하면 사진에서 특정 부분을 지울 수 있어요!</p>
+					<!-- Button -->
+					<a href="/member/tripBoard/tripPhoto" class="btn btn-sm btn-primary mb-0">사진 업로드</a>
+				</div>
+
+				<!-- Image -->
+				<div class="col-6 col-md-3 text-center order-3">
+					<img src="/resources/booking/assets/images/element/tower.svg" class="mb-n5" alt="">
+				</div>
+			</div>
+		</div>
+	
+	</section>
+<!--이슬 사진에서 물체 지우는 ai 끝-->
+	
+	<!-- =======================
+Blog grid START -->
+	<section class="pt-0 pt-sm-5">
+		<div class="container">
+
+			<!-- Title -->
+			<div class="row mb-4">
+				<div class="col-12 text-center">
+					<h2 class="mb-0">여행후기 모음집</h2>
+				</div>
+			</div>
+
+			<!-- 여행후기 모음집 > 최근순
+		 -->
+			<div class="row g-4">
+
+				<c:forEach var="brdVO" items="${list}" varStatus="stat" begin="0" end="5">
+
+					<!-- Blog item START -->
+					<div class="col-md-6 col-lg-4">
+						<div class="card bg-transparent">
+							<!-- Image -->
+							<div class="position-relative">
+								<img src="/resources/booking/assets/images/blog/07.jpg"
+									class="card-img" alt="">
+								<!-- Badge -->
+								<div class="card-img-overlay p-3">
+									<a class="badge text-bg-warning"><i
+										class="fa-solid fa-heart" style="color: #ffffff;">
+											${brdVO.brdLike}</i></a>
+								</div>
+							</div>
+
+							<!-- Card body -->
+							<div class="card-body p-3 pb-0">
+								<!-- Title -->
+								<span class="small"><i class="bi bi-calendar2-plus me-2"></i>
+								<fmt:formatDate var="frstDt" value="${brdVO.frstDt}"
+										pattern="yyyy-MM-dd" />&nbsp;${frstDt}</span>
+								<h5 class="card-title mt-2">
+									<a href="/member/tripBoard/tripDetail?brdId=${brdVO.brdId}">${brdVO.brdTt}</a>
+								</h5>
+								<div class="d-flex justify-content-between align-items-center">
+									<h6 class="fw-light mb-0">
+										By <a href="/member/tripBoard/tripDetail?brdId=${brdVO.brdId}">${brdVO.frstWrtr}</a>
+									</h6>
+								</div>
+							</div>
+						</div>
+					</div>
+				</c:forEach>
+				<!-- Blog item END -->
+
+
+
+			</div>
+
+			<!-- Buttons -->
+			<div class="text-center mt-4">
+				<a href="/member/tripBoard/tripBoardList"
+					class="btn btn-primary-soft mb-0">더보기<i
+					class="fas fa-sync ms-2"></i></a>
+			</div>
+		</div>
+	</section>
+	<!-- =======================
+Blog grid END -->
+
+<!-- =======================
+Stories START-->
+<section class="pt-0 pt-md-5">
+	<div class="container">
+
+		<div class="row g-4 g-lg-5 align-items-center">
+
+			<div class="col-lg-4">
+				<!-- Title -->
+				<h2 class="mb-0">Discover the best places to visit🔥</h2>
+
+				<div class="d-sm-flex justify-content-sm-between align-items-center mt-4">
+					<!-- Avatar group -->
+					<ul class="avatar-group mb-sm-0">
+						<li class="avatar">
+							<img class="avatar-img rounded-circle" src="/resources/booking/assets/images/avatar/01.jpg" alt="avatar">
+						</li>
+						<li class="avatar">
+							<img class="avatar-img rounded-circle" src="/resources/booking/assets/images/avatar/02.jpg" alt="avatar">
+						</li>
+						<li class="avatar">
+							<img class="avatar-img rounded-circle" src="/resources/booking/assets/images/avatar/03.jpg" alt="avatar">
+						</li>
+						<li class="avatar">
+							<img class="avatar-img rounded-circle" src="/resources/booking/assets/images/avatar/04.jpg" alt="avatar">
+						</li>
+						<li class="avatar">
+							<div class="avatar-img rounded-circle bg-dark">
+								<span class="text-white position-absolute top-50 start-50 translate-middle small">16+</span>
+							</div>
+						</li>
+					</ul>
+
+					<!-- Rating -->
+					<h5 class="m-0"><i class="fa-solid fa-star text-warning me-2"></i>4.5</h5>
+				</div>
+
+				<!-- Button -->
+				<a href="#" class="btn btn-lg btn-primary-soft mb-0 mt-4">Explore places <i class="bi fa-fw bi-arrow-right ms-2"></i></a>
+			</div>
+
+			<div class="col-lg-8">
+				<div class="row">
+					<div class="col-md-6">
+						<!-- Card item -->
+						<div class="card card-element-hover card-overlay-hover overflow-hidden">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/category/tour/06.jpg" class="rounded-3" alt="">
+							<!-- Full screen button -->
+							<a class="hover-element position-absolute w-100 h-100" data-glightbox data-gallery="gallery" href="/resources/booking/assets/images/gallery/01.jpg">
+								<i class="bi bi-fullscreen fs-6 text-white position-absolute top-50 start-50 translate-middle bg-dark rounded-1 p-2 lh-1"></i>
+							</a>
+						</div>
+
+						<!-- Testimonials START -->
+						<div class="tiny-slider arrow-round arrow-blur arrow-hover arrow-xs my-4 mb-md-0">
+							<div class="tiny-slider-inner pb-1" data-autoplay="true" data-arrow="true" data-dots="false" data-items="1">
+								<!-- Testimonial item -->
+								<div class="card bg-transparent">
+									<div class="row align-items-center">
+										<!-- Image -->
+										<div class="col-4">
+											<img src="/resources/booking/assets/images/team/01.jpg" class="card-img" alt="">
+										</div>
+										<!-- Card body -->
+										<div class="col-8">
+											<div class="card-body p-0">
+												<p class="mb-0">Farther-related bed and passage comfort civilly.</p>
+												<h6 class="card-title mb-0 mt-2">Louis Ferguson</h6>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Testimonial item -->
+								<div class="card bg-transparent">
+									<div class="row align-items-center">
+										<!-- Image -->
+										<div class="col-4">
+											<img src="/resources/booking/assets/images/team/02.jpg" class="card-img" alt="">
+										</div>
+										<!-- Card body -->
+										<div class="col-8">
+											<div class="card-body p-0">
+												<p class="mb-0">Farther-related bed and passage comfort civilly.</p>
+												<h6 class="card-title mb-0 mt-2">Lori Stevens</h6>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>		
+						<!-- Testimonials END -->
+					</div>
+
+					<div class="col-md-6">
+						<!-- Card item -->
+						<div class="card card-element-hover card-overlay-hover overflow-hidden mb-4">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/gallery/02.jpg" class="rounded-3" alt="">
+							<!-- Full screen button -->
+							<a class="hover-element position-absolute w-100 h-100" data-glightbox data-gallery="gallery" href="https://www.youtube.com/embed/tXHviS-4ygo">
+								<span class="btn text-danger btn-round btn-white position-absolute top-50 start-50 translate-middle mb-0">
+									<i class="fas fa-play"></i>
+								</span>
+							</a>
+						</div>
+						<!-- Card item -->
+						<div class="card card-element-hover card-overlay-hover overflow-hidden">
+							<!-- Image -->
+							<img src="/resources/booking/assets/images/gallery/03.jpg" class="rounded-3" alt="">
+							<!-- Full screen button -->
+							<a class="hover-element position-absolute w-100 h-100" data-glightbox data-gallery="gallery" href="/resources/booking/assets/images/gallery/03.jpg">
+								<i class="bi bi-fullscreen fs-6 text-white position-absolute top-50 start-50 translate-middle bg-dark rounded-1 p-2 lh-1"></i>
+							</a>
+						</div>
+					</div>
+				</div><!-- Row END -->
+			</div>
+		</div> <!-- Row END -->
+	</div>
+</section>
+<!-- =======================
+Stories END-->
+
+
+</main>
+<!-- **************** MAIN CONTENT END **************** -->
+
+
+<!-- Back to top -->
+<div class="back-top"></div>
+
+<!-- Bootstrap JS -->
+<script
+	src="/resources/booking/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ThemeFunctions -->
+<script src="/resources/booking/assets/js/functions.js"></script>
+
+<script type="text/javascript">
+	$("#writeNoLogin").click(function() {
+		alert("로그인한 회원만 가능합니다.");
+	});
+</script>
+
+</body>
+</html>

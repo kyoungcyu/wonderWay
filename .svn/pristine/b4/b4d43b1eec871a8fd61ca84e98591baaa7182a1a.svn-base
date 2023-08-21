@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.rntCar.mapper.BsRntCarMapper">
+	<resultMap id="carMap" type="carVO" >
+		<result column="CAR_NUM" property="carNum" />
+		<result column="CAR_CODE" property="carCode" />
+		<result column="CAR_KND" property="carKnd" />
+		<result column="CAR_YR" property="carYr" />
+		<result column="CAR_FEE" property="carFee" />
+		<result column="FUEL_TY" property="fuelTy" />
+		<result column="MAX_PP" property="maxPp" />
+		<result column="BUSI_ID" property="busiId" />
+		<result column="CAR_OP" property="carOp" />
+	</resultMap>
+	
+	
+	<select id="detailCar"  parameterType="carVO" resultMap="carMap">
+		SELECT
+				ROW_NUMBER() OVER(ORDER BY CAR_NUM ASC) RNUM,   
+			    CAR_NUM, 
+			    CAR_CODE, 
+			    CAR_KND, 
+			    CAR_YR, 
+			    CAR_FEE, 
+			    FUEL_TY, 
+			    MAX_PP, 
+			    BUSI_ID, 
+			    CAR_OP ,
+			     CAR_IMG 
+			FROM CAR
+			WHERE CAR_NUM = #{carNum}
+	</select>
+	
+
+	<!-- 차관리 리스트 -->
+	<select id="carList" parameterType="carVO" resultMap="carMap">
+		WITH T AS (
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY CAR_NUM ASC) RNUM,   
+			    CAR_NUM, 
+			    CAR_CODE, 
+			    CAR_KND, 
+			    CAR_YR, 
+			    CAR_FEE, 
+			    FUEL_TY, 
+			    MAX_PP, 
+			    BUSI_ID, 
+			    CAR_OP,
+			    CAR_IMG 
+			FROM CAR
+			WHERE BUSI_ID =#{busiId}
+			<if test="keyword!=null and !keyword.equals('')">
+			AND CAR_KND LIKE '%' || #{keyword} || '%'
+			</if>
+			)
+			SELECT T.*
+			FROM T
+			WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+			AND (#{currentPage} * #{size})
+	
+	</select>
+	
+	<update id="updateCar" parameterType="carVO" >
+		UPDATE CAR 
+		SET 
+		    CAR_CODE = #{carCode} ,
+		    CAR_KND  = #{carKnd} ,
+		    CAR_YR 	 = #{carYr} ,
+		    CAR_FEE	 = #{carFee} ,
+		    FUEL_TY	 = #{fuelTy} ,
+		    MAX_PP 	 = #{maxPp} ,
+		    CAR_OP 	 = #{carOp}
+		WHERE
+		    CAR_NUM = #{carNum}
+	
+	</update>
+
+	
+	
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT (*) FROM CAR 
+		WHERE BUSI_ID = #{busiId}
+			<if test="keyword!=null and !keyword.equals('')">
+				AND CAR_KND LIKE '%' || #{keyword} ||'%'
+			</if>
+	</select>
+
+	<insert id="addCar" parameterType="carVO" >
+		INSERT INTO CAR 
+		(
+		CAR_NUM, CAR_CODE, CAR_KND, CAR_YR, CAR_FEE, FUEL_TY, MAX_PP, BUSI_ID, CAR_OP
+		)
+		VALUES
+		(
+		#{carNum}  ,#{carCode},#{carKnd} ,#{carYr} ,#{carFee} , #{fuelTy} , #{maxPp}, #{busiId},#{carOp}
+ 		)
+	</insert>
+	
+	<!-- 2.첨부파일 테이블 등록 -->
+	<insert id="attachInsert" parameterType="attachVO">
+		INSERT INTO ATTACH(ATTACH_ID, ATTACH_DEL) 
+		VALUES(#{attachId},'N')
+	</insert>
+	
+	<!-- 3.첨부파일_상세 테이블  등록-->
+	<update id="attachDeInsert" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(ATTACH_DE_ID, ATTACH_ID, ORG_NM, FILE_NM, SAVE_PATH, FILE_SZ, FILE_TY, FILE_DEL,FILE_DT) 
+			VALUES(#{idx}+1 ,#{attachDeVO.attachId},#{attachDeVO.orgNm},#{attachDeVO.fileNm},
+			#{attachDeVO.savePath},#{attachDeVO.fileSz},#{attachDeVO.fileTy},'N',SYSDATE)
+		</foreach>
+	</update>
+	
+	<insert id="getImg" parameterType="carVO">
+		INSERT INTO CAR 
+		(CAR_IMG)
+		VALUE
+		(#{carImg})
+	</insert>
+	
+	
+	<select id="getImgPath" parameterType="String" resultType="String">
+	SELECT 
+    	SAVE_PATH
+	FROM ATTACH_DE 
+	WHERE ATTACH_ID = #{carNum}
+	</select>
+</mapper>

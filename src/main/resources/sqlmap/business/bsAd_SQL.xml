@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.business.mapper.BsAdMapper">
+
+	<select id="adInUse" parameterType="java.lang.String"
+		resultType="advReqListVO">
+		SELECT
+		A.AD_REQ_ID,
+		B.AD_DC,
+		A.AD_ST,
+		A.Ad_Ed,
+		B.Ad_Pr,
+		B.Cm_Code,
+		A.CNFM,
+		A.CNFM_DT,
+		SYSDATE AS AD_REQ_TM
+		FROM AD_REQ A
+		INNER JOIN AD B ON A.Ad_Id
+		= B.Ad_Id
+		WHERE BUSI_ID = #{busiId}
+		AND AD_EXP = 'N'
+		ORDER BY AD_ED
+	</select>
+
+	<insert id="insertAdReq" parameterType="adadVO">
+		<selectKey order="BEFORE" resultType="String"
+			keyProperty="adReqId">
+			SELECT 'AQ' ||
+			LPAD(MAX(SUBSTR(ad_req_id,3)) + 1,4,'0')
+			FROM AD_REQ
+		</selectKey>
+
+
+		INSERT INTO ad_req (
+		ad_req_id,
+		busi_id,
+		ad_id,
+		ad_st,
+		ad_ed
+		) VALUES (
+		#{adReqId},
+		#{busiId},
+		#{adId},
+		#{startDt},
+		#{endDt}
+		)
+
+	</insert>
+
+	<insert id="insertAdReqTwo" parameterType="adadVO">
+		<selectKey order="BEFORE" resultType="String"
+			keyProperty="payId">
+			    SELECT 
+			    'P'||
+			    CASE 
+			        WHEN (SELECT (SUBSTR(MAX(PAY_ID), 2)) FROM PAY) = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDDHH24MI') FROM DUAL) 
+			        THEN  (SELECT
+			    (SUBSTR(MAX(PAY_ID), -2, 2))
+			    FROM PAY)
+			        ELSE   ( SELECT TO_CHAR(SYSDATE, 'YYYYMMDDHH24MI') || '01' FROM DUAL)
+			    END AS RESULT
+			        FROM DUAL
+		</selectKey>
+
+		INSERT
+		INTO PAY (
+		PAY_ID,
+		PAY_PR,
+		PAY_DT,
+		PAY_MTH,
+		AD_REQ_ID
+		) VALUES (
+		#{payId},
+		#{adPr},
+		SYSDATE,
+		'카드',
+		#{adReqId}
+		)
+
+	</insert>
+	
+	<insert id="adRfdReq" parameterType="String">
+	INSERT INTO RFD_REQ
+		  (PAY_ID
+		, RFD_PR
+		, RFD_RESN
+		, RFD_DT
+		, RFD_REQ_DT)
+	VALUES(
+		 (SELECT PAY_ID FROM PAY WHERE AD_REQ_ID = #{adReqId})
+		 , (SELECT PAY_PR FROM PAY WHERE AD_REQ_ID = #{adReqId})
+		 , '단순변심'
+		 , SYSDATE
+		 , SYSDATE)
+	</insert>
+	
+	
+	<update id="rfdCkY" parameterType="String">
+		 UPDATE PAY
+		 SET RFD_CK
+		 WHERE PAY_ID = (SELECT PAY_ID FROM PAY WHERE AD_REQ_ID = #{adReqId})
+	
+	</update>
+	<update id="adReqExpY" parameterType="String">
+		UPDATE Ad_REQ
+        SET Ad_Exp = 'Y'
+        WHERE Ad_Req_Id = #{adReqId}
+	</update>
+	
+</mapper>

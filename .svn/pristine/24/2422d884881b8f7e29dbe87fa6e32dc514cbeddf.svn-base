@@ -1,0 +1,214 @@
+package kr.or.ddit.member.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.member.mapper.MypageMapper;
+import kr.or.ddit.member.service.MypageService;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.CupnVO;
+import kr.or.ddit.vo.GradVO;
+import kr.or.ddit.vo.HCupnVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.MmRsvListVO;
+import kr.or.ddit.vo.MmRsvRntcarListVO;
+import kr.or.ddit.vo.PayVO;
+import kr.or.ddit.vo.RfdReqVO;
+import kr.or.ddit.vo.RsvVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class MypageServiceImpl implements MypageService {
+	@Inject
+	MypageMapper mypageMapper;
+	//마이페이지 - 내 프로필 
+	@Override
+	public MemVO detailMyInfo(String memId) {
+		return this.mypageMapper.detailMyInfo(memId);
+	}
+	
+	//마이페이지 - 내 프로필 - 내 정보 수정
+	@Override
+	public int updateMyInfo(MemVO memVO) {
+		return this.mypageMapper.updateMyInfo(memVO);
+	}
+	//마이페이지 - 내 프로필 - 이메일 변경
+	@Override
+	public int updateMyEmail(MemVO memVO) {
+		return this.mypageMapper.updateMyEmail(memVO);
+	}
+	//마이페이지 - 내 프로필 - 비밀번호 변경
+	@Override
+	public int updateMyPass(MemVO memVO) {
+		return this.mypageMapper.updateMyPass(memVO);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//예약내역
+	//예약내역 조회
+	@Override
+	public RsvVO rsvDetail(RsvVO rsvVO) {
+		return this.mypageMapper.rsvDetail(rsvVO);
+	}
+
+	//숙박 전체조회
+	@Override
+	public List<MmRsvListVO> allBooking(Map<String, String> map) {
+		return this.mypageMapper.allBooking(map);
+	}
+	//렌터카 예약 조회
+	@Override
+	public List<MmRsvRntcarListVO> rntBooking(Map<String, String> map) {
+		return this.mypageMapper.rntBooking(map);
+	}	
+	//결제대기 취소
+	
+	//예약완료 취소 시
+	//1-1 환불 100% - PAY테이블 UPDATE rfdCk-> 'y'-> rfd_req테이블 insert
+	@Transactional	
+	@Override
+	public int rfdOk(RfdReqVO rfdReqVO) {
+		PayVO payVO = new PayVO();
+		RsvVO rsvVO = new RsvVO();
+		
+		payVO.setRsvId(rfdReqVO.getRsvId());
+		rsvVO.setRsvId(rfdReqVO.getRsvId());
+		
+		int result = this.mypageMapper.rfdOK(rfdReqVO);
+		result += this.mypageMapper.rfdCk(payVO);
+		result += this.mypageMapper.rfdCodeK04(rsvVO);
+		return result;
+	}
+	//2-1. 수수료 존재하면 - 환불테이블 INSERT, 예약상태 : K03으로 변환
+	@Transactional
+	@Override
+	public int rfdRequest(RfdReqVO rfdReqVO) {
+		RsvVO rsvVO = new RsvVO();
+		int result= this.mypageMapper.rfdRequest(rfdReqVO);
+		rsvVO.setRsvId(rfdReqVO.getRsvId());
+		result += this.mypageMapper.rsvCodeK03Change(rsvVO);
+		return result;
+	}
+	
+	//결제완료 (1.RSV_ST < today : 결제확인 2.RSV_ST > today : 리뷰작성)
+	//1.리뷰작성
+	@Override
+	public List<MmRsvListVO> completePayBefUse(Map<String, String> map) {
+		return this.mypageMapper.completePayBefUse(map);
+	}
+	//2. 결제확인
+	@Override
+	public List<MmRsvListVO> completePay(Map<String, String> map) {
+		return this.mypageMapper.completePay(map);
+	}	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//예약취소 내역 조회(1.환불 100%, 2.환불 100% x)
+	//1. 환불 100%
+	@Override
+	public List<MmRsvListVO> rsvCancel30Bef(Map<String, String> map) {
+		return this.mypageMapper.rsvCancel30Bef(map);
+	}
+	
+	//취소확정
+	@Override
+	public List<MmRsvListVO> rsvCancelK04(Map<String, String> map) {
+		return this.mypageMapper.rsvCancelK04(map);
+	}
+	
+
+	
+	
+	//쿠폰함
+	//등급조회
+	@Override
+	public GradVO myGrad(String memId) {
+		return this.mypageMapper.myGrad(memId);
+	}
+	//쿠폰함 조회
+	public List<CupnVO> myCoupon(String memId) {
+		return this.mypageMapper.myCoupon(memId);
+	}	
+	//쿠폰존조회
+	@Override
+	public List<CupnVO> couponZone(CupnVO cupnVO) {
+		return this.mypageMapper.couponZone(cupnVO);
+	}	
+	//쿠폰 다운로드
+	@Override
+	public int downCoupon(HCupnVO hCupnVO) {
+		return this.mypageMapper.downCoupon(hCupnVO);
+	}
+	
+	
+	
+	//나의 작성글 내역
+	//이용완료 상품 조회
+	@Override
+	public List<MmRsvRntcarListVO> completeBooking(String memId) {
+		return this.mypageMapper.completeBooking(memId);
+	}
+	//리뷰 조회
+	@Override
+	public List<BrdVO> myReviewList(String frstWrtr) {
+		return this.mypageMapper.myReviewList(frstWrtr);
+	}
+	
+	
+	
+	
+	
+	
+	
+	//회원 탈퇴
+	@Override
+	public int deleteMem(MemVO memVO) {
+		return this.mypageMapper.deleteMem(memVO);
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}

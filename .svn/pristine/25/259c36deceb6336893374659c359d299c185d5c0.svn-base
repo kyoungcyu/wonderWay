@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdRsvMapper">
+
+	<!-- resultMap 선언 -->
+	<resultMap id="rsvListMap" type="rsvListVO">
+		<result column="MEM_ID" property="memId" />
+		<result column="RSV_ID" property="rsvId" />
+		<result column="MEM_NM" property="memNm" />
+		<result column="GRAD_ID" property="gradId" />
+		<result column="BUSI_CODE" property="busiCode" />
+		<result column="PAY_MTH" property="payMth" />
+		<result column="RSV_DT" property="rsvDt" />
+		<result column="RSV_DT_STR" property="rsvDtStr" />
+		<result column="RSV_PERIOD" property="rsvPeriod" />
+		<result column="RM_PR" property="rmPr" />
+		<result column="RSV_CODE" property="rsvCode" />
+	</resultMap>
+
+	<!-- 예약 목록 -->
+	<select id="rsvList" parameterType="hashMap" resultMap="rsvListMap">
+		WITH T AS(
+			SELECT
+			ROW_NUMBER() OVER(ORDER BY A.MEM_ID ASC) RNUM
+			, A.MEM_ID AS MEM_ID
+			, A.RSV_ID AS RSV_ID
+			, (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) AS MEM_NM
+			, FN_CODE_TO_NM((SELECT BUSI_CODE FROM BUSI WHERE BUSI_ID = A.BUSI_ID)) AS BUSI_CODE
+			, (SELECT PAY_MTH FROM PAY WHERE RSV_ID = A.RSV_ID) AS PAY_MTH
+			, A.RSV_DT AS RSV_DT
+			, CONCAT(CONCAT((SELECT TO_CHAR(RSV_ST, 'YYYY/MM/DD') FROM RSV_STY WHERE RSV_ID = A.RSV_ID), CHR(126)), 
+			                (SELECT TO_CHAR(RSV_ED, 'YYYY/MM/DD') FROM RSV_STY WHERE RSV_ID = A.RSV_ID)) AS RSV_PERIOD
+			, FN_CODE_TO_NM(A.RSV_CODE) AS RSV_CODE
+		FROM RSV A
+		WHERE 1 = 1
+		<!-- 예약자명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND (SELECT RSV_ST FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND (SELECT RSV_ED FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		<!-- 정렬 검색 -->
+		<if test="sort!=null and !sort.equals('')">
+			<choose>
+				<when test="sort=='rsvKind'">
+					ORDER BY BUSI_CODE ASC
+				</when>
+				<when test="sort=='payMth'">
+					ORDER BY PAY_MTH ASC
+				</when>
+				<when test="sort=='rsvUp'">
+					ORDER BY RSV_DT ASC
+				</when>
+				<when test="sort=='rsvDown'">
+					ORDER BY RSV_DT DESC
+				</when>
+			</choose>
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+
+	<!-- 예약 상세 -->
+	<select id="rsvDetail" parameterType="String" resultMap="rsvListMap">
+		SELECT
+			A.MEM_ID AS MEM_ID
+			, A.RSV_ID AS RSV_ID
+			, (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) AS MEM_NM
+			, FN_CODE_TO_NM((SELECT GRAD_ID FROM MEM WHERE MEM_ID = A.MEM_ID)) AS GRAD_ID
+			, FN_CODE_TO_NM((SELECT BUSI_CODE FROM BUSI WHERE BUSI_ID = A.BUSI_ID)) AS BUSI_CODE
+			, (SELECT PAY_MTH FROM PAY WHERE RSV_ID = A.RSV_ID) AS PAY_MTH
+			, A.RSV_DT AS RSV_DT
+			, TO_CHAR(A.RSV_DT,'YYYY/MM/DD') AS RSV_DT_STR
+			, CONCAT(CONCAT((SELECT TO_CHAR(RSV_ST, 'YYYY/MM/DD') FROM RSV_STY WHERE RSV_ID = A.RSV_ID), 
+			                 CHR(126)), 
+			        (SELECT TO_CHAR(RSV_ED, 'YYYY/MM/DD') FROM RSV_STY WHERE RSV_ID = A.RSV_ID)) AS RSV_PERIOD
+			, (SELECT RM_PR FROM RM WHERE RM_ID = (SELECT RM_ID FROM RSV_STY WHERE RSV_ID = A.RSV_ID)) AS RM_PR
+			, FN_CODE_TO_NM(A.RSV_CODE) AS RSV_CODE
+		FROM RSV A
+		WHERE 1 = 1
+		AND A.RSV_ID = #{rsvId}
+	</select>
+
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM RSV A
+		WHERE 1 = 1
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND (SELECT RSV_ST FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND (SELECT RSV_ED FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+</mapper>

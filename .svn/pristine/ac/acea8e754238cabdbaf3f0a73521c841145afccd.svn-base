@@ -1,0 +1,29 @@
+package kr.or.ddit.admin.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.admin.mapper.AdBrdMapper;
+import kr.or.ddit.admin.mapper.AdMemMapper;
+import kr.or.ddit.admin.service.AdBrdServiece;
+import kr.or.ddit.admin.service.AdMemServiece;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.MemVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class AdBrdServiceImpl implements AdBrdServiece{
+	@Autowired
+	AdBrdMapper brdMapper;
+	
+	@Override
+	public List<BrdVO> brdList(){
+		return this.brdMapper.brdList();
+	}
+}

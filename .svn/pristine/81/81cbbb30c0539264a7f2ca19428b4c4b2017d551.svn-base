@@ -1,0 +1,17 @@
+package kr.or.ddit.admin.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AdvListVO;
+
+public interface AdAdvMapper {
+	// 광고 목록
+	public List<AdvListVO> advList(Map<String, String> map);
+	
+	// 광고 상세
+	public AdvListVO advDetail(String advId);
+	
+	// 총 데이터 개수
+	public int getTotal(Map<String, String> map);
+}

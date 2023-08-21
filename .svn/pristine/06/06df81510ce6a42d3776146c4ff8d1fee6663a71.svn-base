@@ -1,0 +1,30 @@
+package kr.or.ddit.admin.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AdvListVO;
+import kr.or.ddit.vo.AdvReqListVO;
+
+public interface AdAdvService {
+	// 광고 목록
+	public List<AdvListVO> advList(Map<String, String> map);
+
+	// 광고 상세
+	public AdvListVO advDetail(String advId);
+
+	// 총 데이터 개수(광고목록)
+	public int getTotalAdv(Map<String, String> map);
+
+	// 광고 목록
+	public List<AdvReqListVO> advReqList(Map<String, String> map);
+
+	// 광고 상세
+	public AdvReqListVO advReqDetail(String advId);
+
+	// 총 데이터 개수(광고요청목록)
+	public int getTotalAdvReq(Map<String, String> map);
+	
+	// 요청 승인 or 거절
+	public int processRequest(Map<String, String> map);
+}

@@ -1,0 +1,41 @@
+package kr.or.ddit.admin.service;
+
+import java.util.List;
+
+import java.util.Map;
+
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.TourVO;
+
+public interface AdTourService {
+	// 여행지 목록
+	public List<TourVO> tourList(Map<String, String> map);
+
+	// 전체 개수
+	public int getTotal(Map<String, String> map);
+	
+	public int tourReg(TourVO tourVO);
+	
+	public String getImgPath(String tourId);
+	
+	public TourVO tourDetail(String tourId);
+	
+	public int tourDel(String tourId);
+	
+	public List<TourVO> tourListMagazine();
+	
+	public int insertTourExcel(TourVO tourVO);
+	
+	public int magazineRegister(BrdVO brdVO);
+	
+	public List<BrdVO> tourMagazineList(Map<String, String> map);
+	
+	public BrdVO tourMagazineDetail(String brdId);
+	
+	public int getTotalMagazine(Map<String, String> map);
+	
+	public int magazineUpdate(BrdVO brdVO);
+	
+	public int magazineDelete(String attachId);
+}

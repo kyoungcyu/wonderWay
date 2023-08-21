@@ -1,0 +1,422 @@
+package kr.or.ddit.member.controller;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.security.Principal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.member.service.MmAcmService;
+import kr.or.ddit.member.service.MmMemService;
+import kr.or.ddit.member.service.MmRntcarService;
+import kr.or.ddit.member.service.MmTrnService;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CvfcVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RmDeVO;
+import kr.or.ddit.vo.RmVO;
+import kr.or.ddit.vo.RvwVO;
+import kr.or.ddit.vo.TrnRmVO;
+import kr.or.ddit.vo.TrnSeatVO;
+import kr.or.ddit.vo.TrnXml;
+
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.io.BufferedReader;
+import java.io.IOException;
+
+
+
+
+
+@RequestMapping("/member/trn")
+@Controller
+public class TrnController{
+	private static final Logger log = LoggerFactory.getLogger(TrnController.class);
+	
+
+
+	@Autowired
+	MmTrnService mmTrnService;
+	
+	@Autowired
+	MmMemService mmMemService;
+	
+	@Autowired
+	MmRntcarService mmRntcarService;
+	
+
+	/** 기차표 검색 메인페이지로
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("/main")
+	public String trnMain(Model model) {
+
+		return "member/trn/trnMain";
+	}
+	
+	
+	
+
+	
+	/**검색 조건 처리-세션에 담아줌
+	 * @param model
+	 * @param busiLoc
+	 * @param guestRoomNum
+	 * @param checkInOut
+	 * @param session
+	 * @return
+	 */
+	@PostMapping("/search")
+	public String searchTrn(
+			@RequestParam(value="depPlace",required=false) String depPlace,
+		    @RequestParam(value="arrPlace",required=false) String arrPlace,
+		    @RequestParam(value="depPlandTime",required=false) String depPlandTime,
+		    @RequestParam(value="numPp",required=false, defaultValue="1") String numPp,
+		    HttpSession session){
+		
+	
+			session.setAttribute("depPlace", depPlace);
+			session.setAttribute("arrPlace", arrPlace);
+			session.setAttribute("depPlandTime", depPlandTime);
+			session.setAttribute("numPp", numPp);
+			
+			
+			
+		
+		return "redirect:/member/trn/search/result";
+	}
+	
+	
+	
+	/**검색 결과 리스트 
+	 * @param model
+	 * @param session
+	 * @return 
+	 * @throws JAXBException 
+	 * @throws ParseException 
+	 */
+	@GetMapping("/search/result")
+	public String searchResultAcm(Model model, HttpSession session) throws IOException, JAXBException, ParseException{
+		
+		//세션에서 값 가져온다 
+		String depPlace=(String) session.getAttribute("depPlace");
+		String arrPlace=(String) session.getAttribute("arrPlace");
+		String depPlandTimeWithSlash=(String) session.getAttribute("depPlandTime");
+		String numPp=(String) session.getAttribute("numPp");
+		String depPlandTime = depPlandTimeWithSlash.replaceAll("/", "");
+		
+		String depPlaceId=mmTrnService.getStationId(depPlace);
+		String arrPlaceId=mmTrnService.getStationId(arrPlace);
+		
+		
+		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1613000/TrainInfoService/getStrtpntAlocFndTrainInfo"); /*URL*/
+	   
+		
+		urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=oES3DXCsu2x08XrIBSHcSXPsqYTxcC%2Fla15cKrNZZktKySptIVZtTsDE%2BDpH0N7d3kqGBBO7NIw4aMhG2GaZ3w%3D%3D"); /*Service Key*/
+	    urlBuilder.append("&" + URLEncoder.encode("_type","UTF-8") + "=" + URLEncoder.encode("xml", "UTF-8")); /*데이터 타입(xml, json)*/
+	    urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호*/
+        urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + URLEncoder.encode("10", "UTF-8")); /*한 페이지 결과 수*/
+	    urlBuilder.append("&" + URLEncoder.encode("depPlaceId","UTF-8") + "=" + URLEncoder.encode(depPlaceId, "UTF-8")); /*출발기차역ID [상세기능3. 시/도별 기차역 목록조회]에서 조회 가능*/
+	    urlBuilder.append("&" + URLEncoder.encode("arrPlaceId","UTF-8") + "=" + URLEncoder.encode(arrPlaceId, "UTF-8")); /*도착기차역ID [상세기능3. 시/도별 기차역 목록조회]에서 조회 가능*/
+	    urlBuilder.append("&" + URLEncoder.encode("depPlandTime","UTF-8") + "=" + URLEncoder.encode(depPlandTime, "UTF-8")); /*출발일(YYYYMMDD)*/
+	    URL url = new URL(urlBuilder.toString());
+	    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+	    conn.setRequestMethod("GET");
+	    conn.setRequestProperty("Content-type", "application/json");
+	    System.out.println("Response code: " + conn.getResponseCode());
+	    BufferedReader rd;
+	    if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+	        rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+	    } else {
+	        rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+	    }
+	    StringBuilder sb = new StringBuilder();
+	    String line;
+	    
+	    while ((line = rd.readLine()) != null) {
+	        sb.append(line);
+	    }
+	    rd.close();
+	    conn.disconnect();
+	    System.out.println(sb.toString());
+	    
+	    
+//
+//        JAXBContext jaxbContext = JAXBContext.newInstance(TrnXml.class); // JAXB Context 생성
+//        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); // Unmarshaller Object 생성
+//        TrnXml trnInfo = (TrnXml) unmarshaller.unmarshal(new StringReader(sb.toString())); // unmarshall 메소드 호출
+//	    
+//				
+		/* model.addAttribute("trnInfo",trnInfo); */
+	    
+		model.addAttribute("data",sb.toString());
+		model.addAttribute("depPlace",depPlace);
+		model.addAttribute("arrPlace",arrPlace);
+		model.addAttribute("depPlandTime", depPlandTimeWithSlash);
+		model.addAttribute("numPp",numPp);
+		
+		return "member/trn/trnList";
+	}
+	
+	
+	@PostMapping("trnRsv")
+	public String trnRsv(@RequestParam("traingradename") String traingradename,
+						@RequestParam("trainno") String trainno,
+						@RequestParam("depDate") String depDate,
+						@RequestParam("depTime") String depTime,
+						@RequestParam("depplacename") String depplacename,
+						@RequestParam("arrDate") String arrDate,
+						@RequestParam("arrTime") String arrTime,
+						@RequestParam("arrplacename") String arrplacename,
+						@RequestParam("adultcharge") String adultcharge,
+						@RequestParam("rmNum") String rmNum,
+						@RequestParam("seatId") String seatId,
+						@RequestParam("totalTime") String totalTime,
+						Model model,
+						HttpSession session,
+						Principal principal){
+
+		//로그인 했을시 회원정보 넘겨주기 
+		if(principal!=null) {
+			String memId = principal.getName();
+			MemVO memVO = mmMemService.userDetail(memId);
+			model.addAttribute("memVO",memVO);
+			
+		}
+		int numPp=Integer.parseInt((String) session.getAttribute("numPp"));
+
+		if(rmNum=="" && seatId=="") {
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("trnNum",trainno);
+			map.put("trnKnd",traingradename);
+			map.put("stLoc",depplacename);
+			map.put("arLoc",arrplacename);
+			map.put("stTm",depTime);
+			map.put("arTm",arrTime);
+			map.put("numPp",numPp);
+			
+			List<TrnSeatVO> trnSeatVOList=mmTrnService.getRndSeat(map);
+			log.info("랜덤좌석"+trnSeatVOList);
+			rmNum=trnSeatVOList.get(0).getRmNum();
+
+			for(TrnSeatVO trnSeatVO : trnSeatVOList) {
+				seatId+=trnSeatVO.getSeatId();
+				
+			}
+		}
+		
+		log.info("결과야"+rmNum);
+		model.addAttribute("numPp",numPp);
+		model.addAttribute("traingradename",traingradename);
+		model.addAttribute("trainno",trainno);
+		model.addAttribute("depDate",depDate);
+		model.addAttribute("depTime",depTime);
+		model.addAttribute("depplacename",depplacename);
+		model.addAttribute("arrDate",arrDate);
+		model.addAttribute("arrTime",arrTime);
+		model.addAttribute("arrplacename",arrplacename);
+		model.addAttribute("adultcharge",adultcharge);
+		model.addAttribute("rmNum",rmNum);
+		model.addAttribute("seatId",seatId);
+		model.addAttribute("totalTime",totalTime);
+
+		
+		return "member/trn/trnRsv";
+		
+		
+	}
+	
+	
+	/**좌선선택 모달 클릭시 호차랑 정보 넘겨줌
+	 * @param traingradename
+	 * @return
+	 */
+	@ResponseBody
+	@PostMapping("getRm")
+	public List<TrnRmVO> getRm(@RequestParam("trnKnd") String trnKnd){
+
+		List<TrnRmVO> trnRmVOList=mmTrnService.getRm(trnKnd);
+		
+		return trnRmVOList;
+		
+	}
+	
+	
+	
+	
+	/**
+	 * @param map
+	 * @return
+	 */
+	@ResponseBody
+	@PostMapping("getSeat")
+	public List<TrnSeatVO> getSeat(@RequestBody HashMap<String, String> map){
+		log.info("맵이야"+map);
+		
+		String arTm = map.get("arTm");
+		String stTm = map.get("stTm");
+		arTm=  arTm.replaceAll("(.{2})$", "");
+		stTm=  stTm.replaceAll("(.{2})$", "");
+		map.replace("arTm",arTm);
+		map.replace("stTm",stTm);
+		
+		
+		List<TrnSeatVO> trnSeatVOList=mmTrnService.getSeat(map);
+		
+	
+		return trnSeatVOList;
+		
+	}
+	
+	/**결제 완료시 db에 정보 인서트 
+	 * @param data
+	 * @return
+	 */
+	@PostMapping("/payComplete")
+	public String payComplete(
+			@RequestBody HashMap<String, Object> data,
+			HttpSession session) {
+
+		//현재 날짜 가져와서 예약날짜, 결제날짜에 넣어주기
+		LocalDateTime currentDateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        DateTimeFormatter formatterT = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        String today = currentDateTime.format(formatter);
+        String now = currentDateTime.format(formatterT);
+        data.put("trRsvDt", today);
+        data.put("payDt", today);
+        data.put("trRsvId","T"+now);
+        data.put("payId","P"+now);
+
+        //payId,rsvId 오늘날짜로 된 id있나 조회	
+        String countPayId="" + this.mmRntcarService.countPayId("P"+now);
+        data.put("countPayId",countPayId);
+        
+        int countRsvId=this.mmTrnService.countTrRsvId("T"+now);
+	    if (countRsvId==0) 
+	        data.put("trRsvId","T"+now+"01");
+        else 
+        	data.put("trRsvId",mmTrnService.checkTrRsvId("T"+now));
+        
+        
+        // 23/01/01에서 2023/01/01형식으로 바꿔주기
+        String rsvSt="20"+data.get("rsvSt");
+        String rsvEd="20"+data.get("rsvEd");
+        data.put("rsvSt", rsvSt);
+        data.put("rsvEd", rsvEd);
+        
+        String stTm=rsvSt+" "+data.get("stTm");
+        String arTm=rsvEd+" "+data.get("arTm");
+        data.put("stTm", stTm);
+        data.put("arTm", arTm);
+        
+        log.info("아작스로 받아왔다 data"+data);
+        
+		String[] seatArray=((String) data.get("seatId")).split(",");
+		data.put("seatArray",seatArray);
+		
+	   
+	    int insertN=this.mmTrnService.insertMemRsv(data);
+	    	
+	    log.info("인서트"+insertN);
+        log.info("인서트후 data"+data);
+
+	    
+	    session.setAttribute("rsvTrnNm",data.get("trnKnd")+" "+data.get("trnNum")+" "+data.get("rmNum")+"호차 "+data.get("seatId")+"번 좌석");
+	    session.setAttribute("buyerNm",data.get("buyerNm"));
+	    session.setAttribute("payTrnPr",data.get("payPr"));
+	    session.setAttribute("stTm",stTm);
+	    session.setAttribute("arTm",arTm);
+	    session.setAttribute("stLoc",data.get("stLoc"));
+	    session.setAttribute("arLoc",data.get("arLoc"));
+	    
+	
+	    return "redirect:/member/trn/rsvConfirm";
+	}
+	
+	
+	
+	/**예약 완료 페이지로 
+	 * @param session
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("/rsvConfirm")
+	public  String rsvConfirm(HttpSession session, Model model) {
+		
+		
+		
+		String rsvTrnNm = (String) session.getAttribute("rsvTrnNm");
+	    String trRsvId = (String) session.getAttribute("trRsvId");
+	    String buyerNm = (String) session.getAttribute("buyerNm");
+	    String payTrnPr = (String) session.getAttribute("payTrnPr");
+	    String stTm = (String) session.getAttribute("stTm");
+	    String arTm = (String) session.getAttribute("arTm");
+	    String stLoc = (String) session.getAttribute("stLoc");
+	    String arLoc = (String) session.getAttribute("arLoc");
+		
+		
+	    model.addAttribute("rsvTrnNm", rsvTrnNm );
+	    model.addAttribute("trRsvId", trRsvId );
+	    model.addAttribute("buyerNm", buyerNm);
+	    model.addAttribute("payTrnPr", payTrnPr );
+	    model.addAttribute("stTm", stTm);
+	    model.addAttribute("arTm", arTm);
+	    model.addAttribute("stLoc", stLoc);
+	    model.addAttribute("arLoc", arLoc);
+	    log.info("머지 "+rsvTrnNm+payTrnPr);
+	    
+		return "member/trn/trnRsvConfirm";
+	}
+	
+}

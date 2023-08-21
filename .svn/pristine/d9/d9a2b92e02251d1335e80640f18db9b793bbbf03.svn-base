@@ -1,0 +1,94 @@
+package kr.or.ddit.member.controller;
+
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.member.service.CscService;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.MemVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RequestMapping("/member/csc")
+@Controller
+public class CscController {
+	
+	@Autowired
+	CscService cscService;
+	
+	//고객센터 메인 페이지
+	@GetMapping("/main")
+	private String main() {
+		return "member/csc/cscMain";
+	}
+	
+	//고객센터-공지사항 목록 리스트
+	@GetMapping("/cscNoticeList")
+	private String cscNoticeList(Model model, 
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+		
+	    Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+		List<BrdVO> noticeList = this.cscService.cscNoticeList(map);
+		log.info("noticeList : " + noticeList);
+		
+		int total = this.cscService.cscNoticeTotal(map);
+		log.info("total : " + total);
+		
+		PagingDTO<BrdVO> noticePage = new PagingDTO<BrdVO>(total, currentPage, size, noticeList);
+		
+		log.info("noticePage : " + noticePage);
+		
+		model.addAttribute("data", noticePage);
+		
+		return "member/csc/cscNoticeList";
+	}	
+	
+	//고객센터-공지사항 상세 페이지
+	@GetMapping("/cscNoticeDetail")
+	private String cscNoticeDetail(@RequestParam("brdId") String brdId, Model model, 
+			BrdVO brdVO, Principal principal, Map<String , String> map) {
+		log.info("brdId : " + brdId);
+		this.cscService.noticeCnt(brdId);
+		brdVO.setBrdId(brdId);
+		brdVO = this.cscService.cscNoticeDetail(brdVO);
+		log.info("brdVO : " + brdVO);
+		
+		BrdVO notice = this.cscService.cscNoticeDetail(brdVO);
+		log.info("notice : " + notice);
+		model.addAttribute("notice", notice);
+		
+		String memId = principal.getName();
+		log.info("memId : " + memId);
+		model.addAttribute("memId",memId);
+		
+		map.put("memId", memId);
+		map.put("brdId", brdId);
+		int checkLikeBrd = this.cscService.checkLikeBrd(map);
+		model.addAttribute("checkLikeBrd",checkLikeBrd);
+		log.info("checkLikeBrd : " + checkLikeBrd);
+		
+		return "member/csc/cscNoticeDetail";
+	}
+	
+
+
+}

@@ -1,0 +1,33 @@
+package kr.or.ddit.business.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.business.mapper.BsMsgMapper;
+import kr.or.ddit.business.service.BsMsgService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MsgVO;
+
+@Service
+public class BsMsgServiceImpl implements BsMsgService{
+	
+	@Autowired
+	BsMsgMapper bsMsgMapper;
+	
+
+	@Override
+	public List<MsgVO> recvMsg(String busiId) {
+		return this.bsMsgMapper.recvMsg(busiId);
+	}
+	@Override
+	public List<MsgVO> sendMsg(String busiId) {
+		return this.bsMsgMapper.sendMsg(busiId);
+	}
+	@Override
+	public int msgInsert(MsgVO msgVO) {
+		return this.bsMsgMapper.msgInsert(msgVO);
+	}
+
+}

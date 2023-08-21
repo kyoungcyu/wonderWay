@@ -1,0 +1,24 @@
+package kr.or.ddit.rntCar.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.CarVO;
+
+public interface BsRntCarService {
+
+	public List<CarVO> carList(Map<String, String> map);
+
+	public int getTotal(Map<String, String> map);
+
+	public CarVO detailCar(String carNum);
+
+	public int updateCar(CarVO carVO);
+
+	public int addCar(CarVO carVO);
+
+	public String getImgPath(String carNum);
+
+	public int getImg(CarVO carVO);
+
+}

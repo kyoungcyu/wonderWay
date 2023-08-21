@@ -1,0 +1,53 @@
+package kr.or.ddit.member.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.member.mapper.MmMemMapper;
+import kr.or.ddit.member.mapper.MmRntcarMapper;
+import kr.or.ddit.member.service.MmRntcarService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CarVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RvwVO;
+
+@Service
+public class MmRntcarServiceImpl implements MmRntcarService {
+
+	@Inject
+	MmRntcarMapper mmRntcarMapper;
+	
+	@Inject
+	MmMemMapper mmMemMapper;
+
+	//업체 검색
+	@Override
+	public List<CarVO> searchRntcar(HashMap<String, String> map) {
+
+		return this.mmRntcarMapper.searchRntcar(map);
+	}
+
+	//차량 최댓값
+	@Override
+	public Integer getMaxCarPr(HashMap<String, String> map) {
+		
+		return this.mmRntcarMapper.getMaxCarPr(map);
+	}
+
+	
+	//차량정보 가져오기
+	@Override
+	public CarVO detailRntcar(String carNum) {
+		
+		return this.mmRntcarMapper.detailRntcar(carNum);
+	}
+
+	
+
+}

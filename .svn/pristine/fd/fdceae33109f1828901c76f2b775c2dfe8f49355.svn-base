@@ -1,0 +1,317 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+
+<script type="text/javascript">
+$(function(){
+	$("#sort").on("change",function(){
+		$("#frm01").submit();
+	});
+	
+	$("#downloadExcel").on("click", function() {
+		$.ajax({
+			url : "/admin/mem/downloadExcel",
+			data : {
+			},
+			type : "get",
+			xhrFields:{
+		        responseType: 'blob'
+		    },
+			beforeSend : function (xhr) {
+				xhr.setRequestHeader("${_csrf.headerName}","${_csrf.token}");
+			},
+			success : function(result) {
+				console.log(result);	
+				var blob = result;
+			    var downloadUrl = URL.createObjectURL(blob);
+			    var a = document.createElement("a");
+			    a.href = downloadUrl;
+			    a.download = "전체 회원 내역.xlsx";
+			    document.body.appendChild(a);
+			    a.click();
+			}
+		});
+	});
+	
+	$("#btn01").on("click", function () {
+		var password = $("#password").val();
+		let object = { "password": password };
+		$.ajax({
+			url: "/admin/mem/second",
+			contentType: "application/json;charset=utf-8",
+			data: JSON.stringify(object),
+			type: "post",
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+			},
+			success: function (result) {
+				console.log("result : " + result);
+				if (result == "success") {
+					window.location.reload();
+				} else {
+					alert("실패 메시지");
+				}
+			},
+			error: function () {
+				alert("요청을 처리하는 동안 오류가 발생했습니다");
+			}
+		});
+	});
+	
+	var auth = '<%=(String)session.getAttribute("secondAuth")%>';
+	
+	function showPhoneNumbers() {
+	    var real = document.getElementsByClassName("real");
+	    var fake = document.getElementsByClassName("fake");
+	    if (auth == "success") {
+	    	const modal = document.getElementById('openModal');
+	    	modal.disabled = true;
+	    	
+	        for (var i = 0; i < real.length; i++) {
+	            real[i].style.display = "inline";
+	        }
+	        for (var i = 0; i < fake.length; i++) {
+	            fake[i].style.display = "none";
+	        }
+	    } else {
+	        for (var i = 0; i < real.length; i++) {
+	            real[i].style.display = "none";
+	        }
+	        for (var i = 0; i < fake.length; i++) {
+	            fake[i].style.display = "inline";
+	        }
+	    }
+	}
+	
+	showPhoneNumbers();
+});
+</script>
+
+<!-- Page main content START -->
+<div class="page-content-wrapper p-xxl-4">
+
+	<!-- Filters START -->
+	<form class="row g-4 align-items-center" id="frm01">
+		<div class="col-lg-6">
+			<h1 class="h3 mb-3 mb-sm-0">전체 회원 
+				<button type="button" class="btn btn-primary" data-bs-toggle="modal"
+					id="openModal"  data-bs-target="#exampleModal" data-bs-whatever="@getbootstrap" >2차 인증</button>
+			</h1>
+		</div>
+		<div class="col-lg-1">
+			&ensp;&ensp;<a id="downloadExcel" href="#" class="btn btn-outline-primary btn-round mb-0"><i class="bi bi-cloud-download"></i></a>
+		</div>
+
+		<!-- 검색 -->
+		<div class="col-md-6 col-lg-3">
+			<input class="form-control bg-transparent" type="search" placeholder="Search" aria-label="Search" name="keyword" value="${param.keyword}">
+			<button class="bg-transparent p-2 position-absolute top-50 end-0 translate-middle-y border-0 text-primary-hover text-reset" type="submit">
+			</button>
+		</div>
+
+		<!-- 정렬 -->
+		<div class="col-md-6 col-lg-2">
+			<select class="form-select js-choice" aria-label=".form-select-sm" name="sort" id="sort">
+				<option value="">Sort by</option>
+				<option value="memNm" <c:if test="${param.sort=='memNm'}">selected</c:if>>이름</option>
+				<option value="joinDt" <c:if test="${param.sort=='joinDt'}">selected</c:if>>가입일자</option>
+				<option value="enabled" <c:if test="${param.sort=='enabled'}">selected</c:if>>회원상태</option>
+			</select>
+		</div>
+	</form>
+	<!-- Filters END -->
+	
+	<div class="my-2"></div>
+	
+	<div class="row g-4">
+		<!-- Block item -->
+		<div class="col-sm-6 col-xxl-3">
+			<div class="card card-body bg-light p-4 h-100">
+				<h6 class="mb-0">전체 회원수</h6>
+				<h4 class="mb-2 mt-2 text-end">
+					<fmt:formatNumber type="number" pattern="#,###" value="${enableMem + disableMem}" />명
+				</h4>
+				<p class="mt-auto mb-0"> <a href="http://localhost/admin/mem/list?sort=enable"> 활성 회원 <fmt:formatNumber type="number" pattern="#,###" value="${enableMem}" />명 </a> </p>
+				<p class="mt-auto mb-0"> <a href="http://localhost/admin/mem/list?sort=disable"> 비활성 회원 <fmt:formatNumber type="number" pattern="#,###" value="${disableMem}" />명 </a> </p>
+			</div>
+		</div>
+	
+		<!-- Block item -->
+		<div class="col-sm-6 col-xxl-3">
+			<div class="card card-body bg-light p-4 h-100">
+				<h6 class="mb-0">등급별 회원수</h6>
+				<h5 class="mb-2 mt-2 text-end">
+					<a href="http://localhost/admin/mem/list?sort=bronze"> 브론즈 <fmt:formatNumber type="number" pattern="#,###" value="${bronze}" />명 </a>
+				</h5>
+				<h5 class="mb-2 mt-2 text-end">
+					<a href="http://localhost/admin/mem/list?sort=silver"> 실버 <fmt:formatNumber type="number" pattern="#,###" value="${silver}" />명 </a>
+				</h5>
+			</div>
+		</div>
+	
+		<!-- Block item -->
+		<div class="col-sm-6 col-xxl-3">
+			<div class="card card-body bg-light p-4 h-100">
+				<h6 class="mb-0">등급별 회원수</h6>
+				<h5 class="mb-2 mt-2 text-end">
+					<a href="http://localhost/admin/mem/list?sort=gold"> 골드 <fmt:formatNumber type="number" pattern="#,###" value="${gold}" />명 </a>
+				</h5>
+				<h5 class="mb-2 mt-2 text-end">
+					<a href="http://localhost/admin/mem/list?sort=dia"> 다이아 <fmt:formatNumber type="number" pattern="#,###" value="${dia}" />명 </a>
+				</h5>
+			</div>
+		</div>
+	
+		<!-- Block item -->
+		<div class="col-sm-6 col-xxl-3">
+			<div class="card card-body bg-light p-4 h-100">
+				<h6>현월 누적 가입자 수</h6>
+				<h4 class="text-end">${thisMthSignIn}명</h4>
+				<p class="mt-auto mb-0">전월 대비 
+				<c:if test="${thisMthSignIn > lastMthSignIn}">
+					<span class="badge bg-success bg-opacity-10 text-success">${increaseMthMem}% <i class="bi bi-graph-up"></i></span></p>
+				</c:if>
+				<c:if test="${thisMthSignIn < lastMthSignIn}">
+					<span class="badge bg-danger bg-opacity-10 text-danger">${increaseMthMem}% <i class="bi bi-graph-up"></i></span></p>
+				</c:if>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 전체 회원 시작 -->
+	<div class="card shadow mt-5">
+		<!-- Card body START -->
+		<div class="card-body">
+			<!-- Table head -->
+			<table class="table align-middle p-4 mb-0 table-hover table-shrink">
+				<thead class="table-light">
+					<tr>
+						<th scope="col" class="border-0 text-center rounded-start">아이디</th>
+						<th scope="col" class="border-0 text-center">이름</th>
+						<th scope="col" class="border-0 text-center">성별</th>
+						<th scope="col" class="border-0 text-center">전화번호</th>
+						<th scope="col" class="border-0 text-center">이메일</th>
+						<th scope="col" class="border-0 text-center">등급</th>
+						<th scope="col" class="border-0 text-center">가입일자</th>
+						<th scope="col" class="border-0 text-center">탈퇴일자</th>
+						<th scope="col" class="border-0 text-center rounded-end">회원상태</th>
+					</tr>
+				</thead>
+				<c:forEach var="memVO" items="${data.content}" varStatus="stat">
+					<!-- Table body START -->
+					<tbody class="border-top-0">
+						<!-- Table item -->
+						<tr>
+							<td>
+								<div class="d-flex align-items-center">
+									<!-- Avatar -->
+									<div class="avatar avatar-xs flex-shrink-0">
+										<c:if test="${not empty memVO.memImg}">
+											<img class="avatar-img rounded-circle" src="/resources/upload/mem${memVO.memImg}" alt="avatar">
+										</c:if>
+										<c:if test="${empty memVO.memImg}">
+											<img class="avatar-img rounded-circle" src="/resources/booking/assets/images/avatar/user.png" alt="avatar">
+										</c:if>
+									</div>
+									<!-- Info -->
+									<div class="ms-2">
+										<a href="/admin/mem/detail?memId=${memVO.memId}"><h6 class="mb-0">${memVO.memId}</h6></a>
+									</div>
+								</div>
+							</td>
+							<td><h6 class="mb-0">${memVO.memNm}</h6></td>
+							<td class="text-center">${memVO.memGen}</td>
+							<td>
+								<span class="real" style="display: none;">
+									<c:if test="${not empty memVO.memTel}">
+										<c:set var="text" value="${memVO.memTel}" />
+										<c:set var="tel" value="${fn:substring(text, 0, 3)}-${fn:substring(text, 3, 7)}-${fn:substring(text, 7, 11)}" />
+										${tel}
+									</c:if>
+								</span>
+								<span class="fake" style="display: inline;">*****</span>
+							</td>
+							<td>
+								<span class="realTel" style="display: none;">
+									${memVO.memEmail}
+								</span>
+								<span class="fake" style="display: inline;">*****</span>
+							</td>
+							<td class="text-center">
+								<div class="badge ${memVO.gradId == 'G01' ? 'bg-danger text-danger' : memVO.gradId == 'G02' ? 'bg-secondary text-secondary' : memVO.gradId == 'G03' ? 'bg-warning text-warning' : memVO.gradId == 'G04' ? 'bg-info text-info' : ''} bg-opacity-10">
+									${memVO.gradId == 'G01' ? 'BRONZE' : memVO.gradId == 'G02' ? 'SILVER' : memVO.gradId == 'G03' ? 'GOLD' : memVO.gradId == 'G04' ? 'DIAMOND' : ''}
+								</div>
+							</td>
+							<td class="text-center"><fmt:formatDate value="${memVO.joinDt}" pattern="yyyy/MM/dd" /></td>
+							<td class="text-center"><fmt:formatDate value="${memVO.whdwlDt}" pattern="yyyy/MM/dd" /></td>
+							<td class="text-center">
+								<div class="badge ${memVO.enabled == 1 ? 'bg-success text-success' : 'bg-danger text-danger'} bg-opacity-10">
+								    ${memVO.enabled == 1 ? 'ENABLED' : 'DISABLED'}
+								</div>
+							</td>
+						</tr>
+					</tbody>
+					<!-- Table body END -->
+				</c:forEach>
+			</table>
+		</div>
+		<!-- Card body END -->
+
+		<!-- Card footer START -->
+		<div class="card-footer pt-0">
+			<!-- Pagination and content -->
+			<div class="d-sm-flex justify-content-sm-between align-items-sm-center">
+				<!-- Content -->
+				<c:set var="endRow" value="${data.currentPage * data.size}" />
+				<c:set var="startRow" value="${endRow - (data.size - 1)}" />
+				<c:set var="total" value="${data.total}" />
+				<c:if test="${endRow>total}">
+					<c:set var="endRow" value="${total}" />
+				</c:if>
+				<p class="mb-sm-0 text-center text-sm-start">Showing ${startRow} to ${endRow} of ${total} entries</p>
+				<!-- Pagination -->
+				<nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
+					<ul class="pagination pagination-sm pagination-primary-soft mb-0 ">
+						<li class="page-item <c:if test='${data.startPage < 6}'>disabled</c:if>" id="dataTable_previous">
+							<a class="page-link" href="/admin/mem/list?currentPage=${data.startPage-5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="0"  tabindex="-1">Prev</a>
+						</li>
+						<c:forEach var="pNo" begin="${data.startPage}" end="${data.endPage}">
+							<li class="page-item <c:if test='${param.currentPage eq pNo}'>active</c:if>">
+								<a href="/admin/mem/list?currentPage=${pNo}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="${pNo}" tabindex="0" class="page-link">${pNo}</a>
+							</li>
+						</c:forEach>
+						<li class="page-item <c:if test='${data.endPage == data.totalPages}'>disabled</c:if>" id="dataTable_next">
+							<a class="page-link" href="/admin/mem/list?currentPage=${data.startPage+5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="7"  tabindex="-1">Next</a>
+						</li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+		<!-- Card footer END -->
+	</div>
+	
+</div>
+<!-- Page main content END -->
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog  modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">관리자 2차 인증</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+      	<div class="mb-3">
+        	<label for="recipient-name" class="col-form-label">비밀번호</label>
+        	<input type="password" name="password" id="password" style="width: 100%">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="btn01">확인</button>
+      </div>
+    </div>
+  </div>
+</div>

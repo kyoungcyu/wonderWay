@@ -1,0 +1,13 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+
+@Data
+public class MbtiStyRcmVO {
+	private String styMbti;
+	private String styLoc;
+	private String styId1;
+	private String styId2;
+	private String styId3;
+
+}

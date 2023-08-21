@@ -1,0 +1,15 @@
+package kr.or.ddit.admin.service;
+
+import java.util.List;
+
+import kr.or.ddit.vo.RfdListVO;
+
+public interface AdRfdService {
+	public List<RfdListVO> rfdList();
+	
+	public RfdListVO rfdDetail(String payId);
+	
+	public int rfdAccept(String payId);
+
+	public int rfdDenied(String payId);
+}

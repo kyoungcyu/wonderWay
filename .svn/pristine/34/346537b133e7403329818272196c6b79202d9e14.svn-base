@@ -1,0 +1,55 @@
+package kr.or.ddit.member.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.LikeBrdVO;
+
+public interface TripBoardMapper {
+	
+	//여행후기 메인 페이지 최근순 정렬
+	public List<BrdVO> tripRecList(Map<String, String> map);
+	//여행후기 메인 페이지 인기순정렬
+	public List<BrdVO> tripLikeList(Map<String, String> map);
+	//여행후기 글 목록 리스트
+	public List<BrdVO> tripBoardList(Map<String, String> map);
+	
+	//여행후기 글 상세보기
+	public BrdVO tripDetail(BrdVO brdVO);
+	//페이징 처리- 전체 글 수 조회
+	public int countBoard(Map<String,String> map);
+	//여행후기 글 조회수 count
+	public int tripViewCnt(String brdId);
+	
+	//여행후기 글 등록하기
+	public int tripAddWrite(BrdVO brdVO);
+	//여행후기 글 등록 - 첨부파일
+	public int attachInsert(AttachVO attachVO);
+	//여행후기 글 등록 - 첨부파일_상세
+	public int attachDeInsert(List<AttachDeVO> attachDeVOlist);
+	//여행후기 글 등록 - 첨부파일 아이디 update
+	public int attachIdUpdate(AttachVO attachVO);
+	
+	
+	//여행후기 글 수정
+	public int tripUpdate(String brdId);
+	//여행후기 글 삭제
+	public int tripDelete(String brdId);
+	
+	
+	
+	//게시물 좋아요 기능
+	//게시물 좋아요 클릭
+	public int likeBrd(LikeBrdVO likeBrdVO);
+	public int insertBrd(LikeBrdVO likeBrdVO);
+	
+	//좋아요 한번 더 클릭시 비활성화
+	public int dislikeBrd(LikeBrdVO likeBrdVO);
+	public int deleteBrd(LikeBrdVO likeBrdVO);
+	
+	
+	
+}

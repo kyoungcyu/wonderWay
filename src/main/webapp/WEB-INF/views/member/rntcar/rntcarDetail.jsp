@@ -1,0 +1,306 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+<script type="text/JavaScript" src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=00b9512c890219b30461ddb8688695ac"></script>
+
+<head>
+	<title>Wonderway-렌트카</title>
+
+	<link rel="stylesheet" type="text/css" href="/resources/booking/assets/vendor/tiny-slider/tiny-slider.css">
+	<link rel="stylesheet" type="text/css" href="/resources/booking/assets/vendor/glightbox/css/glightbox.css">
+	<link rel="stylesheet" type="text/css" href="/resources/booking/assets/vendor/flatpickr/css/flatpickr.min.css">
+	
+<style>
+.carImgDiv{
+   overflow:hidden;
+   margin:0 auto;
+}
+.carImg{
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    object-fit: cover;
+}
+
+
+
+</style>
+<script type="text/javascript">
+$(function() {
+	var mapContainer = document.getElementById('kakaoMap'), // 지도를 표시할 div 
+    mapOption = { 
+        center: new kakao.maps.LatLng(${carVO.lati}, ${carVO.longi}), // 지도의 중심좌표
+        level: 3 // 지도의 확대 레벨
+    };
+
+	// 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
+	var map = new kakao.maps.Map(mapContainer, mapOption); 
+	
+	// 마커가 표시될 위치입니다 
+	var markerPosition  = new kakao.maps.LatLng(${carVO.lati}, ${carVO.longi}); 
+
+	// 마커를 생성합니다
+	var marker = new kakao.maps.Marker({
+	    position: markerPosition
+	});
+
+	// 마커가 지도 위에 표시되도록 설정합니다
+	marker.setMap(map); 
+
+	// 일반 지도와 스카이뷰로 지도 타입을 전환할 수 있는 지도타입 컨트롤을 생성합니다
+	var mapTypeControl = new kakao.maps.MapTypeControl();
+
+	// 지도에 컨트롤을 추가해야 지도위에 표시됩니다
+	// kakao.maps.ControlPosition은 컨트롤이 표시될 위치를 정의하는데 TOPRIGHT는 오른쪽 위를 의미합니다
+	map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
+
+	// 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
+	var zoomControl = new kakao.maps.ZoomControl();
+	map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+	
+	map.relayout()
+	
+	
+	
+});
+</script>	
+
+</head>
+
+<body>
+
+<!-- **************** MAIN CONTENT START **************** -->
+<main>
+<%-- ${carVO } --%>
+<!-- =======================
+Main Banner START -->
+<section class="pt-4 pb-3">
+	<div class="container position-relative">
+		<!-- Title and button START -->
+		<div class="row">
+			<div class="col-12">
+				<!-- Meta -->
+				<div class="d-flex justify-content-between align-items-lg-center">
+					<!-- Title -->
+					<ul class="nav nav-divider align-items-center mb-0">
+						<li class="nav-item h4">렌트카 상세정보</li>
+					</ul>
+
+				</div>
+			</div>
+		</div>
+		<!-- Title and button END -->
+	</div>
+</section>
+<!-- =======================
+Main Banner END -->
+
+<!-- =======================
+Main Content START -->
+<section class="pt-0">
+	<div class="container" data-sticky-container>
+		<div class="row g-4">
+
+			<!-- Main content START -->
+			<div class="col-xl-8">
+				<div class="vstack gap-5">
+
+					<!-- Main cab list START -->
+					<div class="card border p-4">
+						<!-- Card body START -->
+						<div class="card-body p-0">
+							<div class="row g-4 align-items-center">
+								<!-- Image -->
+								<div class="col-md-4">
+									<div class="bg-light rounded-3 carImgDiv">
+										<img class="carImg" src="${carVO.carImg}" alt="">
+									</div>
+								</div>
+
+								<!-- card body -->
+								<div class="col-md-8">
+									<!-- Title and rating -->
+									<div class="d-sm-flex justify-content-sm-between">
+										<!-- Card title -->
+										<div>
+											<h4 class="card-title mb-2">${carVO.carKnd}</h4>
+											<ul class="nav nav-divider h6 fw-normal mb-2">
+												<li class="nav-item">${carVO.carCode}</li>
+												<li class="nav-item">${carVO.maxPp}</li>
+											</ul>
+										</div>
+										<!-- Rating Star -->
+										<ul class="list-inline mb-0">
+											<li class="list-inline-item h6 fw-normal me-1 mb-0">${carVO.avgSt}</li>
+											<c:set var="avgStInt" value="${fn:split(carVO.avgSt, '.')[0]}" />
+											<c:set var="avgStDeci" value="${carVO.avgSt-avgStInt}"/>
+											
+											<c:if test="${avgStInt>=1}">
+												<c:forEach begin="1" end="${avgStInt}">
+											   		<li class="list-inline-item me-0"><i class="fa-solid fa-star text-warning"></i></li>
+												</c:forEach>
+											</c:if>
+											<c:if test="${avgStDeci >= 0.5 && avgStDeci<1}">
+											    <li class="list-inline-item me-0"><i class="fa-solid fa-star-half-alt text-warning"></i></li>
+											</c:if>
+											<c:if test="${avgStDeci < 0.5  && avgStDeci>0}">
+										   		<li class="list-inline-item me-0"><i class="fa-regular fa-star text-warning"></i></li>
+											</c:if>
+											<c:if test="${carVO.avgSt==0}">
+										   		<li class="list-inline-item me-0"><i class="fa-regular fa-star text-warning"></i></li>
+											</c:if>
+										</ul>
+									</div>
+
+									<!-- List -->
+									<ul class="list-group list-group-borderless mt-2 mb-0">
+										<li class="list-group-item d-flex pb-0 mb-0">
+											<span class="h6 fw-normal mb-0"><i class="bi bi-check-circle me-2"></i>${carVO.carYr}년식</span>
+										</li>
+										<li class="list-group-item d-flex pb-0 mb-0">
+											<span class="h6 fw-normal mb-0"><i class="bi bi-check-circle me-2"></i>${carVO.fuelTy}</span>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>	
+						<!-- Card body END -->
+
+						<!-- Card footer -->
+						<div class="card-footer p-0 pt-4">
+							<div class="hstack gap-3 flex-wrap">
+								<!-- Item -->
+								<h6 class="bg-success bg-opacity-10 text-success fw-light rounded-2 d-inline-block mb-0 py-2 px-4">
+									차량 옵션: ${carVO.carOp}
+								</h6>
+			
+							</div>
+						</div>
+					</div>
+					<!-- Main cab list END -->
+
+
+					<!-- Driver and cab detail START -->
+					<div class="card bg-transparent">
+
+						<!-- Card header -->
+						<div class="card-header border-bottom bg-transparent px-0 pt-0">
+							<h4 class="mb-0">지점 안내</h4>
+						</div>
+
+						<!-- Card body -->
+						<div class="card-body pt-4 p-0">
+							<h5>${carVO.busiNm }</h5>
+							<!-- List -->
+							<ul>
+								<c:set var="formattedTel" value="${carVO.busiTel.substring(0, 3)}-${carVO.busiTel.substring(3, 7)}-${carVO.busiTel.substring(7)}" />
+								<li class="mb-2">전화: ${formattedTel} </li>
+								<li class="mb-2">이메일: ${carVO.busiEmail}</li>
+								<li>주소: ${carVO.busiLoc}</li>
+							</ul>
+
+							<h5>인수 및 반납장소</h5>
+
+							<!-- Images -->
+							<div id="kakaoMap" style="width:100%; height:350px;">
+							
+							</div>
+						</div>	
+
+					</div>
+					<!-- Driver and cab detail END -->
+					
+
+					<!-- Safety Guidelines START -->
+					<div class="card bg-transparent">
+						<!-- Card header -->
+						<div class="card-header border-bottom bg-transparent px-0 pt-0">
+							<h4 class="mb-0">안전 수칙</h4>
+						</div>
+
+						<!-- Card body START -->
+						<div class="card-body pt-4 p-0">
+							<ul class="list-group list-group-borderless mb-0">
+								<li class="list-group-item h6 fw-light mb-0">
+									<span class="text-danger"><i class="bi bi-arrow-right me-2"></i>렌트카 명의 대여 절대 금지</span>
+									<ul>빌린 사람, 빌려준 사람 동시처벌: 명의를 빌려주거나 타인의 명의를 빌려 대여한 경우, 대여를 알선한 경우 
+										<br/>1년 이하의 징역 또는 1천만원 이하의 벌금 </ul>
+									<ul>사고발생시 자동차보험으로 처리 불가: 명의대여는 사고 발생 시 운전자가 전부 손해배상 </ul>
+								</li>
+								<li class="list-group-item h6 fw-light mb-0">
+									<i class="bi bi-arrow-right me-2"></i>전좌석 안전띠
+								</li>
+								<li class="list-group-item h6 fw-light mb-0">
+									<i class="bi bi-arrow-right me-2"></i>음주운전 금지
+								</li>
+							</ul>
+						</div>
+						<!-- Card body END -->
+					</div>
+					<!-- Safety Guidelines END -->
+				</div>
+			</div>
+			<!-- Main content END -->
+
+			<!-- Sidebar START -->
+			<aside class="col-xl-4">
+				<div data-sticky data-margin-top="80" data-sticky-for="1199" >
+					<form class="card card-body bg-light p-4" action="/member/rntcar/rsvCar"  method="post">
+						<!-- Title -->
+						<h6 class="text-danger fw-normal">정보 요약</h6>
+
+						<!-- List -->
+						<ul class="list-group list-group-borderless mb-0">
+							<li class="list-group-item d-flex justify-content-between">
+								<span class="h6 fw-light mb-0">픽업 날짜</span>
+								<span class="h6 fw-light mb-0">${carRsvSt}</span>
+							</li>
+							<li class="list-group-item d-flex justify-content-between">
+								<span class="h6 fw-light mb-0">반납 날짜</span>
+								<span class="h6 fw-light mb-0">${carRsvEd}</span>
+							</li>
+							<li class="list-group-item d-flex justify-content-between">
+								<span class="h6 fw-light mb-0">시간당 요금</span>
+								<span class="h6 fw-light mb-0">${carVO.carFee}원</span>
+							</li>
+							<li class="list-group-item py-0"><hr class="my-0"></li> 
+							<!-- Divider -->
+							<li class="list-group-item d-flex justify-content-between pb-0">
+								<span class="h5 fw-normal mb-0">최종요금</span>
+								<fmt:formatNumber var="totalFee" value="${carVO.carFee*totalHours}" pattern="#,###,###"/>
+								<span class="h5 fw-normal mb-0">${totalFee}원</span>
+							</li>
+						</ul>
+
+						<div class="d-grid mt-4 gap-2">
+							<!-- Button -->
+							<button type="submit" id="btnRsv" class="btn btn-dark mb-0 mt-2">결제하기</button>
+						</div>
+					
+					<input type="hidden" name="carNum" value="${carVO.carNum}"/>
+					<input type="hidden" name="totalFee" value="${carVO.carFee*totalHours}"/>
+					<sec:csrfInput />
+					</form>
+				</div>
+			</aside>
+			<!-- Sidebar END -->
+		</div>
+	</div>
+</section>
+<!-- =======================
+Main Content END -->
+
+</main>
+<!-- **************** MAIN CONTENT END **************** -->
+
+
+
+<!-- Vendors -->
+<script src="/resources/booking/assets/vendor/sticky-js/sticky.min.js"></script>
+
+</body>
+</html>

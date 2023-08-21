@@ -1,0 +1,94 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+
+<section class="pt-4 pt-lg-5">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-10 mx-auto text-center">
+				<!-- Title -->
+				<h1>공지사항</h1>
+				<!-- Info -->
+				<p class="text-primary">wonderWay 공지사항</p>
+				<!-- Search -->
+				<form class="col-lg-8 position-relative mx-auto">
+					<input class="form-control form-control-lg pe-5" type="search" placeholder="Type search words" aria-label="Search">
+					<button class="text-primary-hover text-reset border-0 bg-transparent position-absolute top-50 end-0 translate-middle-y pe-3 py-0" type="submit"><i class="fas fa-search fs-6"></i></button>
+				</form>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="pt-0">
+	<div class="container">
+		<div class="row">
+			<div class="col-xl-10 mx-auto">
+				<div class="vstack gap-4">
+					<table class="table align-middle p-4 mb-0 table-hover table-shrink">
+						<!-- Table head -->
+						<thead class="table-light">
+							<tr>
+								<th scope="col" class="border-0 rounded-start text-center">번호</th>
+								<th scope="col" class="border-0 text-center">제목</th>
+								<th scope="col" class="border-0 text-center">작성 날짜</th>
+								<th scope="col" class="border-0 text-center">수정 날짜</th>
+								<th scope="col" class="border-0 text-center">조회수</th>
+								<th scope="col" class="border-0 text-center">좋아요</th>
+								<th scope="col" class="border-0 text-center rounded-end">작성자</th>
+							</tr>
+						</thead>
+						<c:forEach var="brdVO" items="${data.content}" varStatus="stat">
+							<tbody class="border-top-0">
+								<!-- Table item -->
+								<tr>
+									<td>
+										<h6 class="mb-0">${brdVO.rnum}</h6>
+									</td>
+									<td>
+										<a href="/member/csc/cscNoticeDetail?brdId=${brdVO.brdId}"><h6 class="mb-0">${brdVO.brdTt}</h6></a>
+									</td>
+									<td><fmt:formatDate value="${brdVO.frstDt}" pattern="yyyy/MM/dd HH:mm:ss" /></td>
+									<td><fmt:formatDate value="${brdVO.lastDt}" pattern="yyyy/MM/dd HH:mm:ss" /></td>
+									<td>${brdVO.inqCnt}</td>
+									<td>${brdVO.brdLike}</td>
+									<td>관리자</td>
+								</tr>
+							</tbody>
+						</c:forEach>
+					</table>
+				</div>
+				<div class="vstack gap-4">
+					<!-- Pagination and content -->
+					<div class="d-sm-flex justify-content-sm-between align-items-sm-center">
+						<!-- Content -->
+						<c:set var="endRow" value="${data.currentPage * data.size}" />
+						<c:set var="startRow" value="${endRow - (data.size - 1)}" />
+						<c:set var="total" value="${data.total}" />
+						<c:if test="${endRow>total}">
+							<c:set var="endRow" value="${total}" />
+						</c:if>
+						<p class="mb-sm-0 text-center text-sm-start">Showing ${startRow} to ${endRow} of ${total} entries</p>
+						<!-- Pagination -->
+						<nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
+							<ul class="pagination pagination-sm pagination-primary-soft mb-0 ">
+								<li class="page-item <c:if test='${data.startPage < 6}'>disabled</c:if>" id="dataTable_previous">
+									<a class="page-link" href="/admin/brd/list?currentPage=${data.startPage-5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="0"  tabindex="-1">Prev</a>
+								</li>
+								<c:forEach var="pNo" begin="${data.startPage}" end="${data.endPage}">
+									<li class="page-item <c:if test='${param.currentPage eq pNo}'>active</c:if>">
+										<a href="/admin/brd/list?currentPage=${pNo}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="${pNo}" tabindex="0" class="page-link">${pNo}</a>
+									</li>
+								</c:forEach>
+								<li class="page-item <c:if test='${data.endPage == data.totalPages}'>disabled</c:if>" id="dataTable_next">
+									<a class="page-link" href="/admin/brd/list?currentPage=${data.startPage+5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="7"  tabindex="-1">Next</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+				</div>		
+			</div>
+		</div>
+	</div>
+</section>

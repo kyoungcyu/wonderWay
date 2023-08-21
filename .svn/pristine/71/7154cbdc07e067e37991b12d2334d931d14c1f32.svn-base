@@ -1,0 +1,30 @@
+package kr.or.ddit.rntCar.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.CarVO;
+
+public interface BsRntCarMapper{
+
+	public List<CarVO> carList(Map<String, String> map);
+
+	public int getTotal(Map<String, String> map);
+
+	public CarVO detailCar(String carNum);
+
+	public int updateCar(CarVO carVO);
+
+	public int addCar(CarVO carVO);
+
+	public int attachInsert(AttachVO attachVO);
+
+	public int attachDeInsert(List<AttachDeVO> attachDeVOlist);
+
+	public String getImgPath(String carNum);
+
+	public int getImg(CarVO carVO);
+
+}

@@ -1,0 +1,354 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+
+<style>
+#myAnnotation {
+	font-size: small;
+	opacity: 0.5;
+}
+</style>
+<body>
+	<br />
+	<br />
+	<div class="container vstack gap-4">
+		<!-- Title START -->
+		<div class="row">
+			<div class="col-12">
+				<h1 class="fs-4 mb-0">
+					<i class="bi bi-badge-ad fa-fw me-1"></i>광고
+				</h1>
+			</div>
+		</div>
+		<!-- Title END -->
+
+		<!-- Counter START -->
+		<div class="row">
+			<div class="col-12">
+				<div class="card border h-100">
+
+					<!-- Card header START -->
+					<div class="card-header border-bottom">
+						<h5 class="card-header-title">
+							광고 신청 <span id="myAnnotation">*이미 신청한 광고는 노출 되지 않습니다.</span>
+						</h5>
+					</div>
+
+					<!-- Card header END -->
+
+					<!-- Card body START -->
+					<div class="card-body hidden">
+						<div class="row g-4">
+							<div class="row g-4">
+								<!-- Hotel item -->
+								<div class="col-sm-6 col-xl-4">
+									<!-- Card START -->
+									<div class="card card-img-scale overflow-hidden bg-transparent">
+										<!-- Image and overlay -->
+										<div class="card-img-scale-wrapper rounded-3 data-toggle="
+											modal" data-target="#exampleModal">
+											<!-- Image -->
+											<img src="/resources/upload/advertise/side.png" class="side"
+												alt="side image">
+										</div>
+
+										<!-- Card body -->
+										<div class="card-body px-2">
+											<!-- Title -->
+											<h5 class="card-title">
+												<a class="stretched-link" data-toggle="modal"
+													data-target="#exampleModal1">사이드 배너</a>
+											</h5>
+											<!-- Price and rating -->
+											<div
+												class="d-flex justify-content-between align-items-center">
+												<h6 class="text-success mb-0">
+													70,000원 <small class="fw-light">/1개월</small>
+												</h6>
+												<a class="btn btn-sm btn-primary-soft mb-0"
+													data-toggle="modal" data-target="#exampleModal"> <i
+													class="bi bi-check-lg me-1"></i>광고 신청하기
+												</a>
+											</div>
+										</div>
+									</div>
+									<!-- Card END -->
+								</div>
+
+								<!-- Hotel item -->
+								<div class="col-sm-6 col-xl-4">
+
+									<!-- Card START -->
+									<div class="card card-img-scale overflow-hidden bg-transparent">
+										<!-- Image and overlay -->
+										<div class="card-img-scale-wrapper rounded-3">
+											<!-- Image -->
+											<img src="/resources/upload/advertise/main.png" class="main"
+												alt="main image">
+										</div>
+
+										<!-- Card body -->
+										<div class="card-body px-2">
+											<!-- Title -->
+											<h5 class="card-title">
+												<a data-toggle="modal" data-target="#exampleModal2"
+													class="stretched-link">메인 배너</a>
+											</h5>
+											<!-- Price and rating -->
+											<div
+												class="d-flex justify-content-between align-items-center">
+												<h6 class="text-success mb-0">
+													100,000원 <small class="fw-light">/1개월</small>
+												</h6>
+												<a class="btn btn-sm btn-primary-soft mb-0"> <i
+													class="bi bi-check-lg me-1"></i>광고 신청하기
+												</a>
+											</div>
+										</div>
+									</div>
+									<!-- Card END -->
+								</div>
+
+								<!-- Hotel item -->
+								<div class="col-sm-6 col-xl-4">
+									<!-- Card START -->
+									<div class="card card-img-scale overflow-hidden bg-transparent">
+										<!-- Image and overlay -->
+										<div class="card-img-scale-wrapper rounded-3">
+											<!-- Image -->
+											<img src="/resources/upload/advertise/research.png"
+												class="research" alt="research image">
+										</div>
+
+										<!-- Card body -->
+										<div class="card-body px-2">
+											<!-- Title -->
+											<h5 class="card-title">
+												<a class="stretched-link" data-toggle="modal"
+													data-target="#exampleModal3">검색 시 최상단 노출</a>
+											</h5>
+											<!-- Price and rating -->
+											<div
+												class="d-flex justify-content-between align-items-center">
+												<h6 class="text-success mb-0">
+													100,000원 <small class="fw-light">/1개월</small>
+												</h6>
+												<a class="btn btn-sm btn-primary-soft mb-0"
+													data-toggle="modal" data-target="#exampleModal"> <i
+													class="bi bi-check-lg me-1"></i>광고 신청하기
+												</a>
+											</div>
+										</div>
+									</div>
+									<!-- Card END -->
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Card body END -->
+				</div>
+			</div>
+		</div>
+		<!-- Counter END -->
+
+		<!-- Review START -->
+		<div class="row">
+			<div class="col-12">
+				<div class="card border rounded-3">
+					<!-- Card header START -->
+					<div class="card-header border-bottom">
+						<h5 class="card-header-title">진행중인 광고</h5>
+					</div>
+					<!-- Card header END -->
+
+					<!-- Card body START -->
+					<div class="card-body">
+						<table
+							class="table align-middle p-4 mb-0 table-hover table-shrink">
+							<!-- Table head -->
+							<thead class="table-light">
+								<tr>
+									<th scope="col" class="border-0 rounded-start">1</th>
+									<th scope="col" class="border-0">2</th>
+									<th scope="col" class="border-0">3</th>
+									<th scope="col" class="border-0">4</th>
+									<th scope="col" class="border-0">5</th>
+								</tr>
+							</thead>
+
+							<!-- Table body START -->
+							<tbody class="border-top-0">
+								<!-- Table item -->
+								<tr>
+									<td>
+										<h6 class="mb-0">01</h6>
+									</td>
+									<td>
+										<h6 class="mb-0">
+											<a href="#"> 2</a>
+										</h6>
+									</td>
+									<td>
+										<h6 class="mb-0 fw-light">3</h6>
+									</td>
+									<td>
+										<div class="mb-0 fw-light">4</div>
+									</td>
+									<td>
+										<div class="mb-0 fw-light">5</div>
+									</td>
+								</tr>
+
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Review END -->
+	</div>
+
+
+	<!-- 사이드 배너 모달 Modal  -->
+	<div class="modal fade" id="exampleModal1" role="dialog"
+		aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel1">사이드 배너 광고 신청하기</h5>
+					<button type="button" class="btn" data-dismiss="modal"
+						style="font-size: 1.5rem; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff;"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body ">
+					<table>
+						<tr>
+							<br />
+							<td><select style="height: 28px;" id="sel1"
+								onchange="fnShowprice1()">
+									<option value="">개월 수 선택</option>
+									<option value="1" id="">1개월</option>
+									<option value="3" id="">3개월</option>
+									<option value="6" id="">6개월</option>
+									<option value="12" id="">12개월</option>
+							</select> <input id="price1" type="text" value="" readonly /></td>
+						</tr>
+					</table>
+				</div>
+				<br/>
+				<div class="modal-footer">
+					<button type="button" onclick="newMsgInsert1()"
+						class="btn btn-primary" data-dismiss="modal">광고 신청하기</button>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<!-- 메인 배너 모달 Modal  -->
+	<div class="modal fade" id="exampleModal2" role="dialog"
+		aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel2">메인 배너 광고 신청하기</h5>
+					<button type="button" class="btn" data-dismiss="modal"
+						style="font-size: 1.5rem; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff;"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body ">
+					<table>
+						<tr>
+							<br />
+							<td><select style="height: 28px;" id="sel2"
+								onchange="fnShowprice2()">
+									<option value="">개월 수 선택</option>
+									<option value="1" id="">1개월</option>
+									<option value="3" id="">3개월</option>
+									<option value="6" id="">6개월</option>
+									<option value="12" id="">12개월</option>
+							</select> <input id="price2" type="text" value="" readonly /></td>
+						</tr>
+					</table>
+				</div>
+				<br/>
+				<div class="modal-footer">
+					<button type="button" onclick="newMsgInsert()"
+						class="btn btn-primary" data-dismiss="modal">광고 신청하기</button>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<!-- 검색 시 상단 노출  Modal  -->
+	<div class="modal fade" id="exampleModal3" role="dialog"
+		aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel3">검색시 상단 노출 광고 신청</h5>
+					<button type="button" class="btn" data-dismiss="modal"
+						style="font-size: 1.5rem; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff;"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body ">
+					<table>
+						<tr>
+							<br />
+							<td><select style="height: 28px;" id="sel3"
+								onchange="fnShowprice3()">
+									<option value="">개월 수 선택</option>
+									<option value="1" id="">1개월</option>
+									<option value="3" id="">3개월</option>
+									<option value="6" id="">6개월</option>
+									<option value="12" id="">12개월</option>
+							</select> <input id="price3" type="text" value="" readonly /></td>
+						</tr>
+					</table>
+				</div>
+				<br/>
+				<div class="modal-footer">
+					<button type="button" onclick="newMsgInsert()"
+						class="btn btn-primary" data-dismiss="modal">광고 신청하기</button>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		function fnShowprice1() {
+			var a = parseInt($("#sel1").val());
+			var price = a * 70000;
+			var formattedPrice = price.toLocaleString();
+			console.log(formattedPrice);
+			$("#price1").val(formattedPrice + "원");
+		}
+		function fnShowprice3() {
+			var a = parseInt($("#sel3").val());
+			var price = a * 70000;
+			var formattedPrice = price.toLocaleString();
+			console.log(formattedPrice);
+			$("#price3").val(formattedPrice + "원");
+		}
+		function fnShowprice2() {
+			var a = parseInt($("#sel2").val());
+			var price = a * 100000;
+			var formattedPrice = price.toLocaleString();
+			console.log(formattedPrice);
+			$("#price2").val(formattedPrice + "원");
+		}
+	</script>
+</body>
+
+

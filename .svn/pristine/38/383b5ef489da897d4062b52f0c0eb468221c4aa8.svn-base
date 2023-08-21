@@ -1,0 +1,36 @@
+package kr.or.ddit.admin.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.admin.mapper.AdAdvMapper;
+import kr.or.ddit.admin.mapper.AdRsvMapper;
+import kr.or.ddit.admin.service.AdAdvService;
+import kr.or.ddit.admin.service.AdRsvService;
+import kr.or.ddit.vo.AdvListVO;
+import kr.or.ddit.vo.RsvListVO;
+
+@Service
+public class AdAdvServiceImpl implements AdAdvService{
+	@Autowired
+	AdAdvMapper adAdvMapper;
+
+	@Override
+	public List<AdvListVO> advList(Map<String, String> map) {
+		// TODO Auto-generated method stub
+		return this.adAdvMapper.advList(map);
+	}
+
+	@Override
+	public AdvListVO advDetail(String advId) {
+		return this.adAdvMapper.advDetail(advId);
+	}
+
+	@Override
+	public int getTotal(Map<String, String> map) {
+		return this.adAdvMapper.getTotal(map);
+	}
+}

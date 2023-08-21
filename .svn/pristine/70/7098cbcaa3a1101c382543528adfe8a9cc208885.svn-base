@@ -1,0 +1,21 @@
+package kr.or.ddit.member.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BusiVO;
+
+public interface MmAcmMapper {
+	
+	//숙소검색
+	//<select id="searchAcm" parameterType="hashMap" resultType="BusiVO">
+	public List<BusiVO> searchAcm(Map<String, String> map);
+
+}
+
+
+
+
+
+
+

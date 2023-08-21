@@ -1,0 +1,17 @@
+package kr.or.ddit.admin.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.RsvListVO;
+
+public interface AdRsvMapper {
+	// 예약 목록
+	public List<RsvListVO> rsvList(Map<String,String> map);
+
+	public List<RsvListVO> rsvListRntCar(Map<String,String> map);
+	
+	public RsvListVO rsvDetail(Map<String, String> map);
+	
+	public int getTotal(Map<String, String> map);
+}

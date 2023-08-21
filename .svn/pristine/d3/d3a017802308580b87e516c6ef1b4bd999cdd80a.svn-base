@@ -1,0 +1,19 @@
+package kr.or.ddit.member.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CvfcVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RmVO;
+import kr.or.ddit.vo.RvwVO;
+
+public interface MmRntcarService {
+
+	//숙소 검색-체크인날짜,인원,방개수로
+	public List<BusiVO> searchRntcar(Map<String, String> map);
+	
+	
+}

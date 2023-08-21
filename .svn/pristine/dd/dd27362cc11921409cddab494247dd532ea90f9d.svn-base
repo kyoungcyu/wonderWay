@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdAdvMapper">
+
+	<!-- 광고 resultMap 선언 -->
+	<resultMap id="advListMap" type="advListVO">
+		<result column="AD_REQ_ID" property="adReqId" />
+		<result column="BUSI_NM" property="busiNm" />
+		<result column="ADMIN_ID" property="adminId" />
+		<result column="CNFM" property="cnfm" />
+		<result column="CNFM_DT" property="cnfmDt" />
+		<result column="AD_PERIOD" property="adPeriod" />
+		<result column="CM_CODE" property="cmCode" />
+		<result column="AD_PR" property="adPr" />
+		<result column="AD_EXP" property="adExp" />
+		<result column="EXIST_PAY" property="existPay" />
+	</resultMap>
+
+	<!-- 광고 목록 -->
+	<select id="advList" parameterType="hashMap" resultMap="advListMap">
+		WITH T AS(
+			SELECT
+			    ROW_NUMBER() OVER(ORDER BY B.AD_REQ_ID ASC) RNUM
+			    , B.AD_REQ_ID AS AD_REQ_ID
+			    , C.BUSI_NM AS BUSI_NM
+			    , B.ADMIN_ID AS ADMIN_ID
+			    , B.CNFM AS CNFM
+			    , B.CNFM_DT AS CNFM_DT
+			    , TO_CHAR(B.AD_ST, 'YYYY/MM/DD') || CHR(13) || CHR(126) || CHR(13) || TO_CHAR(B.AD_ED, 'YYYY/MM/DD') AS AD_PERIOD
+			    , FN_CODE_TO_NM(A.CM_CODE) AS CM_CODE
+			    , A.AD_PR AS AD_PR
+			    , B.AD_EXP AS AD_EXP
+			FROM AD A
+			INNER JOIN AD_REQ B ON A.AD_ID = B.AD_ID
+			INNER JOIN BUSI C ON C.BUSI_ID = B.BUSI_ID
+			WHERE B.CNFM IS NOT NULL
+		<!-- 예약자명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND C.BUSI_NM LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND B.CNFM_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND B.CNFM_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		<!-- 정렬 검색 -->
+		<if test="sort!=null and !sort.equals('')">
+			<choose>
+				<when test="sort=='advKind'">
+					ORDER BY CM_CODE ASC
+				</when>
+				<when test="sort=='advMtUp'">
+					ORDER BY AD_PR ASC
+				</when>
+				<when test="sort=='advMtDown'">
+					ORDER BY AD_PR DESC
+				</when>
+				<when test="sort=='active'">
+					ORDER BY AD_EXP ASC
+				</when>
+			</choose>
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+
+	<!-- 광고 상세 -->
+	<select id="advDetail" parameterType="String" resultMap="advListMap">
+		SELECT
+		        B.AD_REQ_ID AS AD_REQ_ID
+		      , (SELECT BUSI_NM FROM BUSI WHERE BUSI_ID = B.BUSI_ID) AS BUSI_NM
+		      , (SELECT ADMIN_NM FROM ADMIN WHERE ADMIN_ID = B.ADMIN_ID) AS ADMIN_NM
+		      , B.CNFM AS CNFM
+		      , B.CNFM_DT AS CNFM_DT
+		      , CONCAT(CONCAT(TO_CHAR(B.AD_ST, 'YYYY/MM/DD'), CHR(126)), TO_CHAR(B.AD_ED, 'YYYY/MM/DD')) AS AD_PERIOD
+		      , FN_CODE_TO_NM(A.CM_CODE) AS CM_CODE
+		      , A.AD_PR AS AD_PR
+		      , B.AD_EXP AS AD_EXP
+		      , (CASE WHEN EXISTS(SELECT AD_REQ_ID FROM PAY WHERE AD_REQ_ID = B.AD_REQ_ID) THEN 'Y' ELSE 'N' END) AS EXIST_PAY
+		FROM AD A, AD_REQ B
+		WHERE A.AD_ID = B.AD_ID
+		AND B.AD_REQ_ID = #{adReqId}
+		AND B.CNFM IS NOT NULL
+	</select>
+
+	<!-- 총 데이터 개수(광고목록) -->
+	<select id="getTotalAdv" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM AD_REQ
+		WHERE 1 = 1
+		AND CNFM IS NOT NULL
+		<if test="keyword!=null and !keyword.equals('')">
+			AND BUSI_ID LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND CNFM_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND CNFM_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	<!-- 광고 요청 resultMap 선언 -->
+	<resultMap id="advReqListMap" type="advReqListVO">
+		<result column="AD_REQ_ID" property="adReqId" />
+		<result column="BUSI_NM" property="busiNm" />
+		<result column="BUSI_CODE" property="busiCode" />
+		<result column="AD_PIOD" property="adPiod" />
+		<result column="AD_DETAIL_PIOD" property="adDetailPiod" />
+		<result column="AD_PR" property="adPr" />
+		<result column="AD_REQ_TM" property="adReqTm" />
+		<result column="CM_CODE" property="cmCode" />
+	</resultMap>
+	
+	
+	<!-- 광고 요청 목록 -->
+	<select id="advReqList" parameterType="hashMap" resultMap="advReqListMap">
+		WITH T AS(
+			SELECT  ROW_NUMBER() OVER(ORDER BY A.AD_REQ_ID ASC) RNUM
+			      , A.AD_REQ_ID AS AD_REQ_ID
+			      , C.BUSI_NM AS BUSI_NM
+			      , FN_CODE_TO_NM(C.BUSI_CODE) AS BUSI_CODE
+			      , TRUNC(ADD_MONTHS(B.PAY_TM, 1), 'MM') || CHR(13) || CHR(126) || CHR(13) || TRUNC(ADD_MONTHS(PAY_TM, 2), 'MM') AS AD_PIOD
+			      , TRUNC(ADD_MONTHS(B.PAY_TM, 1), 'MM') || CHR(126) || TRUNC(ADD_MONTHS(PAY_TM, 2), 'MM') AS AD_DETAIL_PIOD
+			      , (SELECT AD_PR FROM AD WHERE AD_ID = A.AD_ID) AS AD_PR
+			      , B.PAY_TM AS AD_REQ_TM
+			FROM AD_REQ A 
+			INNER JOIN PAY B ON A.AD_REQ_ID = B.AD_REQ_ID
+			INNER JOIN BUSI C ON A.BUSI_ID = C.BUSI_ID
+			WHERE A.CNFM IS NULL
+		<if test="keyword!=null and !keyword.equals('')">
+			AND C.BUSI_NM LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 광고 요청 일시 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND A.AD_REQ_TM &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND A.AD_REQ_TM &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		<!-- 정렬 검색 -->
+		<if test="sort!=null and !sort.equals('')">
+			<choose>
+				<when test="sort=='advReqKindUp'">
+					ORDER BY BUSI_CODE ASC
+				</when>
+				<when test="sort=='advReqKindDown'">
+					ORDER BY BUSI_CODE DESC
+				</when>
+				<when test="sort=='advReqTmUp'">
+					ORDER BY AD_REQ_TM ASC
+				</when>
+				<when test="sort=='advReqTmDown'">
+					ORDER BY AD_REQ_TM DESC
+				</when>
+			</choose>
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 광고 요청 상세 -->
+	<select id="advReqDetail" parameterType="String" resultMap="advReqListMap">
+		SELECT  ROW_NUMBER() OVER(ORDER BY A.AD_REQ_ID ASC) RNUM
+		      , A.AD_REQ_ID AS AD_REQ_ID
+		      , C.BUSI_NM AS BUSI_NM
+		      , FN_CODE_TO_NM(C.BUSI_CODE) AS BUSI_CODE
+		      , TRUNC(ADD_MONTHS(B.PAY_TM, 1), 'MM') || CHR(13) || CHR(126) || CHR(13) || TRUNC(ADD_MONTHS(PAY_TM, 2), 'MM') AS AD_PIOD
+		      , TRUNC(ADD_MONTHS(B.PAY_TM, 1), 'MM') || CHR(126) || TRUNC(ADD_MONTHS(PAY_TM, 2), 'MM') AS AD_DETAIL_PIOD
+		      , (SELECT AD_PR FROM AD WHERE AD_ID = A.AD_ID) AS AD_PR
+		      , B.PAY_TM AS AD_REQ_TM
+		      , FN_CODE_TO_NM((SELECT CM_CODE FROM AD WHERE AD_ID = A.AD_ID)) AS CM_CODE
+		FROM AD_REQ A 
+		INNER JOIN PAY B ON A.AD_REQ_ID = B.AD_REQ_ID
+		INNER JOIN BUSI C ON A.BUSI_ID = C.BUSI_ID
+		WHERE A.CNFM IS NULL
+		AND A.AD_REQ_ID = #{adReqId}
+	</select>
+	
+	<!-- 총 데이터 개수(광고요청목록) -->
+	<select id="getTotalAdvReq" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM AD_REQ
+		WHERE 1 = 1
+		AND CNFM IS NULL
+		<if test="keyword!=null and !keyword.equals('')">
+			AND BUSI_ID LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND CNFM_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND CNFM_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	<!-- 광고 요청 응답 -->
+	<update id="processRequest" parameterType="hashMap">
+		UPDATE AD_REQ
+		SET
+			<if test="btnName!=null and !btnName.equals('')">
+			<choose>
+				<when test="btnName=='accept'">
+					CNFM = 'Y'
+				</when>
+				<when test="btnName=='denied'">
+					CNFM = 'N'
+				</when>
+			</choose>
+		</if>
+		WHERE AD_REQ_ID = #{adReqId}
+	</update>
+</mapper>

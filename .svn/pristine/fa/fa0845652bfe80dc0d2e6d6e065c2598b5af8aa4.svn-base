@@ -1,0 +1,1794 @@
+package kr.or.ddit.admin.controller;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.admin.service.AdAdvService;
+import kr.or.ddit.admin.service.AdBrdService;
+import kr.or.ddit.admin.service.AdBusiService;
+import kr.or.ddit.admin.service.AdCupnService;
+import kr.or.ddit.admin.service.AdEmailService;
+import kr.or.ddit.admin.service.AdFaqService;
+import kr.or.ddit.admin.service.AdGradManageService;
+import kr.or.ddit.admin.service.AdMainService;
+import kr.or.ddit.admin.service.AdMemService;
+import kr.or.ddit.admin.service.AdRfdService;
+import kr.or.ddit.admin.service.AdRsvService;
+import kr.or.ddit.admin.service.AdRvwService;
+import kr.or.ddit.admin.service.AdTourService;
+import kr.or.ddit.util.CommonFile;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.util.websocket.service.WsService;
+import kr.or.ddit.vo.AdCheckDaysVO;
+import kr.or.ddit.vo.AdCountCarsVO;
+import kr.or.ddit.vo.AdCountRoomsVO;
+import kr.or.ddit.vo.AdPopularRntVO;
+import kr.or.ddit.vo.AdPopularStayVO;
+import kr.or.ddit.vo.AdReviewListVO;
+import kr.or.ddit.vo.AdadVO;
+import kr.or.ddit.vo.AdRntDaysVO;
+import kr.or.ddit.vo.AdminVO;
+import kr.or.ddit.vo.AdvListVO;
+import kr.or.ddit.vo.AdvReqListVO;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CarVO;
+import kr.or.ddit.vo.ChatRmVO;
+import kr.or.ddit.vo.CupnVO;
+import kr.or.ddit.vo.FaqVO;
+import kr.or.ddit.vo.GradVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RcmLocVO;
+import kr.or.ddit.vo.RfdListVO;
+import kr.or.ddit.vo.RmVO;
+import kr.or.ddit.vo.RsvListVO;
+import kr.or.ddit.vo.TourVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RequestMapping("/admin")
+@Controller
+public class AdminController {
+	@Autowired
+	AdMemService memServiece;
+	
+	@Autowired
+	AdBrdService adBrdService;
+	
+	@Autowired
+	AdRsvService adRsvService;
+	
+	@Autowired
+	AdRfdService adRfdService;
+	
+	@Autowired
+	AdAdvService adAdvService;
+	
+	@Autowired
+	AdEmailService adEmailService;
+	
+	@Autowired
+	AdBusiService adBusiService;
+	
+	@Autowired
+	AdRvwService adRvwService;
+	
+	@Autowired
+	AdFaqService adFaqService;
+	
+	@Autowired
+	AdMainService adMainService;
+	
+	@Autowired
+	AdCupnService adCupnService;
+	
+	@Autowired
+	AdGradManageService adGradManageService;
+	
+	@Autowired
+	AdTourService adTourService;
+	
+	@Autowired
+	WsService wsService;
+	
+	/**
+	 * 관리자 메인
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("/main")
+	public String main(Model model) {
+		
+		int styCount = this.adMainService.styCount();
+		int rntCount = this.adMainService.rntCount();
+		int memCount = this.adMainService.memCount();
+		int totalSales = this.adMainService.totalSales();
+		
+		model.addAttribute("styCount",styCount);
+		model.addAttribute("rntCount",rntCount);
+		model.addAttribute("memCount",memCount);
+		model.addAttribute("totalSales",totalSales);
+		
+		List<AdPopularStayVO> popularStayList = this.adMainService.popularSty();
+		model.addAttribute("popularStayList",popularStayList);
+		
+		List<AdCheckDaysVO> checkDays = this.adMainService.checkDays();
+		model.addAttribute("checkDays",checkDays);
+		
+		AdCountRoomsVO countRooms = this.adMainService.countRooms();
+		model.addAttribute("countRooms",countRooms);
+		
+		List<AdPopularRntVO> popularRntList = this.adMainService.popularRnt();
+		model.addAttribute("popularRntList",popularRntList);
+		
+		List<AdRntDaysVO> rntDays = this.adMainService.rntDays();
+		model.addAttribute("rntDays",rntDays);
+		
+		AdCountCarsVO countCars = this.adMainService.countCars();
+		model.addAttribute("countCars",countCars);
+		
+		return "admin/main";
+	}
+	
+	/**
+	 * 회원 목록
+	 * @param model
+	 * @param keyword
+	 * @param sort
+	 * @param currentPage
+	 * @return
+	 */
+	@GetMapping("/mem/list")
+	public String memList(Model model, 
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+		
+	    Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("sort", sort);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+		List<MemVO> memList = this.memServiece.memList(map);
+		log.info("memList : " + memList);
+		
+		int total = this.memServiece.memTotal(map);
+		log.info("total : " + total);
+		
+		PagingDTO<MemVO> memPage = new PagingDTO<MemVO>(total, currentPage, size, memList);
+		
+		log.info("memPage : " + memPage);
+		
+		model.addAttribute("data", memPage);
+		
+		return "admin/mem/list";
+	}
+	
+	/**
+	 * 회원 제재
+	 * @param model
+	 * @param keyword
+	 * @param sort
+	 * @param currentPage
+	 * @return
+	 */
+	@GetMapping("/mem/restriction")
+	public String memRestriction(Model model,
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+		Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("sort", sort);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+		List<MemVO> memList = this.memServiece.memList(map);
+		log.info("memList : " + memList);
+		
+		int total = this.memServiece.memTotal(map);
+		log.info("total : " + total);
+		
+		PagingDTO<MemVO> memPage = new PagingDTO<MemVO>(total, currentPage, size, memList);
+		
+		log.info("memPage : " + memPage);
+		
+		model.addAttribute("data", memPage);
+		
+		return "admin/mem/restriction";
+	}
+	
+	/**
+	 * 회원 상세
+	 * @param memId
+	 * @param model
+	 * @param map
+	 * @return
+	 */
+	@GetMapping("/mem/detail")
+    public String memberDetail(@RequestParam("memId") String memId, Model model, Map<String, String> map) {
+		log.info("memId : " + memId);
+		MemVO memVO = new MemVO();
+		memVO.setMemId(memId);
+		memVO = this.memServiece.memDetail(memVO);
+		log.info("memVO : " + memVO);
+		
+		List<BrdVO> brdList = this.memServiece.memBrdList(memVO);
+		log.info("brdList : " + brdList);
+		
+		model.addAttribute("memVO", memVO);
+		model.addAttribute("brdList", brdList);
+		
+		map.put("memId", memId);
+		map.put("rsvCode", "K01");
+		List<RsvListVO> rsvK01 = this.memServiece.rsvList(map);
+		model.addAttribute("rsvK01",rsvK01);
+		
+		map.put("rsvCode", "K02");
+		List<RsvListVO> rsvK02 = this.memServiece.rsvList(map);
+		model.addAttribute("rsvK02",rsvK02);
+		
+		map.put("rsvCode", "K03");
+		List<RsvListVO> rsvK03 = this.memServiece.rsvList(map);
+		model.addAttribute("rsvK03",rsvK03);
+		
+		map.put("rsvCode", "K04");
+		List<RsvListVO> rsvK04 = this.memServiece.rsvList(map);
+		model.addAttribute("rsvK04",rsvK04);
+		
+		
+		return "admin/mem/detail";
+    }
+	
+	/**
+	 * 회원 경고 상태 변경
+	 * @param map
+	 * @param memVO
+	 * @return
+	 */
+	@ResponseBody
+	@PostMapping("/mem/wrnStUpdate")
+	public String wrnStUpdate(@RequestBody Map<String, String> map, MemVO memVO) {
+		log.info("map : " + map);
+		
+		String memId = map.get("memId");
+		String wrnSt = map.get("wrnSt");
+		String intrResn = map.get("intrResn");
+        
+        memVO.setMemId(memId);
+        memVO.setWrnSt(wrnSt);
+        int update = this.memServiece.updateWarningStatus(memVO);
+        log.info("update : " + update);
+        
+        memVO = this.memServiece.memDetail(memVO);
+        log.info("memVO : " + memVO);
+        String memEmail = memVO.getMemEmail();
+        String subject = "";
+        
+        if(wrnSt.equals("0")) {
+        	int delete = this.memServiece.deleteIntrMem(map);
+        	log.info("delete : " + delete);
+        }
+        
+        if (wrnSt.equals("1")) {
+        	int insert = this.memServiece.updateWarningCnt(memVO);
+        	log.info("insert : " + insert);
+        	subject += "[wonderWay] 게시판 정책 위반으로 경고 조치합니다.";
+        	log.info("memEmail : " + memEmail + ", subject : "+ subject + ", intrResn : " + intrResn);
+        	this.adEmailService.sendEmail(memEmail, subject, intrResn);
+        }
+        
+        if (wrnSt.equals("2")) {
+        	int insert = this.memServiece.insertInrtMem(map);
+        	log.info("insert : " + insert);
+        	subject += "[wonderWay] 게시판 정책 위반으로 1개월 정지합니다.";
+        	log.info("memEmail : " + memEmail + ", subject : "+ subject + ", intrResn : " + intrResn);
+        	this.adEmailService.sendEmail(memEmail, subject, intrResn);
+        }
+        
+		return memId;
+	}
+	
+	//회원 상담/채팅
+	@GetMapping("/mem/counseling")
+	public String memCounseling(Model model, Principal principal) {
+		String id = principal.getName();
+		model.addAttribute("id",id);
+		
+		return "admin/mem/counseling";
+	}
+	
+	/**
+	 * 숙박 업체 관리
+	 * @param model
+	 * @param keyword
+	 * @param sort
+	 * @param currentPage
+	 * @return
+	 */
+	@GetMapping("/busi/sty")
+	public String busiSty(Model model, 
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+	    Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("sort", sort);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+	    List<BusiVO> styList = this.adBusiService.styList(map);
+		log.info("styList : " + styList);
+		
+		int total = this.adBusiService.styTotal(map);
+		log.info("total : " + total);
+		
+		PagingDTO<BusiVO> styPage = new PagingDTO<BusiVO>(total, currentPage, size, styList);
+		
+		log.info("styPage : " + styPage);
+		
+		model.addAttribute("data", styPage);
+		return "admin/busi/sty";
+	}
+	
+	/**
+	 * 숙박 업체 상세
+	 * @param busiId
+	 * @param busiVO
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("/busi/styDetail")
+	public String styDetail(@RequestParam("busiId") String busiId, BusiVO busiVO, Model model) {
+		busiVO.setBusiId(busiId);
+		
+		busiVO = this.adBusiService.styDetail(busiVO);
+		model.addAttribute("busiVO",busiVO);
+		
+		int countRoom = this.adBusiService.countRoom(busiVO);
+		model.addAttribute("countRoom", countRoom);
+		
+		int countRsv = this.adBusiService.countRsv(busiVO);
+		model.addAttribute("countRsv", countRsv);
+		
+		List<RmVO> roomList = this.adBusiService.roomList(busiVO);
+		model.addAttribute("roomList", roomList);
+		
+		String totalPay = this.adBusiService.totalPay(busiVO);
+		if (totalPay == null) {
+		    totalPay = "0";
+		}
+		model.addAttribute("totalPay",totalPay);
+		
+		
+		return "admin/busi/styDetail";
+	}
+	
+	/**
+	 * 렌터카 업체 관리
+	 * @param model
+	 * @param keyword
+	 * @param sort
+	 * @param currentPage
+	 * @return
+	 */
+	@GetMapping("/busi/rnt")
+	public String busiRnt(Model model, 
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+	    Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("sort", sort);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+	    List<BusiVO> rntList = this.adBusiService.rntList(map);
+		log.info("rntList : " + rntList);
+		
+		int total = this.adBusiService.rntTotal(map);
+		log.info("total : " + total);
+		
+		PagingDTO<BusiVO> styPage = new PagingDTO<BusiVO>(total, currentPage, size, rntList);
+		
+		log.info("styPage : " + styPage);
+		
+		model.addAttribute("data", styPage);
+		return "admin/busi/rnt";
+	}
+	
+	/**
+	 * 렌터카 업체 상세
+	 * @param busiId
+	 * @param busiVO
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("/busi/rntDetail")
+	public String rntDetail(@RequestParam("busiId") String busiId, BusiVO busiVO, Model model) {
+		busiVO.setBusiId(busiId);
+		
+		busiVO = this.adBusiService.styDetail(busiVO);
+		model.addAttribute("busiVO",busiVO);
+		
+		int countCar = this.adBusiService.countCar(busiVO);
+		model.addAttribute("countCar", countCar);
+		
+		int countRsv = this.adBusiService.countRsv(busiVO);
+		model.addAttribute("countRsv", countRsv);
+		
+		List<CarVO> carList = this.adBusiService.carList(busiVO);
+		model.addAttribute("carList", carList);
+		
+		String totalPay = this.adBusiService.totalPay(busiVO);
+		if (totalPay == null) {
+		    totalPay = "0";
+		}
+		model.addAttribute("totalPay",totalPay);
+		
+		
+		return "admin/busi/rntDetail";
+	}
+	
+	/**
+	 * 업체 메일 보내기
+	 * @param map
+	 * @return
+	 */
+	@PostMapping("/busi/sendMail")
+	public ResponseEntity<String> sendMail(@RequestBody Map<String, String> map) {
+		log.info("map : " + map);
+		String busiEmail = map.get("busiEmail");
+		String subject = map.get("subject");
+		String text = map.get("text");
+		
+		String result = this.adEmailService.sendEmail(busiEmail, subject, text);
+
+		if (result == "success") {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+	/**
+	 * 업체 활성/비활성화
+	 * @param map
+	 * @param busiVO
+	 * @return
+	 */
+	@PostMapping("/busi/abled")
+	public ResponseEntity<String> updateAbled(@RequestBody Map<String, String> map, BusiVO busiVO) {
+		log.info("map : " + map);
+		String busiId = map.get("busiId");
+		int enabled = Integer.parseInt(map.get("enabled"));
+		busiVO.setBusiId(busiId);
+		busiVO.setEnabled(enabled);
+		log.info("busiVO : " + busiVO);
+		
+		int update = this.adBusiService.updateAbled(busiVO);
+		
+
+		if (update == 1) {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+	//업체 상담/채팅
+	@GetMapping("/busi/counseling")
+	public String busiCounseling(Model model, Principal principal, BusiVO busiVO, ChatRmVO chatRmVO) {
+		//채팅 아이디
+		String id = principal.getName();
+		model.addAttribute("id",id);
+		
+		//업체 리스트
+		List<BusiVO> busiList = this.adBusiService.busiList(busiVO);
+		model.addAttribute("busiList",busiList);
+
+		//생성된 채팅방 리스트
+		List<String> chatList = new ArrayList<String>();
+		chatRmVO.setMemId(id);
+		//내가 들어가 있는 채팅방ID들
+		List<Long> chatRmIds = this.wsService.chatRmId(chatRmVO);
+		for(Long chatRmId : chatRmIds ) {
+			String chatId = this.wsService.chatList(chatRmId);
+			if(chatId != null) {
+				chatList.add(chatId);
+			}
+		}
+		model.addAttribute("chatList", chatList);
+		
+		return "admin/busi/counseling";
+	}
+	
+	/**
+	 * 게시판 목록
+	 * @param model
+	 * @param keyword
+	 * @param sort
+	 * @param currentPage
+	 * @return
+	 */
+	@GetMapping("/brd/list")
+	public String brdList(Model model,
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+		Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("sort", sort);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+		List<BrdVO> brdList = this.adBrdService.brdList(map);
+		int total = this.adBrdService.brdTotal(map);
+		
+		PagingDTO<BrdVO> brdPage = new PagingDTO<BrdVO>(total, currentPage, size, brdList);
+		
+		model.addAttribute("data", brdPage);
+		
+		return "admin/brd/list";
+	}
+	
+	/**
+	 * 게시글 차단
+	 * @param map
+	 * @param brdVO
+	 * @return
+	 */
+	@PostMapping("/brd/brdIntr")
+	public ResponseEntity<String> brdIntr(@RequestBody Map<String, String> map, BrdVO brdVO) {
+		log.info("map : " + map);
+		String intr = map.get("choice");
+		String brdId = map.get("brdId");
+		String intrResn = map.get("intrResn");
+		
+		int update = 0;
+		brdVO.setBrdId(brdId);
+		if(intr.equals("O")) {
+			update = this.adBrdService.reprtCk(brdVO);
+		}
+		if(!intr.equals("O")){
+			brdVO.setIntr(intr);
+			brdVO.setIntrResn(intrResn);
+			update = this.adBrdService.blindBrd(brdVO);
+		}
+
+		if (update == 1) {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+	/**
+	 * 공지사항
+	 * @param model
+	 * @param keyword
+	 * @param sort
+	 * @param currentPage
+	 * @return
+	 */
+	@GetMapping("/brd/notice")
+	public String brdNotice(Model model,
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+		Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("sort", sort);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+		List<BrdVO> brdList = this.adBrdService.brdNotice(map);
+		int total = this.adBrdService.noticeTotal(map);
+		
+		PagingDTO<BrdVO> brdPage = new PagingDTO<BrdVO>(total, currentPage, size, brdList);
+		
+		model.addAttribute("data", brdPage);
+		
+		return "admin/brd/notice";
+	}
+	
+	/**
+	 * 공지사항 작성
+	 * @return
+	 */
+	@GetMapping("/brd/noticeRegistration")
+	public String noticeRegistration() {
+		return "admin/brd/noticeRegistration";
+	}
+	
+	/**
+	 * 공지사항 등록
+	 * @param brdVO
+	 * @param attachDeVO
+	 * @param bResult
+	 * @return
+	 */
+	@PostMapping("/brd/noticeRegistrationPost")
+	public String noticeRegistrationPost(@Validated @ModelAttribute("brdVO") BrdVO brdVO, AttachDeVO attachDeVO, BindingResult bResult) {
+		
+		// 유효성 검사 결과 체킹///
+		if (bResult.hasErrors()) { // true :오류 있음
+			List<ObjectError> allErrors = bResult.getAllErrors();
+			for (ObjectError objectError : allErrors) {
+				log.error("allError : " + objectError);
+			}
+			// 입력폼으로 다시 forwarding. 오류 정보도 함께 감.
+			return "redirect:/admin/brd/noticeRegistration";
+		}
+		int result = this.adBrdService.noticeRegistration(brdVO);
+		log.info("result : " + result);
+		
+		return "redirect:/admin/brd/notice";
+	}
+	
+	/**
+	 * 공지사항 상태 변경
+	 * @param map
+	 * @param brdVO
+	 * @return
+	 */
+	@PostMapping("/brd/noticeIntr")
+	public ResponseEntity<String> noticeIntr(@RequestBody Map<String, String> map, BrdVO brdVO) {
+		log.info("map : " + map);
+		String intr = map.get("choice");
+		String brdId = map.get("brdId");
+
+		brdVO.setIntr(intr);
+		brdVO.setBrdId(brdId);
+
+		int update = this.adBrdService.noticeIntr(brdVO);
+		log.info("update : " + update);
+
+		if (update == 1) {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+	/**
+	 * 공지사항 삭제
+	 * @param map
+	 * @param brdVO
+	 * @return
+	 */
+	@PostMapping("/brd/noticeDelete")
+	public ResponseEntity<String> noticeDelete(@RequestBody Map<String, String> map, BrdVO brdVO) {
+		log.info("map : " + map);
+		String brdId = map.get("brdId");
+		brdVO.setBrdId(brdId);
+		
+		int delete = this.adBrdService.noticeDelete(brdVO);
+		log.info("delete : " + delete);
+		
+		if (delete == 1) {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+	/**
+	 * 공지사항 수정
+	 * @param brdId
+	 * @param brdVO
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("/brd/noticeModify")
+	public String noticeModify(@RequestParam("brdId") String brdId, BrdVO brdVO, Model model) {
+		log.info("brdId : " + brdId);
+		brdVO.setBrdId(brdId);
+		
+		brdVO = this.adBrdService.brdSelect(brdVO);
+		model.addAttribute("brdVO", brdVO);
+		
+		return "admin/brd/noticeModify";
+	}
+	
+	/**
+	 * 공지사항 수정 진행
+	 * @param brdVO
+	 * @return
+	 */
+	@PostMapping("/brd/noticeModifyPost")
+	public String noticeModifyPost(@ModelAttribute("brdVO") BrdVO brdVO) {
+		log.info("brdVO : " + brdVO);
+		String brdId = brdVO.getBrdId();
+		
+		int update = this.adBrdService.noticeModifyPost(brdVO);
+		
+		if (update > 0) {
+			return "redirect:/member/csc/cscNoticeDetail?brdId=" + brdId;
+		} else {
+			return "redirect:/admin/brd/noticeModify?brdId=" + brdId;
+		}
+	}
+
+	/**
+	 * 리뷰
+	 * @param model
+	 * @param keyword
+	 * @param sort
+	 * @param currentPage
+	 * @return
+	 */
+	@GetMapping("/brd/review")
+	public String review(Model model, 
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+		
+	    Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("sort", sort);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+		List<AdReviewListVO> rvwList = this.adRvwService.rvwList(map);
+		log.info("rvwList : " + rvwList);
+		
+		int total = this.adRvwService.rvwTotal(map);
+		log.info("total : " + total);
+		
+		PagingDTO<AdReviewListVO> rvwPage = new PagingDTO<AdReviewListVO>(total, currentPage, size, rvwList);
+		
+		log.info("rvwPage : " + rvwPage);
+		
+		model.addAttribute("data", rvwPage);
+		return "admin/brd/review";
+	}
+	
+	/**
+	 * 리뷰 차단
+	 * @param map
+	 * @param adReviewListVO
+	 * @return
+	 */
+	@PostMapping("/brd/rvwBlind")
+	public ResponseEntity<String> rvwBlind(@RequestBody Map<String, String> map, AdReviewListVO adReviewListVO) {
+		log.info("map : " + map);
+		String rsvId = map.get("rsvId");
+		String rvwBlind = map.get("rvwBlind");
+		adReviewListVO.setRsvId(rsvId);
+		adReviewListVO.setRvwBlind(rvwBlind);
+		
+		int update = this.adRvwService.blindRvw(adReviewListVO);
+
+		if (update == 1) {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+	/**
+	 * 자주 묻는 질문
+	 * @param model
+	 * @param keyword
+	 * @param sort
+	 * @param currentPage
+	 * @return
+	 */
+	@GetMapping("/brd/faq")
+	public String faq(Model model,
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+		Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("sort", sort);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+		List<FaqVO> faqList = this.adFaqService.faqList(map);
+		int total = this.adFaqService.faqTotal(map);
+		
+		PagingDTO<FaqVO> faqPage = new PagingDTO<FaqVO>(total, currentPage, size, faqList);
+		
+		model.addAttribute("data", faqPage);
+		
+		return "admin/brd/faq";
+	}
+	
+	/**
+	 * FAQ 작성
+	 * @return
+	 */
+	@GetMapping("/brd/faqRegistration")
+	public String faqRegistration() {
+		return "admin/brd/faqRegistration";
+	}
+	
+	/**
+	 * FAQ 등록
+	 * @param map
+	 * @param faqVO
+	 * @return
+	 */
+	@PostMapping("/brd/faqRegistrationPost")
+	public ResponseEntity<String> faqRegistrationPost(@RequestBody Map<String, String> map, FaqVO faqVO) {
+		log.info("map : " + map);
+		String faqTt = map.get("faqTt");
+		String faqCode = map.get("faqCode");
+		String faqAns = map.get("faqAns");
+		faqVO.setFaqTt(faqTt);
+		faqVO.setFaqCode(faqCode);
+		faqVO.setFaqAns(faqAns);
+		
+		int regist = this.adFaqService.faqRegistration(faqVO);
+		log.info("regist : " + regist);
+		
+		if (regist == 1) {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+	/**
+	 * FAQ 수정
+	 * @param faqId
+	 * @param faqVO
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("/brd/faqModify")
+	public String faqModify(@RequestParam("faqId") String faqId, FaqVO faqVO, Model model) {
+		log.info("faqId : " + faqId);
+		faqVO.setFaqId(faqId);
+		
+		faqVO = this.adFaqService.faqSelect(faqVO);
+		model.addAttribute("faqVO", faqVO);
+		
+		return "admin/brd/faqModify";
+	}
+	
+	/**
+	 * FAQ 수정 등록
+	 * @param map
+	 * @param faqVO
+	 * @return
+	 */
+	@PostMapping("/brd/faqModifyPost")
+	public ResponseEntity<String> faqModifyPost(@RequestBody Map<String, String> map, FaqVO faqVO) {
+		log.info("map : " + map);
+		String faqId = map.get("faqId");
+		String faqTt = map.get("faqTt");
+		String faqCode = map.get("faqCode");
+		String faqAns = map.get("faqAns");
+		faqVO.setFaqId(faqId);
+		faqVO.setFaqTt(faqTt);
+		faqVO.setFaqCode(faqCode);
+		faqVO.setFaqAns(faqAns);
+		
+		int modify = this.adFaqService.faqModifyPost(faqVO);
+		log.info("modify : " + modify);
+		
+		if (modify == 1) {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+	/**
+	 * 공지사항 삭제
+	 * @param map
+	 * @param faqVO
+	 * @return
+	 */
+	@PostMapping("/brd/faqDelete")
+	public ResponseEntity<String> faqDelete(@RequestBody Map<String, String> map, FaqVO faqVO) {
+		log.info("map : " + map);
+		String faqId = map.get("faqId");
+		faqVO.setFaqId(faqId);
+		
+		int delete = this.adFaqService.faqDelete(faqVO);
+		log.info("delete : " + delete);
+		
+		if (delete == 1) {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+	/**
+	 * 고객 문의
+	 * @param model
+	 * @param keyword
+	 * @param sort
+	 * @param currentPage
+	 * @return
+	 */
+	@GetMapping("/brd/inquiry")
+	public String inquiry(Model model, 
+			@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage) {
+		
+	    Map<String, String> map = new HashMap<String, String>();
+	    map.put("keyword", keyword);
+	    map.put("sort", sort);
+	    map.put("currentPage", Integer.toString(currentPage));
+	    int size = 20;
+	    map.put("size", String.valueOf(size));
+	    log.info("map : " + map);
+	    
+		List<BrdVO> inqList = this.adBrdService.inquiryList(map);
+		log.info("inqList : " + inqList);
+		
+		int total = this.adBrdService.inqTotal(map);
+		log.info("total : " + total);
+		
+		PagingDTO<BrdVO> inqPage = new PagingDTO<BrdVO>(total, currentPage, size, inqList);
+		
+		log.info("inqPage : " + inqPage);
+		
+		model.addAttribute("data", inqPage);
+		return "admin/brd/inquiry";
+	}
+	
+	@PostMapping("/brd/inquiryAnswer")
+	public ResponseEntity<String> inquiryAnswer(@RequestBody Map<String, String> map) {
+		String brdId = map.get("brdId");
+		
+		int update = this.adBrdService.inquiryAnswer(brdId);
+
+		if (update == 1) {
+			return ResponseEntity.ok("success");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failure");
+		}
+	}
+	
+////////////////김찬수 ////////////////
+	// 예약 목록 페이지
+	@GetMapping("/reserve/list")
+	public String reserveListSty(Model model
+							, @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+							, @RequestParam(value = "size", required = false, defaultValue = "10") int size
+							, @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+							, @RequestParam(value = "sort", required = false, defaultValue = "") String sort
+							, @RequestParam(value = "page", required = false, defaultValue = "숙박") String page
+							, @RequestParam(value = "period", required = false, defaultValue = "") String period) {
+		log.info("Called reserveList");
+		log.info("keyword : " + keyword);	
+		log.info("sort : " + sort);
+		log.info("period : " + period);
+		log.info("page : " + page);
+		
+		Map<String,String> map = new HashMap<String, String>();
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		map.put("keyword", keyword);
+		map.put("sort", sort);
+		map.put("page", page);
+		
+		if(!period.equals("")) {
+			String[] dateTodate = new String[3];
+			dateTodate = period.split("\\s");
+			if(dateTodate.length < 3) {
+				log.debug("Split Length : " + dateTodate.length);
+				return "redirect:/admin/reserve/list";
+			}
+			map.put("periodSt", dateTodate[0]);
+			map.put("periodEd", dateTodate[2]);
+		}
+		
+		List<RsvListVO> rsvListVOList = this.adRsvService.rsvList(map);
+	
+		int total = this.adRsvService.getTotal(map);
+		log.info("total : " + total);
+		
+		model.addAttribute("data", new PagingDTO<RsvListVO>(total, currentPage, size, rsvListVOList));
+		model.addAttribute("page", page);
+		
+		log.info("숙박 예약 목록 : " + rsvListVOList);
+		
+		return "admin/reserve/list";
+	}
+	
+	@ResponseBody
+	@PostMapping("/reserve/rsvDetailPost")
+	public RsvListVO reserveDetail(@RequestParam("rsvId") String rsvId
+								 , @RequestParam("pageId") String pageId) {
+		log.info("rsvId : " + rsvId);
+		log.info("pageId : " + pageId);
+		
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("rsvId", rsvId);
+		map.put("page", pageId);
+		
+		RsvListVO data = this.adRsvService.rsvDetail(map);
+		
+		log.info("data : " + data);
+		
+		return data;
+	}
+	
+	/**
+	 * 
+	 * 요청 URI : /admin/reserve/list?currentPage=??&keyword=??&sort=??&period=??
+	 * @param model : Model
+	 * @param currentPage : 현재 페이지 번째
+	 * @param keyword : 검색어
+	 * @param sort : 정렬 키워드
+	 * @param period : 기간 검색
+	 * @return
+	 */
+	@GetMapping("/reserve/refund")
+	public String refundList(Model model
+						   , @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+						   , @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+						   , @RequestParam(value = "sort", required = false, defaultValue = "") String sort
+						   , @RequestParam(value = "period", required = false, defaultValue = "") String period) {
+		log.info("currentPage : " + currentPage);
+		
+		
+		Map<String,String> map = new HashMap<String, String>();
+		int size = 10;
+		
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		map.put("keyword", keyword);
+		map.put("sort", sort);
+
+		if(!period.equals("")) {
+			String[] dateTodate = new String[3];
+			dateTodate = period.split("\\s");
+			if(dateTodate.length < 3) {
+				log.debug("Split Length : " + dateTodate.length);
+				return "redirect:/admin/reserve/list";
+			}
+			map.put("periodSt", dateTodate[0]);
+			map.put("periodEd", dateTodate[2]);
+		}
+		
+		List<RfdListVO> rfdListVOList = this.adRfdService.rfdList(map);
+		log.info("환불 목록 : " + rfdListVOList);
+		
+		int total = this.adRfdService.getTotal(map);
+		log.info("total : " + total);
+		
+		PagingDTO<RfdListVO> data = new PagingDTO<RfdListVO>(total, currentPage, size, rfdListVOList); 
+		
+		model.addAttribute("data", data);
+		
+		return "admin/reserve/refund";
+	}
+	
+	/**
+	 * 요청 파라미터 : {"payId" : ??}
+	 * @param payId
+	 * @return
+	 */
+	@ResponseBody
+	@PostMapping("/reserve/rfdDetailPost")
+	public RfdListVO refundDetail(@RequestParam("payId") String payId) {
+		log.info("payId : " + payId);
+		
+		RfdListVO data = this.adRfdService.rfdDetail(payId);
+		
+		log.info("RfdListVO : " + data);
+		
+		return data;
+	}
+	
+	@ResponseBody
+	@PostMapping("/reserve/rfdAccept")
+	public String refundAccept(@RequestParam("acceptId") String payId) {
+		log.info("Called Accept Refund");
+		
+		int cnt = this.adRfdService.rfdAccept(payId);
+		cnt += this.adRfdService.rsvAccept(payId);
+		
+		if(cnt > 1) {
+			log.info("update success");
+			return "success";
+		} else {
+			return "failed";
+		}
+	}
+
+	@ResponseBody
+	@PostMapping("/reserve/rfdDenied")
+	public String refundDenied(@RequestParam("deniedId") String payId) {
+		int cnt = this.adRfdService.rfdDenied(payId);
+		
+		if(cnt > 0) {
+			log.info("update success");
+			return "success";
+		} else {
+			return "failed";
+		}
+	}
+	
+	@ResponseBody
+	@PostMapping("/reserve/rfdFeePost")
+	public String refundFee(@RequestParam("radioFee") String radioFee
+						  , @RequestParam("selectFee") String selectFee
+						  , @RequestParam("inputFee") String inputFee) {
+		
+		log.info("postValues : " + radioFee + ", "+ selectFee + ", "+ inputFee);
+		String rfdFeeId = radioFee+selectFee;
+		
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("rfdFeeId", rfdFeeId);
+		map.put("rfdFeePer", inputFee);
+		
+		int cnt = adRfdService.rfdUpdateFee(map);
+		
+		if(cnt > 0) {
+			log.info("update success");
+			return "success";
+		} else {
+			return "failed";
+		}
+	}
+	
+	@GetMapping("/advertise/list")
+	public String advertiseList(Model model
+ 							  , @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+							  , @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+							  , @RequestParam(value = "sort", required = false, defaultValue = "") String sort
+							  , @RequestParam(value = "period", required = false, defaultValue = "") String period) {
+		log.info("currentPage : " + currentPage);
+		log.info("keyword : " + keyword);
+		log.info("sort : " + sort);
+		log.info("period : " + period);
+		
+		Map<String,String> map = new HashMap<String, String>();
+		int size = 10;
+		
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		map.put("keyword", keyword);
+		map.put("sort", sort);
+
+		if(!period.equals("")) {
+			String[] dateTodate = new String[3];
+			dateTodate = period.split("\\s");
+			if(dateTodate.length < 3) {
+				log.debug("Split Length : " + dateTodate.length);
+				return "redirect:/admin/advertise/list";
+			}
+			map.put("periodSt", dateTodate[0]);
+			map.put("periodEd", dateTodate[2]);
+		}
+		
+		List<AdvListVO> advListVOList = this.adAdvService.advList(map);
+		
+		log.info("광고 목록 : " + advListVOList);
+		
+		int total = this.adAdvService.getTotalAdv(map);
+		log.info("total : " + total);
+		
+		PagingDTO<AdvListVO> data = new PagingDTO<AdvListVO>(total, currentPage, size, advListVOList); 
+		
+		model.addAttribute("data", data);
+		
+		return "admin/advertise/list";
+	}
+	
+	@ResponseBody
+	@PostMapping("/advertise/advDetailPost")
+	public AdvListVO advDetail(@RequestParam("advId") String advId) {
+		log.info("advId : " + advId);
+		
+		AdvListVO vo = this.adAdvService.advDetail(advId);
+		
+		log.info("AdvListVO : " + vo);
+		
+		return vo;
+	}
+
+	@GetMapping("/advertise/request")
+	public String advertiseRequest(Model model
+							    , @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+							    , @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+							    , @RequestParam(value = "sort", required = false, defaultValue = "") String sort
+							    , @RequestParam(value = "period", required = false, defaultValue = "") String period) {
+		
+		log.info("currentPage : " + currentPage);
+		log.info("keyword : " + keyword);
+		log.info("sort : " + sort);
+		log.info("period : " + period);
+		
+		Map<String,String> map = new HashMap<String, String>();
+		int size = 10;
+		
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		map.put("keyword", keyword);
+		map.put("sort", sort);
+
+		if(!period.equals("")) {
+			String[] dateTodate = new String[3];
+			dateTodate = period.split("\\s");
+			if(dateTodate.length < 3) {
+				log.debug("Split Length : " + dateTodate.length);
+				return "redirect:/admin/advertise/request";
+			}
+			map.put("periodSt", dateTodate[0]);
+			map.put("periodEd", dateTodate[2]);
+		}
+		
+		List<AdvReqListVO> advReqListVOList = this.adAdvService.advReqList(map);
+		
+		log.info("광고 요청 목록 : " + advReqListVOList);
+		
+		int total = this.adAdvService.getTotalAdvReq(map);
+		log.info("total : " + total);
+		
+		PagingDTO<AdvReqListVO> data = new PagingDTO<AdvReqListVO>(total, currentPage, size, advReqListVOList); 
+		
+		model.addAttribute("data", data);
+		
+		
+		return "admin/advertise/request";
+	}
+	
+	@ResponseBody
+	@PostMapping("/advertise/advReqDetailPost")
+	public AdvReqListVO advReqDetail(@RequestParam("advReqId") String advReqId) {
+		log.info("advId : " + advReqId);
+		
+		AdvReqListVO vo = this.adAdvService.advReqDetail(advReqId);
+		
+		log.info("AdvListVO : " + vo);
+		
+		return vo;
+	}
+	
+	@ResponseBody
+	@PostMapping("/advertise/processReqPost")
+	public String refundFee(@RequestParam("adReqId") String adReqId
+						  , @RequestParam("btnName") String btnName) {
+		
+		log.info("adReqId : " + adReqId);
+		log.info("btnName : " + btnName);
+		
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("adReqId", adReqId);
+		map.put("btnName", btnName);
+		
+		int cnt = this.adAdvService.processRequest(map);
+		
+		if(cnt > 0) {
+			log.info("update success");
+			return "success";
+		} else {
+			return "failed";
+		}
+	}
+
+	@GetMapping("/advertise/setting")
+	public String advertiseSetting(Model model
+								 , @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage) {
+		log.info("Called AdSetting");
+		log.info("currentPage : " + currentPage);
+		int size = 4;
+		
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		
+		
+		List<AdadVO> adVOList = this.adAdvService.selectAdList(map);
+		log.info("adVOList : " + adVOList);
+		
+		int total = this.adAdvService.getTotalAdSet();
+		
+		PagingDTO<AdadVO> data = new PagingDTO<AdadVO>(total, currentPage, size, adVOList);
+		
+		model.addAttribute("data", data);
+			
+		return "admin/advertise/setting";
+	}
+	
+	@ResponseBody
+	@PostMapping("/advertise/advertiseSettingPost")
+	public AdadVO advertiseSettingPost(@RequestParam("adKind") String adKind
+			  						 , @RequestParam("period") String period
+			  						 , @RequestParam("pr") String pr) {
+		
+		log.info("Hello Setting");
+		log.info("adKind : " + adKind);
+		log.info("period : " + period);
+		log.info("pr : " + pr);
+		
+		String adId = adKind + period;
+		log.info("adId : " + adId);
+		
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("adId", adId);
+		map.put("pr", pr);
+		map.put("pr", pr);
+		
+		
+		int cnt = this.adAdvService.adSetting(map);
+		
+		AdadVO vo = this.adAdvService.selectAdDc(adId);
+		
+		log.info("vo : " + vo);
+		
+		if(cnt > 0) {
+			return vo;
+		} else {
+			return null;
+		}
+		
+	}
+	
+	@GetMapping("/cupn/list")
+	public String cupnList(Model model
+						 , @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+						 , @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+						 , @RequestParam(value = "sort", required = false, defaultValue = "") String sort) {
+		log.info("currentPage : " + currentPage);
+		log.info("keyword : " + keyword);
+		log.info("sort : " + sort);
+		
+		Map<String,String> map = new HashMap<String, String>();
+		int size = 5;
+		
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		map.put("keyword", keyword);
+		map.put("sort", sort);
+
+		List<CupnVO> cupnVOList = this.adCupnService.cupnList(map);
+		log.info("cupnList 변경 전 : " + cupnVOList);
+		
+		for(CupnVO vo : cupnVOList) {
+			if(vo.getCupnCl().equals("A001")) {
+				vo.setCupnCl("등급 쿠폰");
+			} else if(vo.getCupnCl().equals("B001")) {
+				vo.setCupnCl("프로모션 쿠폰");
+			}
+			
+			if(vo.getGradId() == null) {
+				vo.setGradNm("전체");
+			} else if(vo.getGradId().equals("G01")) {
+				vo.setGradNm("브론즈");
+			} else if(vo.getGradId().equals("G02")) {
+				vo.setGradNm("실버");
+			} else if(vo.getGradId().equals("G03")) {
+				vo.setGradNm("골드");
+			} else if(vo.getGradId().equals("G04")) {
+				vo.setGradNm("다이아몬드");
+			}
+		}
+		
+		log.info("cupnList 변경 후 : " + cupnVOList);
+		
+		int total = this.adCupnService.getTotal(map);
+		log.info("total : " + total);
+		
+		PagingDTO<CupnVO> data = new PagingDTO<CupnVO>(total, currentPage, size, cupnVOList); 
+		
+		model.addAttribute("data", data);
+		
+		return "admin/cupn/list";
+	}
+	
+	@ResponseBody
+	@PostMapping("/cupn/cupnDetailPost")
+	public CupnVO cupnDetailPost(@RequestParam("cupnId") String cupnId) {
+		log.info("cupnId : " + cupnId);
+		
+		CupnVO vo = this.adCupnService.cupnDetail(cupnId);
+		
+		if(vo.getCupnCl().equals("A001")) {
+			vo.setCupnCl("등급 쿠폰");
+		} else if(vo.getCupnCl().equals("B001")) {
+			vo.setCupnCl("프로모션 쿠폰");
+		}
+		
+		if(vo.getGradId() == null) {
+			vo.setGradNm("전체");
+		} else if(vo.getGradId().equals("G01")) {
+			vo.setGradNm("브론즈");
+		} else if(vo.getGradId().equals("G02")) {
+			vo.setGradNm("실버");
+		} else if(vo.getGradId().equals("G03")) {
+			vo.setGradNm("골드");
+		} else if(vo.getGradId().equals("G04")) {
+			vo.setGradNm("다이아몬드");
+		}
+		
+		log.info("CupnVO : " + vo);
+
+		return vo;
+	}
+	
+	@ResponseBody
+	@PostMapping("/cupn/cupnUnablePost")
+	public CupnVO cupnUnablePost(@RequestParam("cupnId") String cupnId) {
+		log.info("cupnId : " + cupnId);
+		
+		int cnt = this.adCupnService.cupnUnable(cupnId);
+		
+		if(cnt > 0) {
+			CupnVO vo = this.adCupnService.cupnDetail(cupnId);
+			
+			return vo;
+		} else {
+			return null;
+		}
+	}
+
+	@ResponseBody
+	@PostMapping("/cupn/cupnRegistPost")
+	public String cupnRegistPost(@RequestParam("cupnDc") String cupnDc
+							   , @RequestParam("grad") String grad
+							   , @RequestParam("rate") String rate
+							   , @RequestParam("period") String period) {
+		log.info("cupnDc : " + cupnDc);
+		log.info("grad : " + grad);
+		log.info("rate : " + rate);
+		log.info("period : " + period);
+		
+		CupnVO cupnVO = new CupnVO();
+		cupnVO.setCupnDc(cupnDc);
+		cupnVO.setGradId(grad);
+		cupnVO.setCupnRt(Integer.parseInt(rate));
+		
+		
+		if(!period.equals("")) {
+			String[] dateTodate = new String[3];
+			dateTodate = period.split("\\s");
+			if(dateTodate.length < 3) {
+				log.debug("Split Length : " + dateTodate.length);
+				return null;
+			}
+			cupnVO.setCupnExpStr(dateTodate[2]);
+		}
+		
+		log.info("cupnVO : " + cupnVO);
+		
+		int cnt = this.adCupnService.cupnRegist(cupnVO);
+		
+		if(cnt > 0) {
+			return "success";
+		} else {
+			return null;
+		}
+		
+	}
+	
+	@GetMapping("/grad/manage")
+	public String gradManage(Model model) {
+		log.info("Called GradManage");
+		
+		List<GradVO> gradList = this.adGradManageService.gradList();
+		log.info("gradList : " + gradList);
+		
+		for(GradVO vo : gradList) {
+			String gradNm = vo.getGradNm();
+			model.addAttribute(gradNm, vo);
+		}
+		
+		return "admin/grad/manage";
+	}
+	
+	@ResponseBody
+	@PostMapping("/grad/gradDetailPost")
+	public GradVO gradDetailPost(@RequestParam("gradId") String gradId) {
+		
+		GradVO vo = this.adGradManageService.gradDetail(gradId);
+		
+		return vo;
+	}
+
+	@ResponseBody
+	@PostMapping("/grad/gradUpdateModal")
+	public GradVO gradUpdateModal(@RequestParam("gradId") String gradId) {
+		
+		GradVO vo = this.adGradManageService.gradDetail(gradId);
+		
+		return vo;
+	}
+
+	@ResponseBody
+	@PostMapping("/grad/gradUpdatePost")
+	public String gradUpdatePost(@RequestParam("gradId") String gradId
+							  ,  @RequestParam(value = "mlgRt", required = false, defaultValue = "") String mlgRt
+							  ,  @RequestParam(value = "accAmnt", required = false, defaultValue = "") String accAmnt) {
+		
+		GradVO gradVO = this.adGradManageService.gradDetail(gradId);
+		gradVO.setGradId(gradId);
+		if(!mlgRt.equals("")) {
+			gradVO.setMlgRt(Integer.parseInt(mlgRt));
+		}
+		if(!accAmnt.equals("")) {
+			gradVO.setAccAmnt(Integer.parseInt(accAmnt));
+		}
+		
+		int cnt = this.adGradManageService.gradUpdate(gradVO);
+		log.info("cnt : " + cnt);
+		
+		if(cnt > 0) {
+			return "success";
+		} else {
+			return null;
+		}
+	}
+	
+	@GetMapping("/tour/list")
+	public String tourList(Model model
+						 , @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+						 , @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+						 , @RequestParam(value = "sort", required = false, defaultValue = "") String sort) {
+		log.info("currentPage : " + currentPage);
+		log.info("keyword : " + keyword);
+		log.info("sort : " + sort);
+		
+		Map<String,String> map = new HashMap<String, String>();
+		int size = 7;
+		
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		map.put("keyword", keyword);
+		map.put("sort", sort);
+		
+		List<TourVO> tourVOList = this.adTourService.tourList(map);
+		
+		for(TourVO vo : tourVOList) {
+			String imgPath = this.adTourService.getImgPath(vo.getTourId());
+			vo.setImgPath(imgPath);
+		}
+		
+		int total = this.adTourService.getTotal(map);
+		
+		log.info("total : " + total+ " " + "tourVOList : " + tourVOList);
+		
+		PagingDTO<TourVO> data = new PagingDTO<TourVO>(total, currentPage, size, tourVOList); 
+		
+		model.addAttribute("data", data);
+		
+		return "admin/tour/list";
+	}
+	
+	@ResponseBody
+	@PostMapping("/tour/tourDetailPost")
+	public TourVO tourDetailPost(@RequestParam("tourId") String tourId) {
+		log.info("tourId : " + tourId);
+		
+		TourVO vo = this.adTourService.tourDetail(tourId);
+		log.info("TourVO : " + vo);
+		
+		String imgPath = this.adTourService.getImgPath(vo.getTourId());
+		vo.setImgPath(imgPath);
+		
+		String description = vo.getTourDc();
+		description = description.replace("<br />", "");
+		description = description.replace("<br>", "");
+		vo.setTourDc(description);
+		
+		
+		return vo;
+	}
+	
+	
+	@GetMapping("/tour/registerSingle")
+	public String tourRegisterSingle(@ModelAttribute TourVO tourVO) {
+		
+		return "admin/tour/registerSingle";
+	}
+	
+	@PostMapping("/tour/registerPost")
+	public String tourRegisterPost(@Validated @ModelAttribute("tourVO") TourVO tourVO, BindingResult bResult) {
+		log.info("tourVO : " + tourVO);
+		
+		int result = this.adTourService.tourReg(tourVO);
+		
+		log.info("result : " + result);
+		
+		// 유효성 검사 결과 체킹///
+		if (bResult.hasErrors()) { // true :오류 있음
+			List<ObjectError> allErrors = bResult.getAllErrors();
+			for (ObjectError objectError : allErrors) {
+				log.error("allError : " + objectError);
+			}
+			return "admin/tour/register";
+		}
+		return "redirect:/admin/tour/register";
+	}
+	
+	@GetMapping("/tour/registerExcel")
+	public String tourRegister(@ModelAttribute TourVO tourVO) {
+		
+		return "admin/tour/registerExcel";
+	}
+	
+	@ResponseBody
+	@PostMapping("/tour/detailExcelPost")
+	public List<TourVO> registerExcelPost(Model model
+								  , @RequestParam("file") MultipartFile file
+								  , @RequestParam("tourCode") String tourCode) {
+		log.info("Called DetailExcelPost");
+		log.info("tourCode :" + tourCode);
+		List<TourVO> dataList = new ArrayList<>();
+		
+		try {
+	        InputStream inputStream = file.getInputStream();
+	        Workbook workbook = WorkbookFactory.create(inputStream);
+	        
+	        Sheet sheet = workbook.getSheetAt(0); // 첫 번째 시트 가져오기
+	        
+	        for(int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
+	        	Row row = sheet.getRow(i);
+	        	
+	        	TourVO vo = new TourVO();
+	        	vo.setTourNm(row.getCell(0).getStringCellValue());
+	        	String cellDc = row.getCell(7).getStringCellValue();
+	        	String[] cellDcSplit = cellDc.split("\\.");
+	        	vo.setTourDc(cellDcSplit[0]);
+	        	vo.setLati(row.getCell(5).getStringCellValue());
+	        	vo.setLongi(row.getCell(6).getStringCellValue());
+	        	vo.setTourCode(tourCode);
+	        	String cellLoc = row.getCell(4).getStringCellValue();
+	        	String[] cellLocSplit = cellLoc.split("\\s");
+	        	vo.setTourLoc(cellLocSplit[0]);
+	        	
+	        	log.info("tourInfo : " + row.getCell(0).getStringCellValue() + ", " + cellDcSplit[0] + ", "
+	        			+ row.getCell(0).getStringCellValue() + ", " + row.getCell(6).getStringCellValue() + ", "
+	        			+ row.getCell(6).getStringCellValue() + ", "+ cellLocSplit[0]);
+	        	log.info("tourVO : " + vo);
+	        	
+	        	dataList.add(vo);
+	        }
+	        
+	        
+	        
+	        model.addAttribute("data", dataList);
+	        
+	        workbook.close();
+	        inputStream.close();
+	        
+	        return dataList;
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        return null;
+	    }
+	}
+	
+	@PostMapping("/tour/tourExcelRegister")
+	public String tourExcelRegister(@RequestParam("file") MultipartFile file
+								  , @RequestParam("tourCode") String tourCode) {
+		log.info("Called TourExcelRegister");
+		log.info("tourCode :" + tourCode);
+		List<TourVO> dataList = new ArrayList<>();
+		
+		try {
+	        InputStream inputStream = file.getInputStream();
+	        Workbook workbook = WorkbookFactory.create(inputStream);
+	        
+	        Sheet sheet = workbook.getSheetAt(0); // 첫 번째 시트 가져오기
+	        
+	        for(int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
+	        	Row row = sheet.getRow(i);
+	        	
+	        	TourVO vo = new TourVO();
+	        	vo.setTourNm(row.getCell(0).getStringCellValue());
+	        	String cellDc = row.getCell(7).getStringCellValue();
+	        	String[] cellDcSplit = cellDc.split("\\.");
+	        	vo.setTourDc(cellDcSplit[0]);
+	        	vo.setLati(row.getCell(5).getStringCellValue());
+	        	vo.setLongi(row.getCell(6).getStringCellValue());
+	        	vo.setTourCode(tourCode);
+	        	String cellLoc = row.getCell(4).getStringCellValue();
+	        	String[] cellLocSplit = cellLoc.split("\\s");
+	        	vo.setTourLoc(cellLocSplit[0]);
+	        	
+	        	log.info("tourInfo : " + row.getCell(0).getStringCellValue() + ", " + cellDcSplit[0] + ", "
+	        			+ row.getCell(0).getStringCellValue() + ", " + row.getCell(6).getStringCellValue() + ", "
+	        			+ row.getCell(6).getStringCellValue() + ", "+ cellLocSplit[0]);
+	        	log.info("tourVO : " + vo);
+	        	
+	        	dataList.add(vo);
+	        }
+	        
+	        int cnt = 0;
+	        
+	        for(TourVO vo : dataList) {
+	        	cnt += this.adTourService.insertTourExcel(vo);
+	        }
+	        
+	        log.info("Insert Result : " + cnt);
+	        
+	        workbook.close();
+	        inputStream.close();
+	        
+	        return "admin/tour/registerExcel";
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        return "redirect:/error";
+	    }
+	}
+	
+	
+	@ResponseBody
+	@PostMapping("/tour/tourDel")
+	public String tourDel(@RequestParam("tourId") String tourId) {
+		int cnt = this.adTourService.tourDel(tourId);
+		
+		if(cnt > 0) {
+			return "success";
+		} else {
+			return null;
+		}
+	}
+	
+	
+	
+}
+
+
+
+
+
+

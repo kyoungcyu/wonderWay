@@ -1,0 +1,83 @@
+package kr.or.ddit.member.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.CupnVO;
+import kr.or.ddit.vo.GradVO;
+import kr.or.ddit.vo.HCupnVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.MmRsvListVO;
+import kr.or.ddit.vo.MmRsvRntcarListVO;
+import kr.or.ddit.vo.RsvVO;
+
+public interface MypageMapper {
+	// 내 프로필
+	// 마이페이지 - 내 프로필 - 내 정보
+	public MemVO detailMyInfo(String memId);
+
+	// 마이페이지 - 내 프로필 - 내 정보 수정
+	public int updateMyInfo(MemVO memVO);
+
+	// 마이페이지 - 내 프로필 - 이메일 변경
+	public int updateMyEmail(MemVO memVO);
+
+	// 마이페이지 - 내 프로필 - 비밀번호 변경
+	public int updateMyPass(MemVO memVO);
+
+	// 예약내역
+	// 마이페이지 - 예약내역 - 예약 리스트 - 숙박
+	public List<MmRsvListVO> allBooking(Map<String, String> map);
+	// 마이페이지 - 예약내역 - 렌트카 조회
+	public List<MmRsvRntcarListVO> rntBooking(Map<String, String> map);
+	
+	//쿠폰함
+	//등급조회
+	public GradVO myGrad(String memId);
+//	//보유쿠폰 조회
+//	public  List<CupnVO> hasCoupon(String memId);
+	//쿠폰함 조회 
+	public List<CupnVO> myCoupon(String memId);
+	//쿠폰존 조회
+	public List<CupnVO> couponZone(CupnVO cupnVO);
+	//쿠폰 다운로드
+	public int downCoupon(HCupnVO hCupnVO);
+	
+	
+	//나의 작성글 내역
+	//이용완료 상품 조회
+	public List<MmRsvRntcarListVO> completeBooking(String memId);
+	//리뷰조회
+	public List<BrdVO> myReviewList(String frstWrtr);
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// 회원탈퇴
+	public int deleteMem(MemVO memVO);
+
+}

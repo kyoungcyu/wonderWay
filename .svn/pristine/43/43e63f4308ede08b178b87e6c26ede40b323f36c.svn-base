@@ -1,0 +1,53 @@
+package kr.or.ddit.admin.service.impl;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.admin.mapper.AdBrdMapper;
+import kr.or.ddit.admin.mapper.AdMemMapper;
+import kr.or.ddit.admin.mapper.AdRvwMapper;
+import kr.or.ddit.admin.service.AdBrdService;
+import kr.or.ddit.admin.service.AdMemService;
+import kr.or.ddit.admin.service.AdRvwService;
+import kr.or.ddit.util.CommonFile;
+import kr.or.ddit.vo.AdReviewListVO;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.MemVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class AdRvwServiceImpl implements AdRvwService{
+	@Autowired
+	AdRvwMapper adRvwMapper;
+	
+	//리뷰 목록
+	@Override
+	public List<AdReviewListVO> rvwList(Map<String, String> map){
+		return this.adRvwMapper.rvwList(map);
+	}
+	
+	//리뷰 수
+	@Override
+	public int rvwTotal(Map<String,String> map) {
+		return this.adRvwMapper.rvwTotal(map);
+	};
+	
+	//리뷰 차단
+	@Override
+	public int blindRvw(AdReviewListVO adReviewListVO) {
+		return this.adRvwMapper.blindRvw(adReviewListVO);
+	};
+}

@@ -1,0 +1,25 @@
+package kr.or.ddit.business.service;
+
+import java.util.List;
+import java.util.Map;
+
+public interface BsStatisService {
+
+	List<Map<String, String>> rsvRm(Map<String, String> statisMap);
+
+	List<Map<String, String>> wishDate(Map<String, String> statisMap);
+
+	List<Map<String, String>> rsvDate(Map<String, String> statisMap);
+
+
+	List<Map<String, String>> rsvMbti(Map<String, String> statisMap);
+
+	List<Map<String, String>> rsvFemale(Map<String, String> statisMap);
+
+	List<Map<String, String>> rsvMale(Map<String, String> statisMap);
+
+
+
+
+
+}

@@ -1,0 +1,16 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+
+@Data
+public class CarVO {
+	private String carNum;
+	private String carCode;
+	private String carKnd;
+	private String carYr;
+	private String carFee;
+	private String fuelTy;
+	private String maxPp;
+	private String busiId;
+	private String carOp;
+}

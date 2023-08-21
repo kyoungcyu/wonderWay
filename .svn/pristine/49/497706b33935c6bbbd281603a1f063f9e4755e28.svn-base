@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+"-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+"http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<!-- Tiles 설정 -->
+<tiles-definitions>
+
+	<!-- header가 필요없는 로그인 ,로그아웃, 회원가입 페이지  -->
+ 	<definition name="bs-login-layout" template="/WEB-INF/views/tiles/business/log/index.jsp">
+        <put-attribute name="body" value="" />
+    </definition>
+
+    <definition name="business/log/*" extends="bs-login-layout">
+        <put-attribute name="body" value="/WEB-INF/views/business/log/{1}.jsp" />
+    </definition>
+
+	
+    <!-- main layout -->
+    <definition name="business1-layout" template="/WEB-INF/views/tiles/business/index.jsp">
+        <put-attribute name="topbar" value="/WEB-INF/views/tiles/business/topbar.jsp" />
+        <put-attribute name="sidebar" value="/WEB-INF/views/tiles/business/sidebar.jsp" />
+    
+        <put-attribute name="body" value="" />
+    </definition>
+    
+
+    <definition name="business/*" extends="business1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/business/{1}.jsp" />
+    </definition>
+   
+
+    <definition name="business/*/*" extends="business1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/business/{1}/{2}.jsp" />
+    </definition>
+    
+    <definition name="business/*/*/*" extends="business1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/business/{1}/{2}/{3}.jsp" />
+    </definition>
+    
+	<!--   main layout -->
+    <definition name="rntCar1-layout" template="/WEB-INF/views/tiles/rntCar/index.jsp">
+        <put-attribute name="topbar" value="/WEB-INF/views/tiles/rntCar/topbar.jsp" />
+        <put-attribute name="sidebar" value="/WEB-INF/views/tiles/rntCar/sidebar.jsp" />
+    
+        <put-attribute name="body" value="" />
+    </definition>
+    <definition name="rntCar/*" extends="rntCar1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/rntCar/{1}.jsp" />
+    </definition>
+   
+
+    <definition name="rntCar/*/*" extends="rntCar1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/rntCar/{1}/{2}.jsp" />
+    </definition>
+    
+    <definition name="rntCar/*/*/*" extends="rntCar1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/rntCar/{1}/{2}/{3}.jsp" />
+    </definition>
+    
+    
+			<!-- =============================================================  -->
+    
+    <definition name="admin1-layout" template="/WEB-INF/views/tiles/admin/index.jsp">
+        <put-attribute name="topbar" value="/WEB-INF/views/tiles/admin/topbar.jsp" />
+        <put-attribute name="sidebar" value="/WEB-INF/views/tiles/admin/sidebar.jsp" />
+    
+        <put-attribute name="body" value="" />
+    </definition>
+
+    <definition name="admin/*" extends="admin1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/admin/{1}.jsp" />
+    </definition>
+   
+
+    <definition name="admin/*/*" extends="admin1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/admin/{1}/{2}.jsp" />
+    </definition>
+    
+    <definition name="admin/*/*/*" extends="admin1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/admin/{1}/{2}/{3}.jsp" />
+    </definition>
+    
+    	  <!-- =============================================================  -->
+    
+    
+    <definition name="member-mypage1-layout" template="/WEB-INF/views/tiles/member/mypage/index.jsp">
+        <put-attribute name="aside" value="/WEB-INF/views/tiles/member/mypage/aside.jsp" />
+        <put-attribute name="header" value="/WEB-INF/views/tiles/member/header.jsp" />
+        <put-attribute name="body" value="" />
+        <put-attribute name="footer" value="/WEB-INF/views/tiles/member/footer.jsp"/>
+    
+    </definition>
+
+    <definition name="member/mypage/*" extends="member-mypage1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/member/mypage/{1}.jsp" />
+    </definition>
+   
+
+    <definition name="member/mypage/*/*" extends="member-mypage1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/member/mypage/{1}/{2}.jsp" />
+    </definition>
+    
+    <definition name="member/mypage/*/*/*" extends="member-mypage1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/member/mypage/{1}/{2}/{3}.jsp" />
+    </definition>
+    
+    
+    	  <!-- =============================================================  -->
+    
+    
+    <definition name="member1-layout" template="/WEB-INF/views/tiles/member/index.jsp">
+        <put-attribute name="header" value="/WEB-INF/views/tiles/member/header.jsp" />
+  
+        <put-attribute name="body" value="" />
+        <put-attribute name="footer" value="/WEB-INF/views/tiles/member/footer.jsp"/>
+    
+    </definition>
+
+    <definition name="member/*" extends="member1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/member/{1}.jsp" />
+    </definition>
+   
+
+    <definition name="member/*/*" extends="member1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/member/{1}/{2}.jsp" />
+    </definition>
+    
+    <definition name="member/*/*/*" extends="member1-layout">
+        <put-attribute name="body" value="/WEB-INF/views/member/{1}/{2}/{3}.jsp" />
+    </definition>
+    	  <!-- =============================================================  -->
+    
+    
+  
+
+
+</tiles-definitions>
+
+
+
+
+
+
+

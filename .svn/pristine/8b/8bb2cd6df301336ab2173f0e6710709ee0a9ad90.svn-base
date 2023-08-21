@@ -1,0 +1,36 @@
+package kr.or.ddit.member.service;
+
+import kr.or.ddit.vo.MemVO;
+
+public interface MypageService {
+	
+	//내 프로필
+	//마이페이지 - 내 프로필 - 내 정보(권한 미포함)
+	public MemVO detailMyInfo(String memId);
+	
+	// 회원정보 변경
+	// 마이페이지 - 내 프로필 - 정보 수정
+	public int updateMyInfo(MemVO memVO);
+	
+	// 마이페이지 - 내 프로필 - 비밀번호 변경
+	public int updateMyPw(MemVO memVO);
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//회원탈퇴
+	public int deleteMem(MemVO memVO);
+
+
+}

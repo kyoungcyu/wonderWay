@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdSalesMapper">
+	<resultMap type="adSalesVO" id="adSalesMap">
+		<result column="RNUM" property="rowNum" />
+		<result column="PAY_ID" property="payId" />
+		<result column="PAY_DT" property="payDt" />
+		<result column="PAY_MTH" property="payMth" />
+		<result column="PAY_PR_ORG" property="payPrOrg" />
+		<result column="PAY_PR_BUSI" property="payPrBusi" />
+		<result column="PAY_PR" property="payPr" />
+		<result column="RSV_ID" property="rsvId" />
+		<result column="BUSI_NM" property="busiNm" />
+		<result column="TR_RSV_ID" property="trRsvId" />
+		<result column="TR_NM" property="trNm" />
+		<result column="BUY_ID" property="buyId" />
+		<result column="BUY_NM" property="buyNm" />
+		<result column="AD_REQ_ID" property="adReqId" />
+		<result column="AD_DC" property="adDc" />
+		<result column="USED_MILAGE" property="usedMilage" />
+	</resultMap>
+	
+	<sql id="orderBy">
+	   <choose>
+		  <when test="sort=='payDtAsc'">
+			 ORDER BY A.PAY_DT ASC
+		  </when>
+		  <when test="sort=='payDtDesc'">
+			 ORDER BY A.PAY_DT DESC
+		  </when>
+		  <when test="sort=='payPrAsc'">
+			 ORDER BY A.PAY_PR ASC
+		  </when>
+		  <when test="sort=='payPrDesc'">
+			 ORDER BY A.PAY_PR DESC
+		  </when>
+	      <otherwise>
+	         ORDER BY A.PAY_DT DESC
+	      </otherwise>
+	   </choose>
+	</sql>
+	
+	<sql id="payColumns">
+	    	  ROW_NUMBER() OVER(<include refid="orderBy"></include>) RNUM 
+			, A.PAY_ID AS PAY_ID
+			, A.PAY_DT AS PAY_DT
+			, A.PAY_MTH AS PAY_MTH
+            , A.PAY_PR AS PAY_PR_ORG
+			, ROUND(A.PAY_PR / 100 * 97, -2) AS PAY_PR_BUSI
+			, CASE WHEN A.AD_REQ_ID IS NULL THEN ROUND(A.PAY_PR / 100 * 3, -2)
+			       WHEN A.AD_REQ_ID IS NOT NULL THEN A.PAY_PR
+			       ELSE 0 END AS PAY_PR
+			, A.RSV_ID AS RSV_ID
+			, (SELECT C.BUSI_NM
+			   FROM RSV B
+			   INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+			   WHERE B.RSV_ID = A.RSV_ID) AS BUSI_NM
+			, A.TR_RSV_ID AS TR_RSV_ID
+			, (SELECT FN_CODE_TO_NM(B.CM_CODE)
+			   FROM TR_RSV B
+			   WHERE B.TR_RSV_ID = A.TR_RSV_ID) AS TR_NM
+			, A.BUY_ID AS BUY_ID
+			, (SELECT C.CM_CODE
+			   FROM BUY B
+			   INNER JOIN PROD C ON B.PROD_ID = C.PROD_ID
+			   WHERE B.BUY_ID = A.BUY_ID) AS BUY_NM
+			, A.AD_REQ_ID AS AD_REQ_ID
+			, (SELECT C.AD_DC
+			   FROM AD_REQ B
+			   INNER JOIN AD C ON B.AD_ID = C.AD_ID
+			   WHERE B.AD_REQ_ID = A.AD_REQ_ID) AS AD_DC
+			, CASE WHEN A.RSV_ID IS NOT NULL THEN (SELECT USED_MILAGE FROM RSV WHERE RSV_ID = A.RSV_ID)
+                   ELSE NULL END AS USED_MILAGE
+	</sql>
+	
+	
+	<select id="salesList" parameterType="hashMap" resultMap="adSalesMap">
+		WITH T AS(
+			SELECT
+				   <include refid="payColumns" />
+			FROM PAY A
+			WHERE 1 = 1
+			<!-- 매출 검색 -->
+			<if test="keyword!=null and !keyword.equals('')">
+				AND (SELECT C.BUSI_NM
+				     FROM RSV B
+				     INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+				     WHERE B.RSV_ID = A.RSV_ID) LIKE '%' || #{keyword} || '%'
+			</if>
+			<!-- 결제 일시 검색 -->
+			<if test="periodSt!=null and !periodSt.equals('')">
+				AND A.PAY_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+			</if>
+			<if test="periodEd!=null and !periodEd.equals('')">
+				AND A.PAY_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+			</if>
+			<!-- 정렬 검색 -->
+			<if test="sort!=null and !sort.equals('')">
+				<choose>
+					<when test="sort=='payDtAsc'">
+				 	   ORDER BY A.PAY_DT ASC
+				    </when>
+				    <when test="sort=='payDtDesc'">
+					   ORDER BY A.PAY_DT DESC
+				    </when>
+				    <when test="sort=='payPrAsc'">
+					   ORDER BY A.PAY_PR ASC
+				    </when>
+				    <when test="sort=='payPrDesc'">
+					   ORDER BY A.PAY_PR DESC
+				    </when>
+				</choose>
+			</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	<select id="salesListExcel" parameterType="hashMap" resultMap="adSalesMap">
+		SELECT
+			   <include refid="payColumns" />
+		FROM PAY A
+		WHERE 1 = 1
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND A.PAY_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND A.PAY_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		ORDER BY A.PAY_DT DESC
+	</select>
+	
+	<select id="getTotal" resultType="int">
+		SELECT COUNT(*)
+		FROM PAY A
+		WHERE 1 = 1
+		<!-- 매출 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT C.BUSI_NM
+			     FROM RSV B
+			     INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+			     WHERE B.RSV_ID = A.RSV_ID) LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 결제 일시 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND A.PAY_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND A.PAY_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	
+	<select id="lastYearSales" resultType="int">
+		SELECT ROUND(NVL((SELECT SUM(ROUND(A.PAY_PR / 100 * 3, -2))
+		        FROM PAY A
+		        WHERE PAY_DT &lt;= LAST_DAY(ADD_MONTHS(TRUNC(SYSDATE, 'YYYY'), -1))
+		        AND PAY_DT &gt;= TO_DATE(TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'YYYY'), -12), 'YYYY-MM-DD'), 'YYYY-MM-DD')
+		        AND RFD_CK IS NULL
+		        AND A.AD_REQ_ID IS NULL), 0)
+		     + NVL((SELECT SUM(ROUND(A.PAY_PR, -2))
+		        FROM PAY A
+		        WHERE PAY_DT &lt;= LAST_DAY(ADD_MONTHS(TRUNC(SYSDATE, 'YYYY'), -1))
+		        AND PAY_DT &gt;= TO_DATE(TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'YYYY'), -12), 'YYYY-MM-DD'), 'YYYY-MM-DD')
+		        AND RFD_CK IS NULL
+		        AND A.AD_REQ_ID IS NOT NULL), 0), -3)
+		FROM DUAL
+	</select>
+	
+	<select id="thisYearSales" resultType="int">
+		SELECT ROUND(NVL((SELECT SUM(ROUND(A.PAY_PR / 100 * 3, -2))
+		        FROM PAY A
+		        WHERE PAY_DT &lt;= SYSDATE
+		        AND PAY_DT &gt;= TRUNC(SYSDATE, 'YYYY')
+		        AND RFD_CK IS NULL
+		        AND A.AD_REQ_ID IS NULL), 0)
+		     + NVL((SELECT SUM(ROUND(A.PAY_PR, -2))
+		        FROM PAY A
+		        WHERE PAY_DT &lt;= SYSDATE
+		        AND PAY_DT &gt;= TRUNC(SYSDATE, 'YYYY')
+		        AND RFD_CK IS NULL
+		        AND A.AD_REQ_ID IS NOT NULL), 0), -3)
+		FROM DUAL
+	</select>
+	
+	<select id="lastMthSales" resultType="int">
+		SELECT ROUND(NVL((SELECT SUM(ROUND(A.PAY_PR / 100 * 3, -2))
+		        FROM PAY A
+		        WHERE PAY_DT &lt;= LAST_DAY(ADD_MONTHS(SYSDATE, -1))
+		        AND PAY_DT &gt;= TRUNC(ADD_MONTHS(SYSDATE, -1), 'MM')
+		        AND RFD_CK IS NULL
+		        AND A.AD_REQ_ID IS NULL), 0)
+		     + NVL((SELECT SUM(ROUND(A.PAY_PR, -2))
+		        FROM PAY A
+		        WHERE PAY_DT &lt;= LAST_DAY(ADD_MONTHS(SYSDATE, -1))
+		        AND PAY_DT &gt;= TRUNC(ADD_MONTHS(SYSDATE, -1), 'MM')
+		        AND RFD_CK IS NULL
+		        AND A.AD_REQ_ID IS NOT NULL), 0), -3)
+		FROM DUAL
+	</select>
+	
+	<select id="thisMthSales" resultType="int">
+		SELECT ROUND(NVL((SELECT SUM(ROUND(A.PAY_PR / 100 * 3, -2))
+		        FROM PAY A
+		        WHERE PAY_DT &lt;= SYSDATE
+		        AND PAY_DT &gt;= TRUNC(SYSDATE, 'MM')
+		        AND RFD_CK IS NULL
+		        AND A.AD_REQ_ID IS NULL), 0)
+		     + NVL((SELECT SUM(ROUND(A.PAY_PR, -2))
+		        FROM PAY A
+		        WHERE PAY_DT &lt;= SYSDATE
+		        AND PAY_DT &gt;= TRUNC(SYSDATE, 'MM')
+		        AND RFD_CK IS NULL
+		        AND A.AD_REQ_ID IS NOT NULL), 0), -3)
+		FROM DUAL
+	</select>
+	
+	<resultMap type="adSalesStatVO" id="adSalesStatMap">
+		<result column="POPULAR_BUSI_NM" property="popularBusiNm" />
+		<result column="POPULAR_BUSI_SALES" property="popularBusiSales" />
+	</resultMap>
+	
+	<select id="popularBusi" resultMap="adSalesStatMap">
+		SELECT C.BUSI_NM AS POPULAR_BUSI_NM
+			 , SUM(A.PAY_PR) AS POPULAR_BUSI_SALES
+		FROM PAY A
+		INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		WHERE A.PAY_DT &lt;= LAST_DAY(ADD_MONTHS(SYSDATE, -1))
+		AND A.PAY_DT &gt;= TRUNC(ADD_MONTHS(SYSDATE, -1), 'MM')
+		AND A.RFD_CK IS NULL
+		GROUP BY C.BUSI_NM
+		HAVING SUM(A.PAY_PR) = (
+		        SELECT MAX(SUM(A.PAY_PR))
+		        FROM PAY A
+		        INNER JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		        INNER JOIN BUSI C ON B.BUSI_ID = C.BUSI_ID
+		        WHERE A.PAY_DT &lt;= LAST_DAY(ADD_MONTHS(SYSDATE, -1))
+		        AND A.PAY_DT &gt;= TRUNC(ADD_MONTHS(SYSDATE, -1), 'MM')
+		        AND A.RFD_CK IS NULL
+		        GROUP BY B.BUSI_ID
+		)
+	</select>
+	
+	<select id="thisMthSignIn" resultType="int">
+		SELECT NVL(COUNT(*), 0) AS 현월가입자
+		FROM MEM
+		WHERE JOIN_DT &lt;= SYSDATE
+		AND JOIN_DT &gt;= TRUNC(SYSDATE, 'MM')
+		AND ENABLED = 1
+	</select>
+
+	<select id="lastMthSignIn" resultType="int">
+		SELECT NVL(COUNT(*), 0) AS 전월가입자
+		FROM MEM
+		WHERE JOIN_DT &lt;= LAST_DAY(ADD_MONTHS(SYSDATE, -1))
+		AND JOIN_DT &gt;= TRUNC(ADD_MONTHS(SYSDATE, -1), 'MM')
+		AND ENABLED = 1
+	</select>
+	
+	<resultMap type="adStatsVO" id="adStatsVOMap">
+		<result column="PAY_DT" property="payDtYM" />
+		<result column="PAY_PR" property="payPrYM" />
+		<result column="RSV_DT" property="rsvDtYM" />
+		<result column="RSV_CNT" property="rsvCntYM" />
+		<result column="JOIN_DT" property="memJoinDtYM" />
+		<result column="MEM_CNT" property="memCntYM" />
+		<result column="AGE" property="memAge" />
+		<result column="CNT" property="memCnt" />
+	</resultMap>
+	
+	<sql id="caseWhenStats">
+		TO_CHAR(PAY_DT, 'YYYY-MM') AS PAY_DT
+	  , TO_CHAR(SUM(CASE WHEN AD_REQ_ID IS NULL THEN ROUND(PAY_PR / 100 * 3, -2)
+		         WHEN AD_REQ_ID IS NOT NULL THEN PAY_PR
+		         ELSE 0 END 
+		   )) AS PAY_PR
+	</sql>
+	
+	<select id="salesYMStats" parameterType="String" resultMap="adStatsVOMap">
+		SELECT TO_CHAR(PAY_DT, 'YYYY-MM') AS PAY_DT
+			 , SUM(TO_NUMBER(CASE WHEN AD_REQ_ID IS NULL THEN ROUND(PAY_PR / 100 * 3, -2)
+						        WHEN AD_REQ_ID IS NOT NULL THEN PAY_PR
+				        		ELSE 0 END) 
+				  ) AS PAY_PR
+		FROM PAY
+		WHERE PAY_DT BETWEEN TO_DATE(#{year} || '-01-01', 'YYYY-MM-DD') AND TO_DATE(#{year} || '-12-31', 'YYYY-MM-DD')
+		AND RFD_CK IS NULL
+		GROUP BY
+		    TO_CHAR(PAY_DT, 'YYYY-MM')
+		ORDER BY
+		    PAY_DT
+	</select>
+	
+	<select id="rsvYMStats" parameterType="String" resultMap="adStatsVOMap">
+		SELECT TO_CHAR(RSV_DT, 'YYYY-MM') AS RSV_DT
+		     , COUNT(RSV_ID) AS RSV_CNT
+		FROM RSV
+		WHERE RSV_DT BETWEEN TO_DATE(#{year} || '-01-01', 'YYYY-MM-DD') AND TO_DATE(#{year} || '-12-31', 'YYYY-MM-DD')
+		AND RSV_CODE = 'K02'
+		GROUP BY
+		    TO_CHAR(RSV_DT, 'YYYY-MM')
+		ORDER BY
+		    RSV_DT
+	</select>
+	
+	<select id="memYMStats" parameterType="String" resultMap="adStatsVOMap">
+		SELECT TO_CHAR(JOIN_DT, 'YYYY-MM') AS JOIN_DT
+		     , COUNT(MEM_ID) AS MEM_CNT
+		FROM MEM
+		WHERE JOIN_DT BETWEEN TO_DATE(#{year} || '-01-01', 'YYYY-MM-DD') AND TO_DATE(#{year} || '-12-31', 'YYYY-MM-DD')
+		AND ENABLED = '1'
+		GROUP BY
+		    TO_CHAR(JOIN_DT, 'YYYY-MM')
+		ORDER BY
+		    JOIN_DT
+	</select>
+	
+	<select id="memAgeStats" resultMap="adStatsVOMap">
+		SELECT
+		    CASE
+		        WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, MEM_BIR) / 12) &lt; 20 THEN '10대'
+		        WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, MEM_BIR) / 12) &lt; 30 THEN '20대'
+		        WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, MEM_BIR) / 12) &lt; 40 THEN '30대'
+		        WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, MEM_BIR) / 12) &lt; 50 THEN '40대'
+		        ELSE '50대 이상'
+		    END AS AGE,
+		    COUNT(*) AS CNT
+		FROM
+		    MEM
+		WHERE ENABLED = '1'
+		GROUP BY
+		    CASE
+		        WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, MEM_BIR) / 12) &lt; 20 THEN '10대'
+		        WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, MEM_BIR) / 12) &lt; 30 THEN '20대'
+		        WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, MEM_BIR) / 12) &lt; 40 THEN '30대'
+		        WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, MEM_BIR) / 12) &lt; 50 THEN '40대'
+		        ELSE '50대 이상'
+		    END
+		ORDER BY AGE
+	</select>
+</mapper>

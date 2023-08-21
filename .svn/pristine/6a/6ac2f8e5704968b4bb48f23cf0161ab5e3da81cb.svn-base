@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mapper.MmRntcarMapper">
+
+	<resultMap type="busiVO" id="busiMap">
+		<result property="busiId" column="BUSI_ID" />
+		<result property="lginId" column="LGIN_ID" />
+		<result property="busiPw" column="BUSI_PW" />
+		<result property="busiNm" column="BUSI_NM" />
+		<result property="busiLoc" column="BUSI_LOC" />
+		<result property="busiScr" column="BUSI_SCR" />
+		<result property="enabled" column="ENABLED" />
+		<result property="busiImg" column="BUSI_IMG" />
+		<result property="busiPcy" column="BUSI_PCY" />
+		<result property="busiCode" column="BUSI_CODE" />
+		<result property="busiNo" column="BUSI_NO" />
+		<result property="lati" column="LATI" />
+		<result property="longi" column="LONGI" />
+		<result property="busiInfo" column="BUSI_INFO" />
+		<result property="busiEmail" column="BUSI_EMAIL" />
+		<result property="busiTel" column="BUSI_TEL" />
+		<result property="busiMny" column="BUSI_MNY" />
+		<result property="regDt" column="REG_DT" />
+		<result property="whdwlDt" column="WHDWL_DT" />
+		<result property="clsDt" column="CLS_DT" />
+		<result property="acmdCode" column="ACMD_CODE" />
+		<result property="chckIn" column="CHCK_IN" />
+		<result property="chckOut" column="CHCK_OUT" />
+		<result property="cnt6M" column="CNT_6M" />
+		<result property="avgSt" column="AVG_ST" />
+	</resultMap>
+
+	<resultMap type="carVO" id="carMap">
+		<result property="carNum" column="CAR_NUM" />
+		<result property="carCode" column="CAR_CODE" />
+		<result property="carKnd" column="CAR_KND" />
+		<result property="carYr" column="CAR_YR" />
+		<result property="carFee" column="CAR_FEE" />
+		<result property="fuelTy" column="FUEL_TY" />
+		<result property="maxPp" column="MAX_PP" />
+		<result property="busiId" column="BUSI_ID" />
+		<result property="carOp" column="CAR_OP" />
+		<result property="carImg" column="CAR_IMG" />
+	</resultMap>
+
+
+	<!-- 렌트카 검색-체크인아웃,인원,방개수로 -->
+	<select id="searchRntcar" parameterType="hashMap" resultType="carVO">
+ 		WITH COUNT_ALL AS(
+            SELECT COUNT(*) AS CNT_All, R.BUSI_ID
+            FROM RSV R
+            JOIN PAY P ON P.RSV_ID=R.RSV_ID 
+            WHERE P.RFD_CK='N'
+            GROUP BY R.BUSI_ID
+        ),COUNT_6M AS(
+			SELECT COUNT(*) AS CNT_6M, R.BUSI_ID
+			FROM RSV R
+			JOIN PAY P ON P.RSV_ID=R.RSV_ID
+			WHERE P.RFD_CK='N'
+			AND R.RSV_DT BETWEEN SYSDATE - INTERVAL '6' MONTH AND SYSDATE
+			GROUP BY R.BUSI_ID
+		),AVG_STAR AS(
+			SELECT ROUND(AVG(RVW.RVW_STAR),1) AS AVG_ST, RSV.BUSI_ID
+			FROM RVW
+			JOIN RSV ON RVW.RSV_ID = RSV.RSV_ID
+			JOIN MEM ON MEM.MEM_ID = RSV.MEM_ID
+			GROUP BY RSV.BUSI_ID
+        )
+			SELECT B.BUSI_NM, C.CAR_NUM, C.CAR_CODE, C.CAR_KND, C.CAR_YR, C.CAR_FEE, C.FUEL_TY, C.MAX_PP, C.CAR_IMG, CA.CNT_ALL, C6.CNT_6M, ST.AVG_ST
+			FROM BUSI B
+			JOIN CAR C ON C.BUSI_ID = B.BUSI_ID
+            LEFT OUTER JOIN COUNT_ALL CA ON CA.BUSI_ID = B.BUSI_ID
+            LEFT OUTER JOIN COUNT_6M C6 ON C6.BUSI_ID = B.BUSI_ID
+            LEFT OUTER JOIN AVG_STAR ST ON ST.BUSI_ID = B.BUSI_ID
+			WHERE B.BUSI_LOC LIKE '%' || #{busiLoc} || '%'
+			AND NOT EXISTS (
+				SELECT 1
+				FROM RSV_RNTCAR RNT
+				WHERE RNT.CAR_NUM = C.CAR_NUM
+				<![CDATA[ 
+				AND RNT.RSV_ST <= TO_DATE(#{rsvSt},'yyyy/MM/dd HH24:MI') - INTERVAL '1' HOUR
+				AND RNT.RSV_ED >= TO_DATE(#{rsvEd},'yyyy/MM/dd HH24:MI') + INTERVAL '1' HOUR
+				]]>
+			)
+            ORDER BY C6.CNT_6M DESC NULLS LAST, ST.AVG_ST DESC NULLS LAST, CA.CNT_ALL DESC NULLS LAST, B.BUSI_ID, C.CAR_FEE
+	</select>
+	
+	<!--차량 가격 최대값 구하기  -->
+	<select id="getMaxCarPr" parameterType="hashMap" resultType="int">
+	  	WITH AVAILABLE_CARS AS (SELECT B.BUSI_ID, B.BUSI_NM, B.BUSI_LOC, B.BUSI_IMG, C.CAR_NUM, C.CAR_FEE
+                                    FROM BUSI B
+                                    JOIN CAR C ON C.BUSI_ID = B.BUSI_ID
+                                    WHERE B.BUSI_LOC LIKE '%' || #{busiLoc} || '%'
+                                    AND NOT EXISTS (
+                                        SELECT 1
+                                        FROM RSV_RNTCAR RNT
+                                  		WHERE RNT.CAR_NUM = C.CAR_NUM
+										<![CDATA[ 
+										AND RNT.RSV_ST <= TO_DATE(#{rsvSt},'yyyy/MM/dd HH24:MI') - INTERVAL '1' HOUR
+										AND RNT.RSV_ED >= TO_DATE(#{rsvEd},'yyyy/MM/dd HH24:MI') + INTERVAL '1' HOUR
+										]]>
+                              )
+          )
+		 SELECT MAX(CAR_FEE) AS HIGHEST_PRICE FROM AVAILABLE_CARS
+		 </select>
+	<!--차량 가격 최대값 구하기 -->
+	
+	
+	<!--차량 상세정보  -->
+	<select id="detailRntcar"  parameterType="String" resultType="carVO">
+		SELECT C.CAR_NUM,  C.CAR_CODE, C.CAR_KND, C.CAR_YR, C.CAR_FEE, C.FUEL_TY, C.MAX_PP, C.BUSI_ID, C.CAR_OP, C.CAR_IMG,
+				B.BUSI_LOC, B.BUSI_NM, B.LATI, B.LONGI, B.BUSI_EMAIL, B.BUSI_TEL
+		FROM CAR C
+        JOIN BUSI B ON B.BUSI_ID=C.BUSI_ID
+		WHERE C.CAR_NUM=#{carNum}
+	</select>
+	
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

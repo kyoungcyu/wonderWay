@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mapper.MmAcmMapper">
+	
+	<resultMap type="busiVO" id="busiMap">
+		<result property="busiId" column="BUSI_ID" />
+		<result property="lginId" column="LGIN_ID" />
+		<result property="busiPw" column="BUSI_PW" />
+		<result property="busiNm" column="BUSI_NM" />
+		<result property="busiLoc" column="BUSI_LOC" />
+		<result property="busiScr" column="BUSI_SCR" />
+		<result property="enabled" column="ENABLED" />
+		<result property="busiImg" column="BUSI_IMG" />
+		<result property="busiDc" column="BUSI_DC" />
+		<result property="busiCode" column="BUSI_CODE" />
+		<result property="busiNo" column="BUSI_NO" />
+		<result property="lati" column="LATI" />
+		<result property="longi" column="LONGI" />
+		<result property="busiInfo" column="BUSI_INFO" />
+		<result property="busiEmail" column="BUSI_EMAIL" />
+		<result property="busiTel" column="BUSI_TEL" />
+		<result property="wMoney" column="W_MONEY" />
+		<result property="regDt" column="REG_DT" />
+		<result property="whdwlDt" column="WHDWL_DT" />
+		<result property="clsDt" column="CLS_DT" />
+		<collection property="rmVOList" resultMap="rmMap"></collection>
+	</resultMap>
+	
+	<resultMap type="rmVO" id="rmMap">
+		<result property="rmId" column="RM_ID" />
+		<result property="rmNm" column="RM_NM" />
+		<result property="rmPr" column="RM_PR" />
+		<result property="rmDc" column="RM_DC" />
+		<result property="stdPp" column="STD_PP" />
+		<result property="maxPp" column="MAX_PP" />
+		<result property="ppExFee" column="PP_EX_FEE" />
+		<result property="busiId" column="BUSI_ID" />	
+	</resultMap>
+	
+	
+	
+	<!-- 숙소 검색 -->
+	<select id="searchAcm" parameterType="hashMap" resultMap="busiMap">
+		WITH AVAILABLE_ROOMS AS (
+		    SELECT B.BUSI_ID, B.BUSI_NM, B.BUSI_LOC, B.ACMD_CODE, B.BUSI_IMG, B.BUSI_SCR, R.RM_NM, R.MAX_PP, R.RM_PR,
+		      ROW_NUMBER() OVER (PARTITION BY B.BUSI_NM ORDER BY R.MAX_PP DESC) AS RN
+		    FROM BUSI B
+		    JOIN RM R ON B.BUSI_ID = R.BUSI_ID
+		    WHERE B.BUSI_LOC LIKE '%' || #{busiLoc} || '%'
+		    AND NOT EXISTS (
+		      SELECT 1
+		      FROM RSV_STY RSV
+		      WHERE RSV.RM_ID = R.RM_ID
+		      AND RSV.RSV_ST &lt;= #{rsvSt}
+		      AND RSV.RSV_ED &gt;= #{rsvEd}
+			)
+		),
+		SUM_MAX_PP AS (
+		  SELECT BUSI_NM, SUM(MAX_PP) AS TOTAL_MAX_PP
+		  FROM AVAILABLE_ROOMS
+		  WHERE RN &lt;= #{rmNum}
+		  GROUP BY BUSI_NM
+		  HAVING COUNT(RM_NM) &gt;= #{rmNum}
+		)
+		SELECT A.BUSI_ID, A.BUSI_NM, A.BUSI_LOC, A.ACMD_CODE, A.BUSI_IMG, A.BUSI_SCR, A.RM_NM, A.MAX_PP, A.RM_PR
+		FROM AVAILABLE_ROOMS A
+		JOIN SUM_MAX_PP S ON A.BUSI_NM = S.BUSI_NM
+		WHERE S.TOTAL_MAX_PP &gt;= #{guestNum}
+		ORDER BY A.BUSI_NM, A.RM_PR
+	</select>
+	
+	
+	
+	
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

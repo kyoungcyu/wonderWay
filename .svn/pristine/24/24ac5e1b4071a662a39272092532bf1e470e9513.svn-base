@@ -1,0 +1,77 @@
+package kr.or.ddit.member.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.member.mapper.MmAcmMapper;
+import kr.or.ddit.member.service.MmAcmService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.RmVO;
+import kr.or.ddit.vo.RvwVO;
+
+@Service
+public class MmAcmServiceImpl implements MmAcmService {
+
+	@Inject
+	MmAcmMapper mmAcmMapper;
+
+	//숙소 검색-체크인날짜,인원,방개수로
+	@Override
+	public List<BusiVO> searchAcm(Map<String, String> map) {
+
+		return this.mmAcmMapper.searchAcm(map);
+	}
+	
+
+	//숙소검색-숙소명으로
+	@Override
+	public List<BusiVO> searchForName(Map<String, String> map) {
+
+		return this.mmAcmMapper.searchForName(map);
+	}
+	
+	// 숙소 상세페이지
+	@Override
+	public BusiVO detailAcm(BusiVO busiVO) {
+
+		return this.mmAcmMapper.detailAcm(busiVO);
+	}
+
+	// 객실 가져오기
+	@Override
+	public List<RmVO> getRoom(Map<String, String> map) {
+
+		return this.mmAcmMapper.getRoom(map);
+	}
+
+	// 리뷰 가져오기
+	@Override
+	public List<RvwVO> getReview(Map<String, String> map) {
+
+		return this.mmAcmMapper.getReview(map);
+	}
+
+	// 리뷰 총개수
+	@Override
+	public int getTotalReview(String busiId) {
+		return this.mmAcmMapper.getTotalReview(busiId);
+	}
+
+	// 검색 필터
+	@Override
+	public List<BusiVO> searchFilter( Map<String, Object> map) {
+
+		
+
+		return 	this.mmAcmMapper.searchFilter(map);
+
+	}
+
+	
+
+}

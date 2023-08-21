@@ -1,0 +1,16 @@
+package kr.or.ddit.util.poi.mapper;
+
+import java.util.Map;
+
+public interface PoiMapper {
+	
+	public int tourInsert(Map<Object, Object> map);
+	
+	public int brdTourInsert(Map<Object, Object> map);
+
+	public int wishInsert(Map<Object, Object> map);
+	
+	
+	
+	
+}

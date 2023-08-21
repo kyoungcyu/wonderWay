@@ -1,0 +1,62 @@
+package kr.or.ddit.vo;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import lombok.Data;
+@Data
+public class MmRsvListVO implements Serializable{
+	//마이페이지 예약조회
+	private String rsvId; 		//예약아이디-
+	private String memId; 		//회원아이디-
+	private String rsvCode;		//예약코드-
+	private String busiId; 		//업체 아이디-
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private Date checkIn; 	//체크인일자-
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private Date checkOut; 	//체크아웃일자-
+	private String checkInTime;	//체크인시간-
+	private String checkOutTime;//체크아웃시간-
+	private String rmId;		//방아이디-
+	private String rmNum;		//방번호-
+	private String rmNm;		//방이름-
+	private String busiNm;		//업체명-
+	private String busiLoc; 	//업체 위치-
+	private String busiCode;	//업체코드-
+	private String busiImg;
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private Date rsvDt;	//예약일시-
+	private String check1;
+	
+	//차량
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private Date rntCheckIn;	//대여일시
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private Date rntCheckOut;	//반납기한일시
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private Date rntSt;	//대여시작일시 // 이용완료 시
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private Date rntEd;	//반납일시 // 이용완료시
+	private String carNum;	//차번
+	private String carCode;	//차량분류
+	private String carKnd;	//차량종류
+	private String carOp;	//차량옵션
+	private String carImg;	//차 이미지
+	
+	private int rvwCnt;		//리뷰작성 여부 확인
+	
+	//환불
+	private String payId;
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private Date rfdReqDt;
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private Date rfdDt;
+	
+	//라뷰
+	private String rvwDel;
+	
+	private String savePath;
+
+}

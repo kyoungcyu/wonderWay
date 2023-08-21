@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mapper.MmAcmMapper">
+	
+	<resultMap type="busiVO" id="busiMap">
+		<result property="busiId" column="BUSI_ID" />
+		<result property="lginId" column="LGIN_ID" />
+		<result property="busiPw" column="BUSI_PW" />
+		<result property="busiNm" column="BUSI_NM" />
+		<result property="busiLoc" column="BUSI_LOC" />
+		<result property="busiScr" column="BUSI_SCR" />
+		<result property="enabled" column="ENABLED" />
+		<result property="busiImg" column="BUSI_IMG" />
+		<result property="busiPcy" column="BUSI_PCY" />
+		<result property="busiCode" column="BUSI_CODE" />
+		<result property="busiNo" column="BUSI_NO" />
+		<result property="lati" column="LATI" />
+		<result property="longi" column="LONGI" />
+		<result property="busiInfo" column="BUSI_INFO" />
+		<result property="busiEmail" column="BUSI_EMAIL" />
+		<result property="busiTel" column="BUSI_TEL" />
+		<result property="busiMny" column="BUSI_MNY" />
+		<result property="regDt" column="REG_DT" />
+		<result property="whdwlDt" column="WHDWL_DT" />
+		<result property="clsDt" column="CLS_DT" />
+		<result property="acmdCode" column="ACMD_CODE" />
+		<result property="cnt6M" column="CNT_6M" />
+		<result property="avgSt" column="AVG_ST" />
+		<collection property="rmVOList" resultMap="rmMap"></collection>
+		<collection property="cvfcVOList" resultMap="cvfcMap"></collection>
+	</resultMap>
+	
+	<resultMap type="rmVO" id="rmMap">
+		<result property="rmId" column="RM_ID" />
+		<result property="rmNm" column="RM_NM" />
+		<result property="rmPr" column="RM_PR" />
+		<result property="rmDc" column="RM_DC" />
+		<result property="stdPp" column="STD_PP" />
+		<result property="maxPp" column="MAX_PP" />
+		<result property="ppExFee" column="PP_EX_FEE" />
+		<result property="busiId" column="BUSI_ID" />	
+	</resultMap>
+	
+	<resultMap type="cvfcVO" id="cvfcMap">
+		<result property="cvfcId" column="CVFC_ID" />
+		<result property="cvfcNm" column="CVFC_NM" />
+		<result property="icon" column="ICON" />
+		<result property="busiId" column="BUSI_ID" />
+	</resultMap>
+	
+	
+	
+	<!-- 숙소 검색 -->
+	<select id="searchAcm" parameterType="hashMap" resultMap="busiMap">
+		WITH AVAILABLE_ROOMS AS (
+			SELECT B.BUSI_ID, B.BUSI_NM, B.BUSI_LOC, B.ACMD_CODE, B.BUSI_IMG, 
+				 R.RM_NM, R.MAX_PP, R.RM_PR,
+					ROW_NUMBER() OVER (PARTITION BY B.BUSI_NM ORDER BY R.MAX_PP DESC) AS RN
+			FROM BUSI B
+			JOIN RM R ON B.BUSI_ID = R.BUSI_ID
+			WHERE B.BUSI_LOC LIKE '%' || #{busiLoc} || '%'
+			AND NOT EXISTS (
+				SELECT 1
+				FROM RSV_STY RSV
+				WHERE RSV.RM_ID = R.RM_ID
+				AND RSV.RSV_ST &lt;= #{rsvSt}
+				AND RSV.RSV_ED &gt;= #{rsvEd}	
+			)
+		),SUM_MAX_PP AS (
+			  SELECT BUSI_ID, SUM(MAX_PP) AS TOTAL_MAX_PP
+			  FROM AVAILABLE_ROOMS
+			  WHERE RN &lt;= #{rmNum}
+			  GROUP BY BUSI_ID
+			  HAVING COUNT(RM_NM) &gt;= #{rmNum}
+		),COUNT_6M AS(
+            SELECT COUNT(*) AS CNT_6M, R.BUSI_ID
+            FROM RSV R
+            JOIN PAY P ON P.RSV_ID=R.RSV_ID 
+            WHERE P.RFD_CK='N'
+            AND R.RSV_DT BETWEEN SYSDATE - INTERVAL '6' MONTH AND SYSDATE
+            GROUP BY R.BUSI_ID
+        ),AVG_STAR AS(
+            SELECT ROUND(AVG(RVW.RVW_STAR),1) AS AVG_ST, RSV.BUSI_ID
+            FROM RVW 
+            JOIN RSV ON RVW.RSV_ID = RSV.RSV_ID
+            JOIN MEM ON MEM.MEM_ID = RSV.MEM_ID
+            GROUP BY RSV.BUSI_ID
+        ), AMENITIES AS (
+            SELECT C.CVFC_ID, C.CVFC_NM, C.BUSI_ID
+            FROM CVFC C
+            JOIN BUSI B ON B.BUSI_ID=C.BUSI_ID
+        )
+		SELECT A.BUSI_ID, A.BUSI_NM, A.BUSI_LOC, A.ACMD_CODE, A.BUSI_IMG, 
+				A.RM_NM, A.MAX_PP, A.RM_PR, C.CNT_6M, ST.AVG_ST,
+				AM.CVFC_ID, AM.CVFC_NM
+		FROM AVAILABLE_ROOMS A
+		JOIN SUM_MAX_PP S ON A.BUSI_ID = S.BUSI_ID
+        LEFT OUTER JOIN COUNT_6M C ON A.BUSI_ID = C.BUSI_ID
+        LEFT OUTER JOIN AVG_STAR ST ON A.BUSI_ID = ST.BUSI_ID
+        LEFT OUTER JOIN AMENITIES AM ON A.BUSI_ID= AM.BUSI_ID
+		WHERE S.TOTAL_MAX_PP &gt;= #{guestNum}
+		ORDER BY C.CNT_6M DESC NULLS LAST, ST.AVG_ST, A.BUSI_ID, A.RM_PR
+	</select>
+	
+	
+	<!-- 검색필터 숙소 재검색 -->
+	<select id="searchFilter" parameterType="hashMap" resultMap="busiMap">
+		WITH AVAILABLE_ROOMS AS (
+			SELECT B.BUSI_ID, B.BUSI_NM, B.BUSI_LOC, B.ACMD_CODE, B.BUSI_IMG, 
+				 R.RM_NM, R.MAX_PP, R.RM_PR,
+					ROW_NUMBER() OVER (PARTITION BY B.BUSI_NM ORDER BY R.MAX_PP DESC) AS RN
+			FROM BUSI B
+			JOIN RM R ON B.BUSI_ID = R.BUSI_ID
+			WHERE B.BUSI_LOC LIKE '%' || #{busiLoc} || '%'
+			AND NOT EXISTS (
+				SELECT 1
+				FROM RSV_STY RSV
+				WHERE RSV.RM_ID = R.RM_ID
+				AND RSV.RSV_ST &lt;= #{rsvSt}
+				AND RSV.RSV_ED &gt;= #{rsvEd}	
+			)
+		),SUM_MAX_PP AS (
+			  SELECT BUSI_ID, SUM(MAX_PP) AS TOTAL_MAX_PP
+			  FROM AVAILABLE_ROOMS
+			  WHERE RN &lt;= #{rmNum}
+			  GROUP BY BUSI_ID
+			  HAVING COUNT(RM_NM) &gt;= #{rmNum}
+		),COUNT_6M AS(
+            SELECT COUNT(*) AS CNT_6M, R.BUSI_ID
+            FROM RSV R
+            JOIN PAY P ON P.RSV_ID=R.RSV_ID 
+            WHERE P.RFD_CK='N'
+            AND R.RSV_DT BETWEEN SYSDATE - INTERVAL '6' MONTH AND SYSDATE
+            GROUP BY R.BUSI_ID
+        ),AVG_STAR AS(
+            SELECT ROUND(AVG(RVW.RVW_STAR),1) AS AVG_ST, RSV.BUSI_ID
+            FROM RVW 
+            JOIN RSV ON RVW.RSV_ID = RSV.RSV_ID
+            JOIN MEM ON MEM.MEM_ID = RSV.MEM_ID
+            GROUP BY RSV.BUSI_ID
+        ), AMENITIES AS (
+            SELECT C.CVFC_ID, C.CVFC_NM, C.BUSI_ID
+            FROM CVFC C
+            JOIN BUSI B ON B.BUSI_ID=C.BUSI_ID
+        )
+		SELECT A.BUSI_ID, A.BUSI_NM, A.BUSI_LOC, A.ACMD_CODE, A.BUSI_IMG, 
+				A.RM_NM, A.MAX_PP, A.RM_PR, C.CNT_6M, ST.AVG_ST,
+				AM.CVFC_ID, AM.CVFC_NM
+		FROM AVAILABLE_ROOMS A
+		JOIN SUM_MAX_PP S ON A.BUSI_ID = S.BUSI_ID
+        LEFT OUTER JOIN COUNT_6M C ON A.BUSI_ID = C.BUSI_ID
+        LEFT OUTER JOIN AVG_STAR ST ON A.BUSI_ID = ST.BUSI_ID
+        LEFT OUTER JOIN AMENITIES AM ON A.BUSI_ID= AM.BUSI_ID
+		WHERE S.TOTAL_MAX_PP &gt;= #{guestNum}
+		<if test="star!=null and star!=''">
+        AND ST.AVG_ST >= #{star}
+        </if>
+        <if test="minPr!=null and minPr!=''">
+        AND A.RM_PR BETWEEN #{minPr} AND #{maxPr}
+        </if>
+        <if test="acmTypeList!=null">
+         AND A.ACMD_CODE IN (<foreach item="acmType" collection="acmTypeList" separator=",">#{acmType}</foreach>)
+        </if>
+        <if test="amntTypeList!=null">
+         AND AM.CVFC_ID IN ( IN (<foreach item="amntType" collection="amntTypeList" separator=",">#{amntType}</foreach>)
+        </if>
+		ORDER BY C.CNT_6M DESC NULLS LAST, ST.AVG_ST, A.BUSI_ID, A.RM_PR
+	</select>
+	
+	
+	<!--숙소명으로 검색  -->
+	<select id="searchForName" parameterType="hashMap" resultMap="busiMap">
+		WITH COUNT_6M AS(
+		           SELECT COUNT(*) AS CNT_6M, R.BUSI_ID
+		           FROM RSV R
+		           JOIN PAY P ON P.RSV_ID=R.RSV_ID 
+		           WHERE P.RFD_CK='N'
+		           AND R.RSV_DT BETWEEN SYSDATE - INTERVAL '6' MONTH AND SYSDATE
+		           GROUP BY R.BUSI_ID
+		), AVG_STAR AS(
+		           SELECT ROUND(AVG(RVW.RVW_STAR),1) AS AVG_ST, RSV.BUSI_ID
+		           FROM RVW 
+		           JOIN RSV ON RVW.RSV_ID = RSV.RSV_ID
+		           JOIN MEM ON MEM.MEM_ID = RSV.MEM_ID
+		           GROUP BY RSV.BUSI_ID
+		), AMENITIES AS (
+		           SELECT C.CVFC_ID, C.CVFC_NM, C.BUSI_ID
+		           FROM CVFC C
+		           JOIN BUSI B ON B.BUSI_ID=C.BUSI_ID
+		)
+		SELECT B.BUSI_ID, B.BUSI_NM, B.BUSI_LOC, B.ACMD_CODE, B.BUSI_IMG, R.RM_NM, R.MAX_PP, R.RM_PR, C.CNT_6M, ST.AVG_ST, AM.CVFC_ID
+		FROM BUSI B
+		LEFT OUTER JOIN RM R ON B.BUSI_ID = R.BUSI_ID
+		LEFT OUTER JOIN COUNT_6M C ON B.BUSI_ID = C.BUSI_ID
+		LEFT OUTER JOIN AVG_STAR ST ON B.BUSI_ID = ST.BUSI_ID
+		LEFT OUTER JOIN AMENITIES AM ON B.BUSI_ID= AM.BUSI_ID
+		WHERE B.BUSI_NM LIKE '%' || #{busiNm} || '%'
+		AND B.BUSI_LOC LIKE '%' || #{busiLoc} || '%'
+		ORDER BY C.CNT_6M DESC NULLS LAST, ST.AVG_ST, B.BUSI_ID, R.RM_PR
+	</select>
+	
+	
+	<!-- 숙소 상세 페이지 -->
+	<select id="detailAcm" parameterType="busiVO" resultType="busiVO">
+		SELECT BUSI_ID, BUSI_NM, BUSI_LOC, RPRSV_NM, BUSI_SCR, BUSI_IMG,
+			BUSI_DC, BUSI_CODE, BUSI_NO, BUSI_INFO, BUSI_EMAIL,
+			BUSI_TEL, OPBIZ_YMD, ACMD_CODE
+		FROM BUSI
+		WHERE BUSI_ID = #{busiId}
+	</select>
+	
+	
+	<!--객실 가져오기  -->
+	<select id="getRoom" parameterType="hashMap" resultType="rmVO">
+		SELECT R.RM_DC, R.RM_NM, R.RM_PR, R.STD_PP, R.MAX_PP
+		FROM BUSI B
+		JOIN RM R ON B.BUSI_ID = R.BUSI_ID
+		WHERE B.BUSI_ID = #{busiId}
+		AND NOT EXISTS (
+		      SELECT 1
+		      FROM RSV_STY RSV
+		      WHERE RSV.RM_ID = R.RM_ID
+		      AND RSV.RSV_ST &lt;= #{rsvSt}
+		      AND RSV.RSV_ED &gt;= #{rsvEd}
+		)
+	</select>
+	
+	<!-- 리뷰 가져오기 (페이징처리 )-->
+	<select id="getReview" parameterType="hashMap" resultType="rvwVO">
+		WITH T AS(
+			SELECT ROW_NUMBER() OVER(ORDER BY RSV.RSV_DT DESC) RNUM,
+					MEM.MEM_IMG, CONCAT(SUBSTR(RSV.MEM_ID, 1, 3), RPAD('*', LENGTH(RSV.MEM_ID) - 3, '*')) AS MEM_ID, RSV.RSV_DT, RVW.RSV_ID, RVW.RVW_CNTN,
+					RVW.RVW_STAR, RVW.RVW_CNT
+			FROM RVW 
+			JOIN RSV ON RVW.RSV_ID = RSV.RSV_ID
+			JOIN MEM ON MEM.MEM_ID = RSV.MEM_ID
+			WHERE RSV.BUSI_ID = #{busiId}
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * 5) - 4
+						  AND (#{currentPage} * 5)
+	</select>
+	
+	
+	<!-- 리뷰 총 개수-->
+	<select id="getTotalReview" parameterType="String" resultType="int">
+		SELECT COUNT(*)
+		FROM RVW 
+		JOIN RSV ON RVW.RSV_ID = RSV.RSV_ID
+		JOIN MEM ON MEM.MEM_ID = RSV.MEM_ID
+		WHERE RSV.BUSI_ID = #{busiId}
+	</select>
+	
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

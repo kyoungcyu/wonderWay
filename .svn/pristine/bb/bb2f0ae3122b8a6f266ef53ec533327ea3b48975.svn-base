@@ -1,0 +1,23 @@
+package kr.or.ddit.member.mapper;
+
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RsvVO;
+
+public interface MypageMapper {
+	//내 프로필
+	//마이페이지 - 내 프로필 - 내 정보
+	public MemVO detailMyInfo(String memId);
+	
+	//마이페이지 - 내 프로필 - 내 정보 수정
+	public int updateMyInfo(MemVO memVO);
+	//마이페이지 - 내 프로필 - 비밀번호 변경
+	public int updateMyPw(MemVO memVO);
+	
+	//예약내역
+	//마이페이지 - 예약내역 - 예약 리스트
+	public RsvVO detailMyRsv(RsvVO rsvVO);
+	
+	//회원탈퇴
+	public MemVO deleteMem(MemVO memId);
+
+}

@@ -1,0 +1,9 @@
+package kr.or.ddit.business.service;
+
+import kr.or.ddit.vo.CheckInVO;
+
+public interface BsCheckInService {
+	public CheckInVO checkRsv(String memId);
+	
+	public int checkIn(String rsvId);
+}

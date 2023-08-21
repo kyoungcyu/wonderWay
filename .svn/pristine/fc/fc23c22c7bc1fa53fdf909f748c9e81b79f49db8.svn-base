@@ -1,0 +1,99 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+
+<head>
+<title>Wonderway-기차예약완료</title>
+
+
+</head>
+
+<body>
+<main>
+<!-- =======================
+Main content START -->
+<section class="pt-4">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-10 col-xl-8 mx-auto">
+
+				<div class="card shadow">
+					<!-- Image -->
+					<img src="/resources/booking/assets/images/bg/trn.jpg" class="rounded-top" alt="">
+
+					<!-- Card body -->
+					<div class="card-body text-center p-4">
+						<!-- Title -->
+						<h1 class="card-title fs-3">🚆예약 완료! 🚆</h1>
+						<p class="lead mb-3">결제가 완료되었습니다</p>
+
+						<!-- Second title -->
+						<h5 class="text-primary mb-4">${rsvNm}</h5>
+
+						<!-- List -->
+						<div class="row justify-content-between text-start mb-4">
+							<div class="col-lg-5">
+								<ul class="list-group list-group-borderless">
+									<li class="list-group-item d-sm-flex justify-content-between align-items-center">
+										<span class="mb-0"><i class="bi bi-vr fa-fw me-2"></i>예약 ID:</span>
+										<span class="h6 fw-normal mb-0">${trRsvId}</span>
+									</li>
+									<li class="list-group-item d-sm-flex justify-content-between align-items-center">
+										<span class="mb-0"><i class="bi bi-wallet2 fa-fw me-2"></i>예약자:</span>
+										<span class="h6 fw-normal mb-0">${buyerNm}</span>
+									</li>
+									<li class="list-group-item d-sm-flex justify-content-between align-items-center">
+										<span class="mb-0"><i class="bi bi-currency-dollar fa-fw me-2"></i>결제 금액:</span>
+										<span class="h6 fw-normal mb-0">${payPr}원</span>
+									</li>
+								</ul>
+							</div>
+
+							<div class="col-lg-5">
+								<ul class="list-group list-group-borderless">
+									<li class="list-group-item d-sm-flex justify-content-between align-items-center">
+										<span class="mb-0"><i class="bi bi-calendar fa-fw me-2"></i>출발역:</span>
+										<span class="h6 fw-normal mb-0">${stTm} ${stLoc}</span>
+									</li>
+									<li class="list-group-item d-sm-flex justify-content-between align-items-center">
+										<span class="mb-0"><i class="bi bi-calendar fa-fw me-2"></i>도착역:</span>
+										<span class="h6 fw-normal mb-0">${arTm} ${arLoc}</span>
+									</li>
+									<li class="list-group-item d-sm-flex justify-content-between align-items-center">
+										<span class="mb-0"><i class="bi bi-people fa-fw me-2"></i>인원:</span>
+										<span class="h6 fw-normal mb-0">${rStyPp}</span>
+									</li>
+								</ul>
+							</div>
+						</div>
+
+						<!-- Button -->
+						<div class="d-sm-flex justify-content-sm-end d-grid">
+							<!-- Share button with dropdown -->
+							<div class="dropdown me-sm-2 mb-2 mb-sm-0">
+								<a href="#" class="btn btn-light mb-0 w-100" role="button" id="dropdownShare" data-bs-toggle="dropdown" aria-expanded="false">
+									<i class="bi bi-share me-2"></i>공유하기
+								</a>
+								<!-- dropdown button -->
+								<ul class="dropdown-menu dropdown-menu-end min-w-auto shadow rounded" aria-labelledby="dropdownShare">
+									<li><a  class="dropdown-item" href="#"><i class="fab fa-twitter-square me-2"></i>Twitter</a></li>
+									<li><a class="dropdown-item" href="#"><i class="fab fa-facebook-square me-2"></i>Facebook</a></li>
+									<li><a class="dropdown-item" href="#"><i class="fab fa-linkedin me-2"></i>LinkedIn</a></li>
+									<li><a class="dropdown-item" href="#"><i class="fas fa-copy me-2"></i>Copy link</a></li>
+								</ul>
+							</div>
+							<!-- Download button -->
+							<a href="#" class="btn btn-primary mb-0"><i class="bi bi-file-pdf me-2"></i>PDF 다운</a>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</section>
+<!-- =======================
+Main content START -->
+
+</main>
+</body>

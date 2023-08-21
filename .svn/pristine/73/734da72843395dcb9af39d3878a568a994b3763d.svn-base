@@ -1,0 +1,52 @@
+package kr.or.ddit.business.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.business.mapper.BsBusiMapper;
+import kr.or.ddit.business.service.BsBusiService;
+import kr.or.ddit.vo.BusiVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class BsBusiServiceImpl implements BsBusiService{
+   @Autowired
+   BsBusiMapper bsBusiMapper;
+   
+   @Override
+   public List<BusiVO> busiList(){
+      return this.bsBusiMapper.busiList();
+   }
+   
+   @Override
+   public int create(BusiVO busiVO) {
+	   return this.bsBusiMapper.create(busiVO);
+   }
+   
+   @Override
+   public BusiVO busiOne(BusiVO busiVO){
+      return this.bsBusiMapper.busiOne(busiVO);
+   }
+   @Override
+   public BusiVO userDetail(String lginId){
+      return this.bsBusiMapper.userDetail(lginId);
+   }
+
+   @Override
+   public int checkBusiId(BusiVO busiVO) {
+	   return this.bsBusiMapper.checkBusiId(busiVO);
+}
+   
+   @Override
+   public int checkBsEmail(BusiVO busiVO) {
+	   return this.bsBusiMapper.checkBsEmail(busiVO);
+   }
+   
+   
+}

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdBusiMapper">
+	<sql id="styWhere">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+	    	AND    (
+	            BUSI_ID   LIKE '%' || #{keyword} || '%' OR
+	            BUSI_NM   LIKE '%' || #{keyword} || '%' OR
+	            BUSI_LOC LIKE '%' || #{keyword} || '%'
+	        )
+        </if>
+         <if test="sort!=null and !sort.equals('')">
+	        <choose>
+		      <when test="sort == '호텔'">
+		         AND ACMD_CODE = 'A01'
+		      </when>
+		      <when test="sort == '모텔'">
+		         AND ACMD_CODE = 'A02'
+		      </when>
+		      <when test="sort == '리조트'">
+		         AND ACMD_CODE = 'A03'
+		      </when>
+		      <when test="sort == '게스트하우스'">
+		         AND ACMD_CODE = 'A04'
+		      </when>
+		      <when test="sort == '펜션'">
+		         AND ACMD_CODE = 'A05'
+		      </when>
+		   </choose>
+         </if>
+	</sql>
+	
+	<!-- 숙박업체 리스트 -->
+	<select id="styList" resultType="busiVO">
+		WITH T AS(
+		    SELECT
+		    	ROW_NUMBER() OVER(ORDER BY REG_DT) RNUM,
+			    BUSI_ID, LGIN_ID, BUSI_NM, BUSI_LOC, RPRSV_NM, BUSI_SCR,
+			    ENABLED, BUSI_IMG, BUSI_NO, BUSI_EMAIL, BUSI_TEL,REG_DT,
+			    WHDWL_DT, CLS_DT, ACMD_CODE
+			FROM
+			    BUSI
+			WHERE
+			    BUSI_CODE = 'B01'
+		    	<include refid="styWhere"></include>
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 숙박업체 수 -->
+	<select id="styTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM BUSI
+		WHERE BUSI_CODE = 'B01' 
+		<include refid="styWhere"></include>
+	</select>
+	
+	<sql id="rntWhere">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+	    	AND    (
+	            BUSI_NM   LIKE '%' || #{keyword} || '%' OR
+	            BUSI_LOC LIKE '%' || #{keyword} || '%'
+	        )
+        </if>
+        <if test="sort!=null and !sort.equals('')">
+        	<choose>
+        		<when test="sort == '활성'">
+        			AND ENABLED = '1'
+        		</when>
+        		<when test="sort == '비활성'">
+        			AND ENABLED = '0'
+        		</when>
+        	</choose>
+        </if>
+	</sql>
+	
+	
+	<!-- 렌터카업체 리스트 -->
+	<select id="rntList" resultType="busiVO">
+		WITH T AS(
+		    SELECT
+		    	ROW_NUMBER() OVER(ORDER BY REG_DT) RNUM,
+			    BUSI_ID, LGIN_ID, BUSI_NM, BUSI_LOC, RPRSV_NM, BUSI_SCR,
+			    ENABLED, BUSI_IMG, BUSI_NO, BUSI_EMAIL, BUSI_TEL,REG_DT,
+			    WHDWL_DT, CLS_DT, ACMD_CODE
+			FROM
+			    BUSI
+			WHERE
+			    BUSI_CODE = 'B02'
+		    	<include refid="rntWhere"></include>
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 숙박업체 수 -->
+	<select id="rntTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM BUSI
+		WHERE BUSI_CODE = 'B02' 
+		<include refid="rntWhere"></include>
+	</select>
+	
+	<!-- 숙박 업체 상세 -->
+	<select id="styDetail" parameterType="busiVO" resultType="busiVO">
+		SELECT 
+			BUSI_ID, LGIN_ID, BUSI_NM, BUSI_LOC, RPRSV_NM, BUSI_SCR, ENABLED,
+		    BUSI_IMG, BUSI_PCY, BUSI_CODE, BUSI_NO, BUSI_INFO, BUSI_EMAIL,
+		    BUSI_TEL, BUSI_MNY, REG_DT, WHDWL_DT, CLS_DT, RPRSV_BRDT, OPBIZ_YMD,
+		    ACMD_CODE, CHAT_ST, CHAT_ED, ACCOUNT
+		FROM BUSI
+		WHERE BUSI_ID = #{busiId}
+	</select>
+	
+	<!-- 객실리스트 -->
+	<select id="roomList" parameterType="busiVO" resultType="rmVO" >
+		SELECT 
+		    RM_ID, RM_NM, RM_PR, RM_DC, STD_PP, 
+		    MAX_PP, PP_EX_FEE, BUSI_ID, RM_BED 
+		FROM 
+		    RM WHERE BUSI_ID = #{busiId}
+	</select>
+	
+	<!-- 방의 개수 -->
+	<select id="countRoom" parameterType="busiVO" resultType="int">
+		SELECT COUNT(*) FROM RM WHERE BUSI_ID = #{busiId}
+	</select>
+	
+	<!-- 최근 30일 예약건수 -->
+	<select id="countRsv" parameterType="busiVO" resultType="int">
+		SELECT
+		   COUNT(*)
+		FROM
+		    RSV
+		WHERE RSV_CODE = 'K02'
+			AND BUSI_ID = #{busiId}
+			AND RSV_DT &lt; SYSDATE - 30
+	</select>
+	
+	<!-- 최근 30일 수익 -->
+	<select id="totalPay" parameterType="busiVO" resultType="String">
+		SELECT 
+			SUM(A.PAY_PR)
+		FROM 
+			PAY A
+		JOIN RSV B ON A.RSV_ID = B.RSV_ID
+		WHERE 
+			B.BUSI_ID = #{busiId}
+		  AND A.PAY_DT > SYSDATE - 30
+		  AND A.RFD_CK = 'N'
+	</select>
+	
+	<!-- 업체 활성/비활성화 -->
+	<update id="updateAbled" parameterType="busiVO">
+		UPDATE 
+			BUSI
+		SET 
+			ENABLED = #{enabled}
+		WHERE 
+			BUSI_ID = #{busiId}
+	</update>
+	
+	<!-- 렌터카 차량의 개수 -->
+	<select id="countCar" parameterType="busiVO" resultType="int">
+		SELECT COUNT(*) FROM CAR WHERE BUSI_ID = #{busiId}
+	</select>
+	
+	<!-- 차량리스트 -->
+	<select id="carList" parameterType="busiVO" resultType="carVO" >
+		SELECT
+		    CAR_NUM, CAR_CODE, CAR_KND, CAR_YR,
+		    CAR_FEE, FUEL_TY, MAX_PP, BUSI_ID, CAR_OP
+		FROM
+		    CAR
+		WHERE BUSI_ID = #{busiId}
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,147 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<head>
+    <style>
+        
+        .card {
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: none;
+        }
+        
+        .card-header .nav-tabs {
+            border-bottom: none;
+        }
+        
+        .card-header .nav-link {
+            font-size: 16px;
+            border: none;
+            border-radius: 0;
+            color: #6c757d;
+        }
+        
+        .card-header .nav-link:hover {
+            color: #495057;
+        }
+        
+        .card-header .nav-link.active {
+            font-weight: bold;
+            color: #495057;
+            border-bottom: 2px solid #007bff;
+        }
+        
+        .card-body {
+            background-color: #fff;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#receivedTab').click(function() {
+                loadTabContent('received');
+            });
+            
+            $('#sentTab').click(function() {
+                loadTabContent('sent');
+            });
+            
+            // 초기 로딩 시 받은 쪽지함 내용을 로드합니다.
+            loadTabContent('received');
+        });
+        
+        function loadTabContent(tabName) {
+            $('.nav-link').removeClass('active');
+            $('#' + tabName + 'Tab').addClass('active');
+            console.log(tabName);
+            
+            $.ajax({
+                url: '/business/inquiry/'+tabName, // 실제 데이터를 로드하는 서버 쪽 URL로 변경해야 합니다.
+                type: 'GET',
+                data: { tab : tabName },
+                success: function(data) {
+                	console.log(data);
+                    $('#' + tabName + 'TabContent').html(
+                    		
+                    		
+                    		
+                    		
+                    		
+                    		
+                    		
+                    		
+                    		data);
+                },
+                error: function() {
+                    $('#' + tabName + 'TabContent').html('<p>쪽지함을 로드하는 중 오류가 발생했습니다.</p>');
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="receivedTab" data-toggle="tab" href="#receivedTabContent">
+                            <i class="fa fa-inbox"></i> 받은 쪽지함
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="sentTab" data-toggle="tab" href="#sentTabContent">
+                            <i class="fa fa-paper-plane"></i> 보낸 쪽지함
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="receivedTabContent">
+                        <!-- 받은 쪽지함 내용을 표시하는 부분 -->
+                        
+                        
+                       받은쪽지함
+                       <table class="table">
+            <thead>
+                <tr>
+                    <th>보낸 사람</th>
+                    <th>제목</th>
+                    <th>날짜</th>
+                </tr>
+            </thead>
+            <tbody>
+                <c:forEach var="message" items="${receivedMessages}">
+                    <tr>
+                        <td>${message.sender}</td>
+                        <td>${message.subject}</td>
+                        <td>${message.date}</td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+                        
+                        
+                        
+                        
+                        
+                    </div>
+                    
+                    <div class="tab-pane fade" id="sentTabContent">
+                        <!-- 보낸 쪽지함 내용을 표시하는 부분 -->
+                        
+                        
+                   보낸쪽지함     
+                        
+                        
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

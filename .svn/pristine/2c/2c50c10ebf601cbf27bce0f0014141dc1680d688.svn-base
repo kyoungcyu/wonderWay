@@ -1,0 +1,124 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+
+<script type="text/javascript">
+$(function(){
+	$("#sort").on("change",function(){
+		$("#frm01").submit();
+	});
+});
+</script>
+
+<!-- Page main content START -->
+	<div class="page-content-wrapper p-xxl-4">
+
+		<!-- Title -->
+		<div class="row">
+			<div class="col-12 mb-4 mb-sm-5">
+				<div class="d-sm-flex justify-content-between align-items-center">
+					<h1 class="h3 mb-3 mb-sm-0">렌터카 업체 조회</h1>
+				</div>
+			</div>
+		</div>
+
+		<!-- Search and select START -->
+		<form class="row g-4 align-items-center" id="frm01">
+		<div class="row g-3 align-items-center justify-content-between mb-5">
+			<!-- Search -->
+			<div class="col-md-8">
+					<input class="form-control pe-5" type="search" placeholder="Search" aria-label="Search" name="keyword" value="${param.keyword}">
+					<button class="btn border-0 px-3 py-0 position-absolute top-50 end-0 translate-middle-y" type="submit"><i class="fas fa-search fs-6"></i></button>
+			</div>
+
+			<!-- Select option -->
+			<div class="col-md-3">
+				<!-- Short by filter -->
+					<select class="form-select js-choice" aria-label=".form-select-sm" name="sort" id="sort">
+						<option value="">Sort by</option>
+						<option value="호텔" <c:if test="${param.sort=='호텔'}">selected</c:if>>호텔</option>
+						<option value="모텔" <c:if test="${param.sort=='모텔'}">selected</c:if>>모텔</option>
+						<option value="리조트" <c:if test="${param.sort=='리조트'}">selected</c:if>>리조트</option>
+						<option value="게스트하우스" <c:if test="${param.sort=='게스트하우스'}">selected</c:if>>게스트하우스</option>
+						<option value="펜션" <c:if test="${param.sort=='펜션'}">selected</c:if>>펜션</option>
+					</select>
+			</div>
+		</div>
+		</form>
+		<!-- Search and select END -->
+
+		<!-- agent list START -->
+		<div class="row g-4">
+			<!-- Card item -->
+			<c:forEach var="busiVO" items="${data.content}" varStatus="stat">
+				<div class="col-md-6 col-lg-4 col-xxl-3">
+					<div class="card border h-100">
+						<!-- Dropdown button -->
+						<div class="dropdown position-absolute top-0 end-0 m-3">
+							<a href="#" class="btn btn-sm btn-light btn-round small mb-0" role="button" id="dropdownShare1" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="bi bi-three-dots fa-fw"></i>
+							</a>
+							<!-- dropdown button -->
+							<ul class="dropdown-menu dropdown-w-sm dropdown-menu-end min-w-auto shadow rounded" aria-labelledby="dropdownShare1">
+								<li><a class="dropdown-item" href="#"><i class="bi bi-exclamation-triangle fa-fw me-2"></i>비활성화</a></li>
+							</ul>
+						</div>
+						<!-- Card body -->
+						<div class="card-body text-center pb-0">
+							<!-- Avatar Image -->
+							<div class="avatar avatar-xl flex-shrink-0 mb-3">
+								<img class="avatar-img rounded-circle" src="/resources/booking/assets/images/avatar/user.png" alt="avatar">
+							</div>
+							<!-- Title -->
+							<h5 class="mb-1">${busiVO.busiNm}</h5>
+							<small><i class="bi bi-geo-alt me-1"></i>${busiVO.busiLoc}</small>
+							<!-- Info and rating -->
+							<div class="d-flex justify-content-between mt-3">
+								<h6 class="mb-0 small"><span class="fw-light">대표자명 : </span>${busiVO.rprsvNm}</h6>
+								<h6 class="mb-0 small"><i class="fa-solid fa-star text-warning ms-1"></i>${busiVO.busiScr}</h6>
+							</div>
+						</div>
+						<!-- card footer -->
+						<div class="card-footer d-flex gap-3 align-items-center">
+							<a href="admin-agent-detail.html" class="btn btn-sm btn-primary-soft mb-0 w-100">View detail</a>
+							<a href="#" class="btn btn-sm btn-light flex-shrink-0 mb-0"><i class="bi bi-envelope"></i></a>
+						</div>
+					</div>
+				</div>
+			</c:forEach>
+			<!-- agent list END -->
+	
+			<!-- Pagination START -->
+			<div class="d-sm-flex justify-content-sm-between align-items-sm-center mt-4">
+				<!-- Content -->
+				<c:set var="endRow" value="${data.currentPage * data.size}" />
+				<c:set var="startRow" value="${endRow - (data.size - 1)}" />
+				<c:set var="total" value="${data.total}" />
+				<c:if test="${endRow>total}">
+					<c:set var="endRow" value="${total}" />
+				</c:if>
+				<p class="mb-sm-0 text-center text-sm-start">Showing ${startRow} to ${endRow} of ${total} entries</p>
+				<!-- Pagination -->
+				<nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
+					<ul class="pagination pagination-sm pagination-primary-soft mb-0 ">
+						<li class="page-item <c:if test='${data.startPage < 6}'>disabled</c:if>" id="dataTable_previous">
+							<a class="page-link" href="/admin/busi/rnt?currentPage=${data.startPage-5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="0"  tabindex="-1">Prev</a>
+						</li>
+						<c:forEach var="pNo" begin="${data.startPage}" end="${data.endPage}">
+							<li class="page-item <c:if test='${param.currentPage eq pNo}'>active</c:if>">
+								<a href="/admin/busi/rnt?currentPage=${pNo}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="${pNo}" tabindex="0" class="page-link">${pNo}</a>
+							</li>
+						</c:forEach>
+						<li class="page-item <c:if test='${data.endPage == data.totalPages}'>disabled</c:if>" id="dataTable_next">
+							<a class="page-link" href="/admin/busi/rnt?currentPage=${data.startPage+5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="7"  tabindex="-1">Next</a>
+						</li>
+					</ul>
+				</nav>
+			</div>
+			<!-- Pagination END -->
+	
+		</div>
+	<!-- Page main content END -->
+</div>
+<!-- Page content END -->
+	

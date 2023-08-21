@@ -1,0 +1,27 @@
+package kr.or.ddit.member.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.TrnRmVO;
+import kr.or.ddit.vo.TrnSeatVO;
+
+public interface MmTrnService {
+
+	//<!--기차역에 맞는 아이디 가져오기  -->
+	public String getStationId (String stationNm);
+	
+	
+	//<!--객실 가져오기  -->
+	public List<TrnRmVO> getRm(String trnKnd);
+	
+	
+	//<!--좌석 가져오기  -->
+	public List<TrnSeatVO> getSeat(HashMap<String, String> map);
+		
+	
+	
+}

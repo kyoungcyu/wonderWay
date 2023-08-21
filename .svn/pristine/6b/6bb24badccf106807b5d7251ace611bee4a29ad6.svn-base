@@ -1,0 +1,24 @@
+package kr.or.ddit.business.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MsgVO;
+
+
+public interface BsMsgMapper {
+
+	public List<MsgVO> recvMsg(String busiId);
+
+	public List<MsgVO> sendMsg(Map<String,Object> sendMap);
+
+	public int msgInsert(MsgVO msgVO);
+
+	public int recvTotal(String busiId);
+
+	public int sendTotal(String busiId); 
+	
+}

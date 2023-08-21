@@ -1,0 +1,29 @@
+package kr.or.ddit.member.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.member.mapper.MemRcmMapper;
+import kr.or.ddit.member.mapper.MmAcmMapper;
+import kr.or.ddit.member.service.MemRcmService;
+import kr.or.ddit.member.service.MmAcmService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.RcmStyVO;
+
+@Service
+public class MemRcmServiceImpl implements MemRcmService {
+
+	@Autowired
+	MemRcmMapper memRcmMapper;
+	
+	//회원 맞춤 숙소 추천
+	@Override
+	public RcmStyVO rcmStyList(RcmStyVO rcmStyVO) {
+		return this.memRcmMapper.rcmStyList(rcmStyVO);
+	};
+}

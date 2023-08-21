@@ -1,0 +1,103 @@
+package kr.or.ddit.business.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.business.service.BsMsgService;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.business.service.BsBusiService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MsgVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RequestMapping("/business/inquiry")
+@Controller
+public class BsInquryController {
+
+	@Autowired
+	BsMsgService bsMsgService;
+	@Autowired
+	BsBusiService bsBusiService;
+
+	@GetMapping("/msgbox")
+	public String sendMsg(Model model, HttpSession session
+//	       ,@RequestParam(value = "size", required = false, defaultValue = "10") int size
+		   ,@RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+//		   ,@RequestParam(value = "cond", required = false, defaultValue = "") String cond
+//	   	   ,@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword) {
+			) {
+
+		// 쪽지함과 페이징정보 같이 보내야해서 map 선언
+		BusiVO vo = (BusiVO) session.getAttribute("vo");
+		Map<String,Object> sendMap = new HashMap<String, Object>();
+		Map<String,Object> recvMap = new HashMap<String, Object>();
+		
+		// 1-1. 쿼리에서 사용 할 map 채우기
+		recvMap.put("busiId", vo.getBusiId());
+		recvMap.put("currentPage",currentPage);
+		// 1-2. 받은쪽지함 불러오기 + model에 pagingDTO객체에 
+		List<MsgVO> recvdata = this.bsMsgService.recvMsg(vo.getBusiId());
+		int recvTotal = this.bsMsgService.recvTotal(vo.getBusiId());
+		model.addAttribute("recvdata", new PagingDTO<MsgVO>(recvTotal, currentPage, 10, recvdata));
+		
+		// 2-1. 쿼리에서 사용 할 map 채우기
+		sendMap.put("busiId", vo.getBusiId());
+		sendMap.put("currentPage",currentPage);
+		// 2-2. 보낸쪽지 + total + model
+		List<MsgVO> senddata = this.bsMsgService.sendMsg(sendMap);
+		int sendTotal = this.bsMsgService.sendTotal(vo.getBusiId());
+		model.addAttribute("senddata", new PagingDTO<MsgVO>(sendTotal, currentPage, 10, senddata));
+
+		// 파라미터로 들어온 정보로 페이징 처리
+//		Map<String, String> map = new HashMap<String, String>();
+//		map.put("size", String.valueOf(size));
+//		map.put("currentPage", Integer.toString(currentPage));
+//		map.put("cond", cond);
+//		map.put("keyword", keyword);
+//		log.info("map : " + map);
+
+		// 전체 글 수
+//		int recvTotal = this.bsMsgService.recvTotal(vo.getBusiId());
+//		int sendTotal = this.bsMsgService.sendTotal(vo.getBusiId());
+//		model.addAttribute("recvdata", new AdMemListPage<MsgVO>(recvTotal, currentPage, size, recvdata));
+//		model.addAttribute("senddata", new AdMemListPage<MsgVO>(sendTotal, currentPage, size, senddata));
+
+		return "business/inquiry/msgbox";
+	}
+
+	@ResponseBody
+	@PostMapping("/msgInsert")
+	public int msgInsert(@RequestBody MsgVO msgVO, HttpSession session) {
+		log.info("sessionn:" + session.getAttribute("vo"));
+		BusiVO busiVO = (BusiVO) session.getAttribute("vo");
+
+		msgVO.setSendId(busiVO.getBusiId());
+		log.info("msgVO00:" + msgVO);
+
+		int cnt = 0;
+//		int cnt = this.bsMsgService.msgInsert(msgVO);
+		return cnt;
+	}
+
+	@GetMapping("/chatting")
+	public String chattings(Model model, HttpSession session) {
+		log.info("chat");
+		return "business/inquiry/chatting";
+	}
+
+}

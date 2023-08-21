@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.rntCar.mapper.BsRntCarMapper">
+	<resultMap id="carMap" type="carVO" >
+		<result column="CAR_NUM" property="carNum" />
+		<result column="CAR_CODE" property="carCode" />
+		<result column="CAR_KND" property="carKnd" />
+		<result column="CAR_YR" property="carYr" />
+		<result column="CAR_FEE" property="carFee" />
+		<result column="FUEL_TY" property="fuelTy" />
+		<result column="MAX_PP" property="maxPp" />
+		<result column="BUSI_ID" property="busiId" />
+		<result column="CAR_OP" property="carOp" />
+	</resultMap>
+	
+	
+	<select id="detailCar"  parameterType="carVO" resultMap="carMap">
+		SELECT
+				ROW_NUMBER() OVER(ORDER BY CAR_NUM ASC) RNUM,   
+			    CAR_NUM, 
+			    CAR_CODE, 
+			    CAR_KND, 
+			    CAR_YR, 
+			    CAR_FEE, 
+			    FUEL_TY, 
+			    MAX_PP, 
+			    BUSI_ID, 
+			    CAR_OP ,
+			     CAR_IMG 
+			FROM CAR
+			WHERE CAR_NUM = #{carNum}
+	</select>
+	
+
+	<!-- 차관리 리스트 -->
+	<select id="carList" parameterType="carVO" resultMap="carMap">
+		WITH T AS (
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY CAR_NUM ASC) RNUM,   
+			    CAR_NUM, 
+			    CAR_CODE, 
+			    CAR_KND, 
+			    CAR_YR, 
+			    CAR_FEE, 
+			    FUEL_TY, 
+			    MAX_PP, 
+			    BUSI_ID, 
+			    CAR_OP,
+			    CAR_IMG 
+			FROM CAR
+			WHERE BUSI_ID =#{busiId}
+			<if test="keyword!=null and !keyword.equals('')">
+			AND CAR_KND LIKE '%' || #{keyword} || '%'
+			</if>
+			)
+			SELECT T.*
+			FROM T
+			WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+			AND (#{currentPage} * #{size})
+	
+	</select>
+	
+	<update id="updateCar" parameterType="carVO" >
+		UPDATE CAR 
+		SET 
+		    CAR_CODE = #{carCode} ,
+		    CAR_KND  = #{carKnd} ,
+		    CAR_YR 	 = #{carYr} ,
+		    CAR_FEE	 = #{carFee} ,
+		    FUEL_TY	 = #{fuelTy} ,
+		    MAX_PP 	 = #{maxPp} ,
+		    CAR_OP 	 = #{carOp}
+		WHERE
+		    CAR_NUM = #{carNum}
+	
+	</update>
+
+	
+	
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT (*) FROM CAR 
+		WHERE BUSI_ID = #{busiId}
+			<if test="keyword!=null and !keyword.equals('')">
+				AND CAR_KND LIKE '%' || #{keyword} ||'%'
+			</if>
+	</select>
+
+	<insert id="addCar" parameterType="carVO" >
+		INSERT INTO CAR 
+		(
+		CAR_NUM, CAR_CODE, CAR_KND, CAR_YR, CAR_FEE, FUEL_TY, MAX_PP, BUSI_ID, CAR_OP
+		)
+		VALUES
+		(
+		#{carNum}  ,#{carCode},#{carKnd} ,#{carYr} ,#{carFee} , #{fuelTy} , #{maxPp}, #{busiId},#{carOp}
+ 		)
+	</insert>
+	
+	<!-- 2.첨부파일 테이블 등록 -->
+	<insert id="attachInsert" parameterType="attachVO">
+		INSERT INTO ATTACH(ATTACH_ID, ATTACH_DEL) 
+		VALUES(#{attachId},'N')
+	</insert>
+	
+	<!-- 3.첨부파일_상세 테이블  등록-->
+	<update id="attachDeInsert" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(ATTACH_DE_ID, ATTACH_ID, ORG_NM, FILE_NM, SAVE_PATH, FILE_SZ, FILE_TY, FILE_DEL,FILE_DT) 
+			VALUES(#{idx}+1 ,#{attachDeVO.attachId},#{attachDeVO.orgNm},#{attachDeVO.fileNm},
+			#{attachDeVO.savePath},#{attachDeVO.fileSz},#{attachDeVO.fileTy},'N',SYSDATE)
+		</foreach>
+	</update>
+	
+	<insert id="getImg" parameterType="carVO">
+		INSERT INTO CAR 
+		(CAR_IMG)
+		VALUE
+		(#{carImg})
+	</insert>
+	
+	
+	<select id="getImgPath" parameterType="String" resultType="String">
+	SELECT 
+    	SAVE_PATH
+	FROM ATTACH_DE 
+	WHERE ATTACH_ID = #{carNum}
+	</select>
+	
+	<resultMap id="carListMap" type="rsvRntCarVO">
+		<result column="RSV_ID" property="rsvId" />
+		<result column="RSV_CODE" property="rsvCode" />
+		<result column="RSV_ST" property="rsvSt" />
+		<result column="RSV_ED" property="rsvEd" />
+		<result column="EX_FEE" property="exFee" />
+		<result column="PAY_PR" property="payPr" />
+		<result column="RNT_ST" property="rntSt" />
+		<result column="RNT_ED" property="rntEd" />
+		<result column="CAR_NUM" property="carNum" />
+		<result column="CAR_KND" property="carKnd" />
+		<result column="MEM_NM" property="memNm" />
+		<result column="MEM_TEL" property="memTel" />
+		<result column="H_INSR_ID" property="hInsrId" />
+		<result column="ROW_NO" property="rowNo" />
+		<result column="RSV_PERIOD" property="rsvPeriod" />
+		<result column="GRAD_ID" property="gradId" />
+		<result column="PAY_MTH" property="payMth" />
+	</resultMap>
+	
+	
+	
+	
+		<!-- 렌트카 예약내역  -->
+	<select id="rntRsvList" parameterType="hashMap" resultMap="carListMap">
+		WITH T AS (	
+			SELECT 
+				ROW_NUMBER() OVER (ORDER BY A.RSV_DT desc) AS ROW_NO, 
+			     FN_CODE_TO_NM(A.RSV_CODE) AS RSV_CODE,
+			    A.RSV_ID,
+			    B.RSV_ST,
+			    B.RSV_ED,
+			    B.RNT_ST,
+			    B.RNT_ED,
+			    B.CAR_NUM,
+			    B.RSV_ST ||CHR(13) || '~'||CHR(13)  || B.RSV_ED AS RSV_PERIOD,
+			    C.PAY_PR,
+			    D.CAR_KND,
+			    E.MEM_NM,
+			    E.MEM_TEL 
+			FROM RSV A
+			INNER JOIN RSV_RNTCAR B
+			ON A.RSV_ID =B.RSV_ID
+			INNER JOIN PAY C 
+			ON B.RSV_ID =C.RSV_ID
+			INNER JOIN CAR D
+			ON  B.CAR_NUM = D.CAR_NUM
+			INNER JOIN MEM E    
+			ON A.MEM_ID =E.MEM_ID
+			
+			WHERE A.BUSI_ID = #{busiId}
+			AND (A.RSV_CODE = 'K01' OR A.RSV_CODE='K02')
+			<!-- 		예약자명 검색  -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) LIKE '%' || #{keyword} || '%'
+		</if>
+<!-- 		 예약 기간 검색  -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND B.RSV_ST  &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND B.RSV_ED &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+			)
+		SELECT T.*
+		FROM T
+		WHERE T.ROW_NO BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+		
+	</select>
+	
+	<select id="carGetTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM RSV A
+		
+		WHERE (A.RSV_CODE = 'K01' OR A.RSV_CODE='K02')
+		AND A.BUSI_ID = #{busiId}
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) LIKE '%' || #{keyword} || '%'
+		</if>
+<!-- 		 예약 기간 검색  -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND (SELECT RSV_ST FROM RSV_RNTCAR WHERE RSV_ID = A.RSV_ID) &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND (SELECT RSV_ED FROM RSV_RNTCAR WHERE RSV_ID = A.RSV_ID) &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	<select id="rsvIdDetail"  parameterType="String" resultMap="carListMap">
+		SELECT 
+		    FN_CODE_TO_NM(A.RSV_CODE) AS RSV_CODE,
+		    B.RSV_ST ||CHR(13) || '~'||CHR(13)  || B.RSV_ED AS RSV_PERIOD,
+		    B.RNT_ED,
+		    B.RNT_ST,
+		    B.CAR_NUM,
+		    C.PAY_PR,
+		    D.CAR_KND,
+		    E.MEM_NM,
+		    E.MEM_TEL ,
+		    E.GRAD_ID	,
+		    c.PAY_MTH
+		    
+		FROM RSV A
+		INNER JOIN RSV_RNTCAR B
+		ON A.RSV_ID =B.RSV_ID
+		INNER JOIN PAY C 
+		ON B.RSV_ID =C.RSV_ID
+		INNER JOIN CAR D
+		ON  B.CAR_NUM = D.CAR_NUM
+		INNER JOIN MEM E    
+		ON A.MEM_ID =E.MEM_ID
+		
+		WHERE A.RSV_ID = #{rsvId}
+	</select>
+	
+	<select id="todayCar" parameterType="hashMap" resultType="kr.or.ddit.vo.RsvRntCarVO">
+		WITH T AS(
+			SELECT 
+			ROW_NUMBER() OVER(ORDER BY A.RSV_ID DESC) AS RNUM,
+			  A.RSV_ID,
+			  A.RSV_CODE,
+			  B.RSV_ST,
+			  B.RNT_ST,
+			  B.RNT_ED,
+			  C.CAR_NUM,
+			  C.CAR_KND,
+			  C.CAR_IMG,
+			  D.MEM_NM,
+			  D.MEM_TEL,
+			  D.MEM_EMAIL,
+			  D.GRAD_ID,
+			  D.MEM_GEN
+			
+			FROM RSV A
+			INNER JOIN RSV_RNTCAR B
+			ON A.RSV_ID = B.RSV_ID
+			INNER JOIN CAR C
+			ON B.CAR_NUM =C.CAR_NUM
+			INNER JOIN MEM D
+			ON A.MEM_ID =D.MEM_ID
+			
+			WHERE A.BUSI_ID = #{busiId}
+			AND A.RSV_CODE ='K02'
+			AND B.RSV_ST =  TRUNC(SYSDATE) 
+			)
+			SELECT T.* FROM T
+			WHERE T.RNUM BETWEEN 
+			(#{currentPage} * 5) - 4 AND #{currentPage} * 5
+	</select>
+	
+	
+	
+	<select id="todayRf"  parameterType="hashMap" resultType="kr.or.ddit.vo.RsvRntCarVO">
+		WITH T AS(
+			SELECT 
+			  ROW_NUMBER() OVER(ORDER BY A.RSV_ID DESC) AS RNUM,
+			  A.RSV_ID,
+			  A.RSV_CODE,
+			  A.MEM_ID,
+			  B.RSV_ST,
+			  B.RNT_ST,
+			  B.RNT_ED,
+			  C.CAR_NUM,
+			  C.CAR_KND,
+			  D.MEM_NM,
+			  D.MEM_TEL
+			
+			FROM RSV A
+			INNER JOIN RSV_RNTCAR B
+			ON A.RSV_ID = B.RSV_ID
+			INNER JOIN CAR C
+			ON B.CAR_NUM =C.CAR_NUM
+			INNER JOIN MEM D
+			ON A.MEM_ID =D.MEM_ID
+			WHERE A.BUSI_ID = #{busiId}
+			AND A.RSV_CODE ='K02'
+			AND B.RSV_ED =  TRUNC(SYSDATE)
+			)
+			SELECT T.* FROM T
+			WHERE T.RNUM BETWEEN 
+			(#{currentPage} * 5) - 4 AND #{currentPage} * 5
+			
+	</select>
+	<select id="totalIn" parameterType="String" resultType="int">
+		SELECT COUNT(*) 
+		FROM RSV_RNTCAR A
+		
+		INNER JOIN RSV B
+		ON A.RSV_ID =B.RSV_ID
+		WHERE B.BUSI_ID = #{busiId}
+		AND A.RSV_ST = TRUNC(SYSDATE)
+		AND B.RSV_CODE ='K02'
+	</select>
+	
+	<select id="totalOut" parameterType="String" resultType="int">
+		SELECT COUNT(*) 
+		FROM RSV_RNTCAR A
+		
+		INNER JOIN RSV B
+		ON A.RSV_ID =B.RSV_ID
+		WHERE B.BUSI_ID = #{busiId}
+		AND A.RSV_ED = TRUNC(SYSDATE)
+		AND B.RSV_CODE ='K02'
+	</select>
+	
+	<update id="checkSt" parameterType="String" >
+		UPDATE RSV_RNTCAR
+		SET RNT_ST = SYSDATE
+		WHERE RSV_ID = #{rsvId}
+	
+	</update>
+	<update id="checkEd" parameterType="String" >
+		UPDATE RSV_RNTCAR
+		SET RNT_ED = SYSDATE
+		WHERE RSV_ID = #{rsvId}
+	
+	</update>
+	
+</mapper>

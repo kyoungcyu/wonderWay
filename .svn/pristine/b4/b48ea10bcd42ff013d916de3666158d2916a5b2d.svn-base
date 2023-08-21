@@ -1,0 +1,39 @@
+package kr.or.ddit.member.service.impl;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.member.mapper.MypageMapper;
+import kr.or.ddit.member.service.MypageService;
+import kr.or.ddit.vo.MemVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class MypageServiceImpl implements MypageService {
+	@Inject
+	MypageMapper mypageMapper;
+	//마이페이지 - 내 프로필 
+	@Override
+	public MemVO detailMyInfo(String memId) {
+		return this.mypageMapper.detailMyInfo(memId);
+	}
+	
+	//마이페이지 - 내 프로필 - 내 정보 수정
+	@Override
+	public int updateMyInfo(MemVO memVO) {
+		return this.mypageMapper.updateMyInfo(memVO);
+	}
+	//마이페이지 - 내 프로필 - 비밀번호 변경
+	@Override
+	public int updateMyPw(MemVO memVO) {
+		return this.mypageMapper.updateMyPw(memVO);
+	}
+	//회원 탈퇴
+	@Override
+	public int deleteMem(MemVO memVO) {
+		return this.deleteMem(memVO);
+	}
+
+}

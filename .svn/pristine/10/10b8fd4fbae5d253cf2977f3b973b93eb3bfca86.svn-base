@@ -1,0 +1,428 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+<head>
+<!-- Meta Tags -->
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="Webestica.com">
+<meta name="description"
+	content="Booking - Multipurpose Online Booking Theme">
+
+
+<!-- Plugins CSS -->
+<link rel="stylesheet" type="text/css" href="/resources/booking/assets/vendor/choices/css/choices.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="/resources/booking/assets/vendor/choices/js/choices.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+<script type="text/javascript">
+	$(function() {
+		$(".rsvDetail").on("click", function() {
+			//data-reserve-id="a001"
+			let rsvId = $(this).data("reserveId");
+			let page = $(this).data("pageId");
+			
+			console.log("reserveId : " + rsvId);
+			$("#detailModal").html();
+			$.ajax({
+				url : "/admin/reserve/rsvDetailPost",
+				data : {
+					"rsvId" : rsvId,
+					"pageId" : page
+				},
+				type : "post",
+				dataType : "json",
+				beforeSend : function (xhr) {
+					xhr.setRequestHeader("${_csrf.headerName}","${_csrf.token}");
+				},
+				success : function(result) {
+					console.log("result : "
+							+ result.reserveNm);
+					console.log("result : "
+							+ result.gradId);
+					console.log("result : "
+							+ result.rsvDt);
+					let str = "";
+					str = `<ul class='list-group list-group-borderless'>`;
+					str += `<li class='list-group-item mb-3'> <span>회원명:</span> <span class='h6 fw-normal ms-1 mb-0'>\${result.memNm}</span> </li>`;
+					str += `<li class='list-group-item mb-3'> <span>회원 등급:</span> <span class='h6 fw-normal ms-1 mb-0'>\${result.gradId}</span> </li>`;
+					str += `<li class='list-group-item mb-3'> <span>예약 업체:</span> <span class='h6 fw-normal ms-1 mb-0'>\${result.busiNm}</span> </li>`;
+					str += `<li class='list-group-item mb-3'> <span>예약 종류:</span> <span class='h6 fw-normal ms-1 mb-0'>\${result.busiCode}</span> </li>`;
+					str += `<li class='list-group-item mb-3'> <span>결제 방식:</span> <span class='h6 fw-normal ms-1 mb-0'>\${result.payMth}</span> </li>`;
+					str += `<li class='list-group-item mb-3'> <span>예약 일자:</span> <span class='h6 fw-normal ms-1 mb-0'>\${result.rsvDtStr}</span> </li>`;
+					str += `<li class='list-group-item mb-3'> <span>예약 기간:</span> <span class='h6 fw-normal ms-1 mb-0'>\${result.rsvPeriod}</span> </li>`;
+					str += `<li class='list-group-item mb-3'> <span>금액:</span> <span class='h6 fw-normal ms-1 mb-0' id='payPr'>&#8361;\${result.payPr}</span> </li>`;
+					str += `<li class='list-group-item mb-3'> <span>예약 상태:</span>    `;
+					if(result.rsvCode == "입금대기") {
+						str += `<div class="badge bg-warning bg-opacity-10 text-warning">\${result.rsvCode}</div>`;
+					} else if(result.rsvCode == "예약확정") {
+						str += `<div class="badge bg-success bg-opacity-10 text-success">\${result.rsvCode}</div>`;
+					} else if(result.rsvCode == "환불요청") {
+						str += `<div class="badge bg-danger bg-opacity-10 text-danger">\${result.rsvCode}</div>`;
+					} else if(result.rsvCode == "환불처리완료") {
+						str += `<div class="badge bg-secondary bg-opacity-10 text-secondary">\${result.rsvCode}</div>`;
+					}
+					str += `</li>`;
+					str += `</ul>`;
+		
+					$("#detailModal").html(str);
+		
+					changeRsvDt();
+				}
+			});
+		});
+		
+		$("#sort").on("change",function(){
+			
+			$("#frm01").submit();
+		});
+		
+		let fp = $("#calender").flatpickr({
+			enableTime: false,
+		    dateFormat: "Y/m/d"
+		});
+		
+		fp.config.onClose.push(function() {
+			let date = $("#calender").val();
+			console.log("flag : ", date);
+			$("#calender").val(date);
+			$("#frm01").submit();
+		});
+		
+		$(".submitBtn").on("click", function() {
+			let param = $(this).val();
+			$(".submitParams").val(param);
+			$("#frm01").submit();
+		});
+		
+		$("#init").on("click", function() {
+			$("#calender").val("");
+			$("input[name=keyword]").val("");
+			$("#sort").val("");
+			
+			$("#frm01").submit();
+		});
+	});
+
+	function changeRsvDt() {
+		// 금액 천단위 처리
+		let obj = document.getElementById("payPr");
+		let str = obj.innerHTML.replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
+
+		console.log("payPr : " + str);
+
+		document.getElementById("payPr").innerHTML = str;
+	}
+</script>
+</head>
+
+<body>
+	<!-- **************** MAIN CONTENT START **************** -->
+	<main>
+		<!-- Page main content START -->
+		<div class="page-content-wrapper p-xxl-4">
+			<!-- 개수 Start -->
+			<div class="row g-4">
+				<!-- Block item -->
+				<div class="col-sm-6 col-xxl-3">
+					<div class="card card-body bg-light p-4 h-100">
+						<h6 class="mb-0">월 전체 예약 수</h6>
+						<br />
+						<h4 class="mb-2 mt-2">
+							${cntAllMonth }
+						</h4>
+					</div>
+				</div>
+
+				<!-- Block item -->
+				<div class="col-sm-6 col-xxl-3">
+					<div class="card card-body bg-light p-4 h-100">
+						<h6 class="mb-0">월 숙박 예약 수</h6>
+						<br />
+						<h4 class="mb-2 mt-2">
+							${cntStyMonth }
+						</h4>
+					</div>
+				</div>
+
+				<!-- Block item -->
+				<div class="col-sm-6 col-xxl-3">
+					<div class="card card-body bg-light p-4 h-100">
+						<h6 class="mb-0">월 렌터카 예약 수</h6>
+						<br />
+						<h4 class="mb-2 mt-2">
+							${cntRntMonth }
+						</h4>
+					</div>
+				</div>
+	
+				<!-- Block item -->
+				<div class="col-sm-6 col-xxl-3" >
+					<div class="card card-body bg-light p-4 h-100">
+						<h6 class="mb-0">월 전체 예약 금액</h6>
+						<br />
+						<h4 class="mb-2 mt-2">
+							&#8361; <fmt:formatNumber type="number" pattern="#,###" value="${sumRsvMonth }" />
+						</h4>
+					</div>
+				</div>
+			</div>
+			<!-- 개수 End -->
+		
+			<div class="card shadow mt-5">
+				<!-- Filters START -->
+				<form id="frm01" class="card-header border-bottom" method="get">
+					<div class="row g-4 align-items-center">
+						<div class="d-flex align-items-center col-md-6 col-lg-2">
+							<h5 class="h4 mb-3 mb-sm-0">예약 목록
+								<a id="init" href="#" class="h5 mb-0 text-body" >
+									<i class="bi bi-arrow-clockwise"></i>
+								</a>
+							</h5>
+							<br />
+						</div>
+						<div class="d-flex align-items-center col-md-6 col-lg-3">
+							<ul class="nav nav-pills-shadow nav-responsive" role="tablist">
+								<c:choose>
+									<c:when test="${param.page eq '렌터카'}">
+										<input class="submitParams" type="hidden" name="page" value="${param.page}">
+										<li class="nav-item" role="presentation">
+											<input type="button" class="nav-link submitBtn" value="숙박" /> 
+										</li>
+										<li class="nav-item" role="presentation">
+											<input type="button" class="nav-link submitBtn active" value="렌터카" /> 
+										</li>
+									</c:when>
+									<c:otherwise>
+										<input class="submitParams" type="hidden" name="page" value="${param.page}">
+										<li class="nav-item" role="presentation">
+											<input type="button" class="nav-link submitBtn active" value="숙박" /> 
+										</li>
+										<li class="nav-item" role="presentation">
+											<input type="button" class="nav-link submitBtn" value="렌터카" /> 
+										</li>
+									</c:otherwise>
+								</c:choose>
+							</ul>
+						</div> 
+						
+						<!-- 검색 -->
+						<div class="d-flex align-items-center col-md-6 col-lg-2">
+							<input class="form-control bg-transparent pe-5" type="search" placeholder="업체명" aria-label="Search" name="keyword" value="${param.keyword}">
+							<button class="bg-transparent p-2 position-absolute translate-middle-y border-0 text-primary-hover text-reset" type="submit" 
+								style="margin-left: 130px; margin-top: 45px">
+								<i class="fas fa-search fs-6"></i>
+							</button>
+						</div>
+						
+						<!-- 기간 설정 -->
+						<div class="d-flex align-items-center col-md-6 col-lg-3">
+							<i class="bi bi-calendar fs-5 me-2 mt-2"></i>
+							<div class="d-flex">
+								<!-- Icon -->
+								<!-- Date input -->
+								<div class="form-control-border form-control-transparent form-fs-md">
+									<input id="calender" type="text" class="form-control flatpickr-input" data-mode="range" placeholder="예약 기간을 선택하세요" 
+										   name="period" value="<c:if test="${param.period!=''}">${param.period}</c:if>" readonly>
+								</div>
+							</div>
+						</div>
+				
+						<!-- 정렬 -->
+						<div class="col-md-6 col-lg-2">
+							<select class="form-select js-choice" aria-label=".form-select-sm" name="sort" id="sort">
+								<option value="" >선택해주세요</option>
+								<option value="payMth" <c:if test="${param.sort=='payMth'}">selected</c:if>>결제 방식</option>
+								<option value="rsvAsc" <c:if test="${param.sort=='rsvAsc'}">selected</c:if>>예약 일자 &#8593;</option>
+								<option value="rsvDesc" <c:if test="${param.sort=='rsvDesc'}">selected</c:if>>예약 일자 &#8595;</option>
+								<option value="busiNmAsc" <c:if test="${param.sort=='busiNmAsc'}">selected</c:if>>업체명 &#8593;</option>
+								<option value="busiNmDesc" <c:if test="${param.sort=='busiNmDesc'}">selected</c:if>>업체명 &#8595;</option>
+							</select>
+						</div>
+					</div>
+				</form>
+				<!-- Filters END -->
+
+				<!-- Card body START -->
+				<div class="card-body">
+					<!-- Table head -->
+					<div class="bg-light rounded p-3 d-none d-lg-block">
+						<div class="row row-cols-7 g-4">
+							<div class="col" style="text-align: center;">
+								<h6 class="mb-0">회원명</h6>
+							</div>
+							<div class="col" style="text-align: center;">
+								<h6 class="mb-0">예약 업체</h6>
+							</div>
+							<div class="col" style="text-align: center;">
+								<h6 class="mb-0">결제 방식</h6>
+							</div>
+							<div class="col" style="text-align: center;">
+								<h6 class="mb-0">예약 일자</h6>
+							</div>
+							<div class="col" style="text-align: center;">
+								<h6 class="mb-0">예약 기간</h6>
+							</div>
+							<div class="col" style="text-align: center;">
+								<h6 class="mb-0">예약 상태</h6>
+							</div>
+							<div class="col" style="text-align: center;">
+								<h6 class="mb-0">상세</h6>
+							</div>
+						</div>
+					</div>
+
+					<!-- Table data -->
+					<c:forEach var="rsvListVO" items="${data.content}" varStatus="stat">
+						<div class="row row-cols-xl-7 align-items-lg-center border-bottom g-4 px-2 py-4"
+						     >
+							<!-- Data item -->
+							<div class="col">
+								<small class="d-block d-lg-none">회원명:</small>
+								<div class="d-flex align-items-center" style="margin-left: 10px">
+									<!-- Avatar -->
+									<div class="avatar avatar-xs flex-shrink-0">
+										<img class="avatar-img rounded-circle"
+											src="/resources/booking/assets/images/avatar/09.jpg"
+											alt="avatar">
+									</div>
+									<!-- Info -->
+									<div class="ms-2" style="text-align: center;">
+										<c:if test="${rsvListVO.remainDate < 0}">
+											<del class="mb-0 fw-light" style="color:#aaaaaa;">${rsvListVO.memNm}</del>
+										</c:if>
+										<c:if test="${rsvListVO.remainDate >= 0}">
+											<h6 class="mb-0 fw-light">${rsvListVO.memNm}</h6>
+										</c:if>
+									</div>
+								</div>
+							</div>
+
+							<!-- Data item -->
+							<div class="col" style="text-align: center; margin-left: 6px">
+								<small class="d-block d-lg-none">예약 업체:</small>
+								<h6 class="mb-0 fw-normal">${rsvListVO.busiNm}</h6>
+							</div>
+
+							<!-- Data item -->
+							<div class="col" style="text-align: center;">
+								<small class="d-block d-lg-none">결제 방식:</small>
+								<h6 class="mb-0 fw-normal">${rsvListVO.payMth}</h6>
+							</div>
+
+							<!-- Data item -->
+							<div class="col" style="text-align: center;">
+								<small class="d-block d-lg-none">예약 일자:</small>
+								<h6 class="mb-0 fw-normal">
+									<fmt:formatDate value="${rsvListVO.rsvDt}" pattern="yyyy/MM/dd" />
+								</h6>
+							</div>
+
+							<!-- Data item -->
+							<div class="col" style="text-align: center;">
+								<small class="d-block d-lg-none">예약 기간:</small>
+								<h6 class="mb-0 fw-normal">${rsvListVO.rsvPeriod}</h6>
+							</div>
+
+							<!-- Data item -->
+							<div class="col" style="text-align: center;">
+								<small class="d-block d-lg-none">예약 상태:</small>
+								<c:choose>
+									<c:when test="${rsvListVO.remainDate >= 0}">
+										<c:if test="${rsvListVO.rsvCode eq '입금대기'}">
+											<div class="badge bg-warning bg-opacity-10 text-warning">${rsvListVO.rsvCode}</div>
+										</c:if>
+										<c:if test="${rsvListVO.rsvCode eq '예약확정'}">
+											<div class="badge bg-success bg-opacity-10 text-success">${rsvListVO.rsvCode}</div>
+										</c:if>
+										<c:if test="${rsvListVO.rsvCode eq '환불요청'}">
+											<div class="badge bg-danger bg-opacity-10 text-danger">${rsvListVO.rsvCode}</div>
+										</c:if>
+										<c:if test="${rsvListVO.rsvCode eq '환불처리완료'}">
+											<div class="badge bg-secondary bg-opacity-10 text-secondary">${rsvListVO.rsvCode}</div>
+										</c:if>
+									</c:when>
+									<c:otherwise>
+										<div class="badge bg-secondary bg-opacity-10 text-secondary">기간만료</div>
+									</c:otherwise>
+								</c:choose>
+							</div>
+
+							<!-- Data item -->
+							<div class="col" style="text-align: center;">
+								<a href="#" class="btn btn-sm btn-info-soft rsvDetail"
+									data-toggle="modal" data-reserve-id="${rsvListVO.rsvId}" data-page-id='${page}'
+									data-target=".bd-reserveDetail-modal-lg">상세</a>
+							</div>
+						</div>
+					</c:forEach>
+				</div>
+				<!-- Card body END -->
+
+				<!-- Card footer START -->
+				<div class="card-footer pt-0">
+					<!-- Pagination and content -->
+					<div class="d-sm-flex justify-content-sm-between align-items-sm-center">
+						<!-- Content -->
+						<c:set var="endRow" value="${data.currentPage * data.size}" />
+						<c:set var="startRow" value="${endRow - (data.size - 1)}" />
+						<c:set var="total" value="${data.total}" />
+						<c:if test="${endRow>total}">
+							<c:set var="endRow" value="${total}" />
+						</c:if>
+						<p class="mb-sm-0 text-center text-sm-start">Showing ${startRow} to ${endRow} of ${total} entries</p>
+						<!-- Pagination -->
+						<nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
+							<ul class="pagination pagination-sm pagination-primary-soft mb-0 ">
+								<li class="page-item <c:if test='${data.startPage < 6}'>disabled</c:if>" id="dataTable_previous">
+									<a class="page-link" href="/admin/reserve/list?currentPage=${data.startPage-5}&keyword=${param.keyword}&sort=${param.sort}&page=${param.page}&period=${param.period}" aria-controls="dataTable" data-dt-idx="0"  tabindex="-1">Prev</a>
+								</li>
+								<c:forEach var="pNo" begin="${data.startPage}" end="${data.endPage}">
+									<li class="page-item <c:if test='${param.currentPage eq pNo}'>active</c:if>">
+										<a href="/admin/reserve/list?currentPage=${pNo}&keyword=${param.keyword}&sort=${param.sort}&page=${param.page}&period=${param.period}" aria-controls="dataTable" data-dt-idx="${pNo}" tabindex="0" class="page-link">${pNo}</a>
+									</li>
+								</c:forEach>
+								<li class="page-item <c:if test='${data.endPage == data.totalPages}'>disabled</c:if>" id="dataTable_next">
+									<a class="page-link" href="/admin/reserve/list?currentPage=${data.startPage+5}&keyword=${param.keyword}&sort=${param.sort}&page=${param.page}&period=${param.period}" aria-controls="dataTable" data-dt-idx="7"  tabindex="-1">Next</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+				</div>
+				<!-- Card footer END -->
+			</div>
+			<!-- Guest list END -->
+		</div>
+		<!-- Page main content END -->
+		<div class="modal fade bd-reserveDetail-modal-lg" tabindex="-1"
+			role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">예약 상세</h5>
+						<button type="button" class="btn" data-dismiss="modal"
+							style="font-size: 1.5rem; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff;"
+							aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div id="detailModal"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-sm btn-dark-soft"
+							data-dismiss="modal">닫기</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</main>
+	<!-- **************** MAIN CONTENT END **************** -->
+</body>

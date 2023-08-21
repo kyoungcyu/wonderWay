@@ -1,0 +1,122 @@
+package kr.or.ddit.member.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.CmtVO;
+import kr.or.ddit.vo.LikeBrdVO;
+import kr.or.ddit.vo.TourVO;
+
+public interface TripBoardMapper {
+	
+	//여행후기 메인 페이지 최근순 정렬
+	public List<BrdVO> tripRecList(Map<String, String> map);
+	//여행후기 메인 페이지 인기순정렬
+	public List<BrdVO> tripLikeList(Map<String, String> map);
+	//여행후기 글 목록 리스트
+	public List<BrdVO> tripBoardList(Map<String, String> map);
+	
+	//여행후기 글 상세보기
+	public BrdVO tripDetail(BrdVO brdVO);
+	//페이징 처리- 전체 글 수 조회
+	public int countBoard(Map<String,String> map);
+	//여행후기 글 조회수 count
+	public int tripViewCnt(String brdId);
+	//첨부파일 가져오기
+	public String savePath(String brdId);
+	
+	
+	//여행후기 글 등록하기
+	public int tripAddWrite(BrdVO brdVO);
+	//여행후기 글 등록 - 첨부파일
+	public int attachInsert(AttachVO attachVO);
+	//여행후기 글 등록 - 첨부파일_상세
+	public int attachDeInsert(List<AttachDeVO> attachDeVOlist);
+	//여행후기 글 등록 - 첨부파일 아이디 update
+	public int attachIdUpdate(BrdVO brdVO);
+	//여행지 불러오기
+	public List<TourVO> tourList(Map<String, String> map);
+	//여행지명 가져오기
+	public String tourNm(String tourId);
+	
+	
+	
+	//여행후기 글 수정
+	public int tripUpdate(BrdVO brdVO);
+	public int attachDeBefUpdate(BrdVO brdVO);
+	//첨부파일 상세 아이디는 그대로 파일 정보 업데이트
+	public int attachDeUpdate(List<AttachDeVO> attachDeVOlist);
+	
+	
+	
+	
+	//여행후기 글 삭제
+	public int tripDelete(BrdVO brdVO);
+	public int tripAttachDelete(BrdVO brdVO);
+	public int tripAttachDeDelete(BrdVO brdVO);
+	
+	
+	
+	/**
+	 * 게시물 좋아요 기능
+	 * @param likeBrdVO
+	 */
+	//게시물 좋아요 기능
+	//좋아요 버튼 눌렀는지 확인
+	public int findLike(LikeBrdVO likeBrdVO);
+	//게시물 좋아요 클릭
+	public int likeBrd(LikeBrdVO likeBrdVO);
+	public int insertBrd(LikeBrdVO likeBrdVO);
+	//좋아요 한번 더 클릭시 비활성화
+	public int dislikeBrd(LikeBrdVO likeBrdVO);
+	public int deleteBrd(LikeBrdVO likeBrdVO);
+	
+	
+	/**
+	 * 게시물 신고 기능
+	 * @param brdVO
+	 */
+	//글 신고하기
+	public int tripReprt(BrdVO brdVO);
+	
+	
+	/**
+	 * 댓글 기능
+	 */
+	//1. 댓글 작성
+	public int cmtWrite(CmtVO cmtVO);
+	//2. 댓글 수정
+	public int cmtUpdate(CmtVO cmtVO);
+	//3. 댓글 삭제
+	public int cmtDelete(CmtVO cmtVO);
+	//4. 댓글 조회
+	public List<CmtVO> cmtDetail(String brdId);
+	//5.댓글 개수 조회
+	public int cmtCount(String brdId);
+	
+	/**
+	 * 대댓글 기능
+	 * 수정과 삭제는 댓글과 같음.
+	 */
+	//1. 대댓글 작성
+	public int replyWrite(CmtVO cmtVO);	
+	// 2. 대댓글 조회
+	public List<CmtVO> replyDetail(String cmtId);	
+	//3. 대댓글 개수 조회
+	public int repCmtCount(String repCmtId);
+	
+	
+	// 여행지 매거진
+	
+	// 매거진 목록
+	public List<BrdVO> magazineList(Map<String, String> map);
+	
+	// 매거진 상세
+	public BrdVO magazineDetail(String brdId);
+	
+	// 매거진 총 개수
+	public int getTotalMagazine(Map<String, String> map);
+}

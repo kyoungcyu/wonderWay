@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.business.mapper.BsRmMapper">
+
+	<resultMap id="rmMap" type="bsRmVO" >
+		<result column="BUSI_ID" property="busiId" />
+		<result column="RM_ID" property="rmId" />
+		<result column="RM_NM" property="rmNm" />
+		<result column="RM_NUM" property="rmNum" />
+		<result column="CHCK_IN" property="chckIn" />
+		<result column="CHCK_OUT" property="chckOut" />
+		<result column="RM_PR" property="rmPr" />
+		<result column="STD_PP" property="stdPp" />
+		<result column="MAX_PP" property="maxPp" />
+		<result column="BUSI_SCR" property="busiScr" />
+		<result column="BUSI_LOC" property="busiLoc" />
+		<collection column="busiId = BUSI_ID" javaType="List" property="cvfcVOList" ofType="cvfcVO" select="selectCvfcVOList" />
+		<collection column="rmId = RM_ID" javaType="List" property="attachDeVOList" ofType="attachDeVO" select="selectAttachDeVOList" />
+	</resultMap>
+	
+	<resultMap id="rmOneMap" type="bsRmVO" >
+		<result column="BUSI_ID" property="busiId" />
+		<result column="RM_ID" property="rmId" />
+		<result column="RM_NM" property="rmNm" />
+		<result column="RM_NUM" property="rmNum" />
+		<result column="RM_PR" property="rmPr" />
+		<result column="STD_PP" property="stdPp" />
+		<result column="MAX_PP" property="maxPp" />
+		<result column="PP_EX_FEE" property="ppExFee" />
+		<result column="RM_BED" property="rmBed" />
+		<result column="RM_DC" property="rmDc" />
+		<collection column="rmId = RM_ID" javaType="List" property="attachDeVOList" ofType="attachDeVO" select="selectAttachDeVOList" />
+	</resultMap>
+	
+	
+
+	<insert id="addRm" parameterType="bsRmVO">
+	<selectKey keyProperty="rmId" resultType="string" order="BEFORE">
+		SELECT #{busiId} || 'RM' || TO_CHAR((SELECT TO_NUMBER(MAX(SUBSTR(RM_ID, 11))) + 1 FROM RM WHERE BUSI_ID = #{busiId}), 'FM00') FROM DUAL
+	</selectKey>
+		INSERT ALL 
+		INTO RM (
+		    RM_ID, 
+		    RM_NM, 
+		    RM_PR, 
+		    RM_DC,
+		    STD_PP, 
+		    MAX_PP, 
+		    PP_EX_FEE, 
+		    BUSI_ID,
+		    RM_BED
+		)
+		VALUES (
+		    #{busiId} || 'RM' || TO_CHAR((SELECT TO_NUMBER(MAX(SUBSTR(RM_ID, 11))) + 1 FROM RM WHERE BUSI_ID = #{busiId}), 'FM00'),
+		    #{rmNm},
+		    #{rmPr}, 
+		    #{rmDc}, 
+		    #{stdPp},
+		    #{maxPp},
+		    #{ppExFee},
+		    #{busiId},
+		    #{rmBed}
+		)
+		INTO RM_DE (
+		    RM_ID, 
+		    RM_NUM
+		)
+		SELECT #{busiId} || 'RM' || TO_CHAR((SELECT TO_NUMBER(MAX(SUBSTR(RM_ID, 11))) + 1 FROM RM WHERE BUSI_ID = #{busiId}), 'FM00'),
+		#{rmNum}
+		
+		FROM RM WHERE BUSI_ID = #{busiId}
+		GROUP BY BUSI_ID
+			
+	
+	</insert>
+	
+	<update id="updateRm" parameterType="bsRmVO" >
+	
+	UPDATE RM 
+	SET 
+	    RM_NM 	  = #{rmNm} ,
+	    RM_PR 	  = #{rmPr} ,
+	    RM_DC 	  = #{rmDc} ,
+	    STD_PP	  = #{stdPp} ,
+	    MAX_PP	  = #{maxPp} ,
+	    PP_EX_FEE = #{ppExFee} ,
+	    RM_BED 	  = #{rmBed}
+	WHERE
+	    RM_ID = #{rmId}
+		
+	</update>
+	
+	<update id="updateRm2" parameterType="bsRmVO" >
+	UPDATE RM_DE
+	SET 
+	    RM_NUM = #{rmNum} 
+	WHERE
+	    RM_ID = #{rmId}
+	</update>
+	
+	
+	
+	<!-- 방ID정보   -->
+	<select id="rmIdList" parameterType="String" resultMap="rmOneMap" >
+		SELECT 
+		    A.RM_ID, 
+		    A.RM_NM, 
+		    A.RM_PR, 
+		    A.RM_DC, 
+		    A.STD_PP, 
+		    A.MAX_PP, 
+		    A.PP_EX_FEE, 
+		    A.BUSI_ID, 
+		    A.RM_BED,
+		    B.RM_NUM
+		    
+		FROM RM A
+		INNER JOIN RM_DE B
+		    ON A.RM_ID =B.RM_ID
+		    
+		WHERE A.RM_ID= #{rmId}
+	</select>
+
+	<!--	방관리 리스트 -->
+	<select id="bsRmList" parameterType="bsRmVO" resultMap="rmMap"> 
+		 WITH T AS (
+		    SELECT DISTINCT
+		        ROW_NUMBER() OVER(ORDER BY A.RM_ID ASC) RNUM,        
+		        A.RM_ID ,
+		        A.RM_NM ,
+		        B.RM_NUM ,
+		        C.CHCK_IN ,
+		        C.CHCK_OUT,
+		        A.RM_PR ,
+		        A.STD_PP ,
+		        A.MAX_PP,
+		        A.BUSI_ID,
+		        C.BUSI_SCR,
+		        C.BUSI_LOC
+		    FROM
+		        RM A    
+		    INNER JOIN RM_DE B ON
+		        A.RM_ID = B.RM_ID
+		    INNER JOIN BUSI C ON
+        C.BUSI_ID = A.BUSI_ID
+        
+		WHERE A.BUSI_ID = #{busiId}
+<!-- 		AND A.RM_DEL ='N'  -->
+<!-- 		AND B.RM_DEL ='N' -->
+		
+		<if test="keyword!=null and !keyword.equals('')">
+			AND A.RM_NM LIKE '%' || #{keyword} || '%'
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+
+
+
+	<!-- collection 방리스트 -->
+	<select id="selectCvfcVOList" parameterType="bsRmVO" resultType="cvfcVO">
+		SELECT 
+	        B.CVFC_ID,
+	        B.CVFC_TYPE,
+	        B.CVFC_NM,
+	        B.ICON
+
+        FROM BUSI_CVFC A
+
+        INNER JOIN CVFC B        
+       	 ON A.CVFC_ID = B.CVFC_ID 
+        
+        WHERE A.BUSI_ID = #{busiId}
+	</select>
+	<!-- collection 파일이미지 -->
+	<select id="selectAttachDeVOList" parameterType="bsRmVO" resultType="attachDeVO">
+		SELECT 
+		    ATTACH_DE_ID , 
+		    ATTACH_ID	 , 
+		    SAVE_PATH	 
+		   
+		FROM ATTACH_DE 
+		WHERE ATTACH_ID = #{rmId}
+	</select>
+	
+	
+	<!-- 	페이징처리 -->
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT (*) FROM RM 
+		WHERE BUSI_ID = #{busiId}
+			<if test="keyword!=null and !keyword.equals('')">
+				AND RM_NM LIKE '%' || #{keyword} ||'%'
+			</if>
+	</select>
+	
+	<delete id="delRm" parameterType="String">
+		DELETE FROM RM_DE
+		WHERE RM_ID = #{rmId}
+		DELETE FROM RM
+		WHERE RM_ID = #{rmId}
+	</delete>
+	
+	
+	
+	
+	<!-- 2.첨부파일 테이블 등록 -->
+	<insert id="attachInsert" parameterType="attachVO">
+		INSERT INTO ATTACH(ATTACH_ID, ATTACH_DEL) 
+		VALUES(#{attachId},'N')
+	</insert>
+	
+	<!-- 3.첨부파일_상세 테이블  등록-->
+	<update id="attachDeInsert" parameterType="java.util.List">
+		<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO ATTACH_DE(ATTACH_DE_ID, ATTACH_ID, ORG_NM, FILE_NM, SAVE_PATH, FILE_SZ, FILE_TY, FILE_DEL,FILE_DT) 
+			VALUES(#{idx}+1 ,#{attachDeVO.attachId},#{attachDeVO.orgNm},#{attachDeVO.fileNm},
+			#{attachDeVO.savePath},#{attachDeVO.fileSz},#{attachDeVO.fileTy},'N',SYSDATE)
+		</foreach>
+	</update>
+	
+</mapper>

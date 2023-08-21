@@ -1,0 +1,23 @@
+package kr.or.ddit.business.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RequestMapping("/business/room")
+@Controller
+public class BsRoomController {
+	@GetMapping("/addRm")
+	public String addRm(){
+		log.info("방등록 페이지 왓다.");
+		
+		return "business/room/addRm" ;
+	}
+
+	
+	
+	
+}

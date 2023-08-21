@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.business.mapper.BsCheckInMapper">
+	<resultMap id="checkInMap" type="checkInVO">
+		<result column="MEM_ID" property="memId" />
+		<result column="MEM_NM" property="memNm" />
+		<result column="MEM_ENM" property="memEnm" />
+		<result column="RSV_ID" property="rsvId" />
+		<result column="RM_NUM" property="rmNum" />
+	</resultMap>
+	
+	<select id="checkRsv" parameterType="String" resultMap="checkInMap">
+		SELECT
+		        A.MEM_ID AS MEM_ID
+		      , A.MEM_NM AS MEM_NM
+		      , A.MEM_FMNM || ' ' || A.MEM_ENM AS MEM_ENM
+		      , B.RSV_ID AS RSV_ID
+		      , (SELECT RM_NUM FROM RSV_STY WHERE RSV_ID = B.RSV_ID) AS RM_NUM
+		FROM MEM A
+		INNER JOIN RSV B ON B.MEM_ID = A.MEM_ID
+		WHERE A.MEM_ID = #{memId}
+		AND (SELECT RSV_ST FROM RSV_STY WHERE RSV_ID = B.RSV_ID) = TRUNC(SYSDATE)
+	</select>
+	
+	<update id="checkIn" parameterType="String">
+		UPDATE RSV_STY
+		SET CHECK_IN = '1'
+		WHERE RSV_ID = #{rsvId}
+	</update>
+</mapper>

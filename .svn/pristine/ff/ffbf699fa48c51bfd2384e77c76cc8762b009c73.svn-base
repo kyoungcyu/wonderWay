@@ -1,0 +1,17 @@
+package kr.or.ddit.admin.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.RsvListVO;
+
+public interface AdRsvService {
+	// 숙박 예약 목록
+	public List<RsvListVO> rsvList(Map<String,String> map);
+
+	// 예약 상세 정보
+	public RsvListVO rsvDetail(Map<String, String> map);
+	
+	// 예약 데이터 총 개수
+	public int getTotal(Map<String, String> map);
+}

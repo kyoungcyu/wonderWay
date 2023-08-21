@@ -1,0 +1,180 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+
+
+<!-- Main content START -->
+<div class="col-lg-8 col-xl-9">
+
+	<!-- Offcanvas menu button -->
+	<div class="d-grid mb-0 d-lg-none w-100">
+		<button class="btn btn-primary mb-4" type="button"
+			data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar"
+			aria-controls="offcanvasSidebar">
+			<i class="fas fa-sliders-h"></i> Menu
+		</button>
+	</div>
+
+	<div class="vstack gap-4">
+		<!-- Personal info START -->
+		<div class="card border">
+			<!-- Card header -->
+			<div class="card-header border-bottom">
+				<h4 class="card-header-title">내 프로필</h4>
+			</div>
+
+			<!-- Card body START -->
+			<div class="card-body">
+				<!-- Form START -->
+				<form class="row g-3" id="frm">
+
+					<!-- Profile photo -->
+					<div class="col-12">
+						<label class="form-label">프로필 사진<span class="text-danger">*</span></label>
+						<div class="d-flex align-items-center">
+							<label class="position-relative me-4" for="uploadfile-1"
+								title="Replace this pic"> <!-- Avatar place holder --> <span
+								class="avatar avatar-xl"> <img id="uploadfile-1-preview"
+									class="avatar-img rounded-circle border border-white border-3 shadow"
+									src="/resources/booking/assets/images/avatar/01.jpg" alt="">
+							</span>
+							</label>
+							<!-- Upload button -->
+							<label class="btn btn-sm btn-primary-soft mb-0"
+								for="uploadfile-1">변경</label> <input id="uploadfile-1"
+								class="form-control d-none" type="file">
+						</div>
+					</div>
+					<!-- Profile photo END-->
+
+					<!-- 이름 -->
+					<div class="col-md-6">
+						<label class="form-label">이 름<span class="text-danger">*</span></label>
+						<input type="text" class="form-control" value="${data.memNm}"
+							readonly>
+					</div>
+					<!-- 아이디 -->
+					<div class="col-md-6">
+						<label class="form-label">아이디<span class="text-danger">*</span></label>
+						<input type="text" class="form-control" value="${data.memId}"
+							readonly>
+					</div>
+					<!-- 핸드폰 번호 -->
+					<div class="col-md-6">
+						<label class="form-label">핸드폰 번호<span class="text-danger">*</span></label>
+						<input type="text" class="form-control" value="${data.memTel}"
+							readonly>
+					</div>
+					<!-- 이메일 주소-->
+					<div class="col-md-6">
+						<label class="form-label">이메일<span class="text-danger">*</span></label>
+						<input type="text" class="form-control" value="${data.memEmail}" readonly>
+					</div>
+					<!-- 영문이름 -->
+					<div class="col-md-6" >
+						<label class="form-label" >영문이름<span
+							class="text-danger">*</span></label> <input type="text"
+							class="form-control" value="${data.memEnm}"  id="myEnm"readonly>
+					</div>
+					<!-- 영문성 -->
+					<div class="col-md-6" >
+						<label class="form-label" >영문 성<span
+							class="text-danger">*</span></label> <input type="text"
+							class="form-control" value="${data.memFmnm}"  id="myFmnm"readonly>
+					</div>
+					
+					<!-- Addr1 -->
+					<div class="col-md-6"  >
+						<label class="form-label" >주소<span class="text-danger">*</span></label>
+						<input type="text" class="form-control" value="${data.memAddr1}" id="myAddr1"
+							readonly>
+					</div>
+					<!-- Addr2-->
+					<div class="col-md-6" >
+						<label class="form-label" >상세주소<span class="text-danger">*</span></label>
+						<input type="text" class="form-control" value="${data.memAddr2}" id="myAddr2"
+							readonly>
+					</div>
+					<!-- Date of birth -->
+					<div class="col-md-6" >
+						<label class="form-label" >생년월일<span class="text-danger">*</span></label>
+						<input type="text" class="form-control" value="${data.memBir}" id="myBir"
+							data-date-format="yyyy-mm-dd" readonly>
+					</div>
+					<!-- MBTI-->
+					<div class="col-md-6" >
+						<label class="form-label">MBTI<span class="text-danger">*</span></label>
+						<input type="text" class="form-control"   id="myMbti" value="${data.memMbti}"
+							readonly>
+					</div>
+
+					<!-- Gender -> READONLY 해야함-->
+					<div class="col-md-6" id="myInfo">
+						<label class="form-label">Select Gender<span
+							class="text-danger">*</span></label>
+						<div class="d-flex gap-4">
+							<div class="form-check radio-bg-light">
+								<input class="form-check-input" type="radio" 
+									name="flexRadioDefault" id="flexRadioDefault1" checked onclick="return(false);">
+								<label class="form-check-label" for="flexRadioDefault1">
+									Male </label>
+							</div>
+							<div class="form-check radio-bg-light">
+								<input class="form-check-input" type="radio" 
+									name="flexRadioDefault" id="flexRadioDefault2" onclick="return(false);"> <label
+									class="form-check-label" for="flexRadioDefault2">
+									Female </label>
+							</div>
+							<div class="form-check radio-bg-light">
+								<input class="form-check-input" type="radio"
+									name="flexRadioDefault" id="flexRadioDefault3" onclick="return(false);"> <label
+									class="form-check-label" for="flexRadioDefault3">
+									Others </label>
+							</div>
+						</div>
+					</div>
+					<!-- 일반Button -->
+					<div class="col-12 text-end" id="p1">
+						<button type="button" class="btn btn-primary mb-0" id="edit">수정하기</button>
+					</div>
+					<!-- 변경 Button -->
+					<div class="col-12 text-end" id="p2" style="display: none;">
+						<button type="button" class="btn btn-primary mb-0" id="back"
+							onclick="javascript:location.href='/member/mypage/myInfo'">취소</button>
+						<button type="button" class="btn btn-primary mb-0" id="ok"
+							onclick="javascript:location.href='/member/mypage/myInfo'">확인</button>
+					</div>
+				</form>
+				<!-- Form END -->
+			</div>
+			<!-- Card body END -->
+		</div>
+		<!-- Personal info END -->
+	</div>
+</div>
+<!-- Main content END -->
+
+<script type="text/javascript">
+	$(function() {
+		//변경 버튼 클릭 -> 변경 모드로 전환
+		$("#edit").on("click", function() {
+			//일반모드는 가리자
+			$("#p1").css("display", "none");
+			//변경모드
+			$("#p2").css("display", "block");
+			//readonly 속성제거
+			$("#myAddr1").removeAttr("readOnly");
+			$("#myAddr2").removeAttr("readOnly");
+			$("#myBir").removeAttr("readOnly");
+			$("#myEnm").removeAttr("readOnly");
+			$("#myFmnm").removeAttr("readOnly");
+			$("#myMbti").removeAttr("readOnly");
+			//form action 및 method를 추가
+			$("#frm").attr("action", "/updatePost");
+			$("#frm").attr("method", "post");
+		});
+
+	});
+</script>

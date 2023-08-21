@@ -1,0 +1,12 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+public class AdBusiSalesVO {
+	public String payId;
+	public String busiId;
+	public String busiNm;
+	public String rsvId;
+	public int payPr;
+	public Date rsvDt;
+}

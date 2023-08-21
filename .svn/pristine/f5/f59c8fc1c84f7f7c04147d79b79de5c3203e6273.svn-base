@@ -1,0 +1,18 @@
+package kr.or.ddit.admin.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.BusiVO;
+
+public interface AdBusiMapper {
+	//숙박 업체 목록
+	public List<BusiVO> styList();
+}
+
+
+
+
+
+
+
+

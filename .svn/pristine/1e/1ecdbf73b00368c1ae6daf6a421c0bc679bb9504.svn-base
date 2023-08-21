@@ -1,0 +1,441 @@
+package kr.or.ddit.member.controller;
+
+import java.io.File;
+import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.security.auth.message.callback.PrivateKeyCallback.Request;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.gson.Gson;
+
+import kr.or.ddit.member.service.TripBoardService;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.CmtVO;
+import kr.or.ddit.vo.LikeBrdVO;
+import kr.or.ddit.vo.TourVO;
+
+@RequestMapping("/member/tripBoard")
+@Controller
+public class TripBoardController {
+
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+
+	@Autowired
+	TripBoardService tripBoardService;
+
+	// 여행후기 메인 페이지 글 목록
+	@GetMapping("/tripMain")
+	public String tripBoard(@ModelAttribute BrdVO brdVO, Model model) {
+
+		Map<String, String> data = new HashMap<String, String>();
+		// 최근순정렬
+		List<BrdVO> list = this.tripBoardService.tripRecList(data);
+		// 인기순정렬
+		List<BrdVO> like = this.tripBoardService.tripLikeList(data);
+
+		log.info("list: " + list);
+		log.info("like: " + like);
+
+		// select 결과 목록을 데이터로 넣어줘서 jsp로 리턴
+		model.addAttribute("list", list);
+		model.addAttribute("like", like);
+		model.addAttribute("brdVO", brdVO);
+
+		return "member/tripBoard/tripMain";
+	}
+
+	// 여행후기 글 목록
+	@GetMapping("/tripBoardList")
+	public String tripBoardList(Model model,
+			@RequestParam(value = "keyword", required = false) String keyword,
+			@RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+			@RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage) {
+
+		Map<String, String> map = new HashMap<String, String>();
+
+		map.put("keyword", keyword);
+		map.put("sort", sort);
+		map.put("currentPage", Integer.toString(currentPage));
+		
+		// 한 페이지에 9개씩
+		int size = 9;
+		map.put("size", String.valueOf(size));
+		log.info("map : " + map);
+
+		List<BrdVO> list = this.tripBoardService.tripBoardList(map);
+		log.info("list : " + list);
+		model.addAttribute("boardList", list);
+
+		int total = this.tripBoardService.countBoard(map);
+		log.info("total : " + total);
+
+		PagingDTO<BrdVO> brdPage = new PagingDTO<BrdVO>(total, currentPage, size, list);
+		log.info("brdPage : " + brdPage);
+		model.addAttribute("brdPage", brdPage);
+		
+		return "member/tripBoard/tripBoardList";
+
+	}
+
+	// 여행후기 글 상세보기 
+	@GetMapping("/tripDetail")
+	public String tripDetail(@RequestParam("brdId") String brdId, TourVO tourVO,
+							 BrdVO brdVO, CmtVO cmtVO, String cmtId,String repCmtId,
+							 LikeBrdVO likeBrdVO, Principal principal, Model model) {
+		
+		
+		//글 내용 불러오기
+		BrdVO data = this.tripBoardService.tripDetail(brdVO);
+		model.addAttribute("data", data);
+		log.info("data: " + data);
+		
+		// 조회수 기능
+		int inqCnt = this.tripBoardService.tripViewCnt(brdId);
+		log.info("inqCnt"+ inqCnt);
+		model.addAttribute("inqCnt", inqCnt);
+		
+		//첨부파일 불러오기
+		String savePath =this.tripBoardService.savePath(brdId);
+		log.info("savePath : " + savePath);
+		model.addAttribute("savePath",savePath);
+		
+		//좋아요 기능
+		String memId = principal.getName();
+		log.info("memId : " + memId);
+		likeBrdVO.setMemId(memId);
+		int findLike = this.tripBoardService.findLike(likeBrdVO);
+		model.addAttribute("findLike",findLike);
+		
+		//댓글 내용 불러오기
+		List<CmtVO> cmtList = this.tripBoardService.cmtDetail(brdId);
+		model.addAttribute("cmtList", cmtList);
+		log.info("cmtList : "+ cmtList);
+		
+		//대댓글 내용 불러오기
+		List<CmtVO> repCmtList = this.tripBoardService.replyDetail(cmtId);
+		model.addAttribute("repCmtList", repCmtList);
+		log.info("repCmtList : "+ repCmtList);
+	
+		//댓글 수 조회하기
+		int cmtCount = this.tripBoardService.cmtCount(brdId);
+		model.addAttribute("cmtCount",cmtCount);
+		log.info("cmtCount : "+ cmtCount);		
+		
+		//대댓글 수 조회하기 
+		//int repCmtCount = this.tripBoardService.repCmtCount(repCmtId);
+		//model.addAttribute("repCmtCount",repCmtCount);
+		//log.info("repCmtCount : "+ repCmtCount);				
+
+		return "member/tripBoard/tripDetail";
+	}
+
+	// 여행후기 글 좋아요 기능
+	@ResponseBody
+	@PostMapping("/likeBrd")
+	public String likeBrd(@RequestBody LikeBrdVO likeBrdVO,Principal principal, Model model) {
+		// 좋아요 눌렀는지 확인하기
+		int findLike = this.tripBoardService.findLike(likeBrdVO);
+		//ikeBrdVO(memId=test01, brdId=D0120230627013, likeDt=null)
+		
+		model.addAttribute("findLike",findLike);
+		
+		String memId = principal.getName();
+		log.info("memId : " + memId);
+		
+		int updatedLikeCount = this.tripBoardService.likeBrd(likeBrdVO);
+		log.info("likeBrdVO : " + likeBrdVO);
+		
+		model.addAttribute("updatedLikeCount",updatedLikeCount);
+		
+		if(updatedLikeCount > 0 ) {
+			return "success";
+		}else {
+			return "fail";
+		}
+		
+	}
+
+	// 여행후기 글 좋아요 안함 기능
+	@ResponseBody
+	@PostMapping("/dislikeBrd")
+	public String dislikeBrd(@RequestBody LikeBrdVO likeBrdVO, Principal principal, Model model) {
+		
+		int findLike = this.tripBoardService.findLike(likeBrdVO);
+		
+		model.addAttribute("findLike",findLike);
+		
+		String memId = principal.getName();
+		log.info("memId : " + memId);
+
+		int updatedDislikeCount = this.tripBoardService.dislikeBrd(likeBrdVO);
+		log.info("likeBrdVO : " + likeBrdVO);
+
+		model.addAttribute("updatedDislikeCount",updatedDislikeCount);
+
+		if(updatedDislikeCount > 0 ) {
+			return "success";
+		}else {
+			return "fail";
+		}
+	}
+	
+
+	// 여행후기 글 등록 페이지
+	@GetMapping("/tripWrite")
+	public String tripWrite(@ModelAttribute BrdVO brdVO,TourVO tourVO, Model model) {
+		
+		Map<String, String> map = new HashMap<String, String>();
+		
+		//여행목록 불러오기
+		List<TourVO> data = this.tripBoardService.tourList(map);
+		
+		model.addAttribute("data",data);
+		log.info("data : " + data);
+		
+		return "member/tripBoard/tripWrite";
+	}
+	
+
+	// 여행후기 글 등록 페이지- 등록
+	@PostMapping("/tripWritePost")
+	public String tripWritePost(@Validated @ModelAttribute BrdVO brdVO, BindingResult bResult) {
+		int result = this.tripBoardService.tripAddWrite(brdVO);
+		
+		log.info("result : " + result);
+		
+		return "redirect:/member/tripBoard/tripDetail?brdId=" + brdVO.getBrdId();
+		
+	}
+	
+	
+	//여행후기 글 수정
+	@GetMapping("/tripUpdate")
+	public String tripUpdate(@ModelAttribute("brdId") String brdId, @ModelAttribute BrdVO brdVO, TourVO tourVO,Model model) {
+		brdVO.setBrdId(brdId);
+		//log.info("brdId : "+brdId);
+		//log.info("brdVO : " + brdVO);
+		Map<String, String> map = new HashMap<String, String>();
+		//여행목록 불러오기
+		List<TourVO> data1 = this.tripBoardService.tourList(map);
+		model.addAttribute("data1",data1);
+		log.info("data1 : " + data1);
+		
+		BrdVO data = this.tripBoardService.tripDetail(brdVO);
+		log.info("data : " + data);
+		model.addAttribute("data",data);
+		
+		return "/member/tripBoard/tripUpdate";
+	}
+
+	// 여행후기 글 수정
+	@PostMapping("/tripUpdatePost")
+	public String tripUpdatePost(@ModelAttribute("brdId") String brdId,@ModelAttribute BrdVO brdVO) {
+		brdVO.setBrdId(brdId);
+		//log.info("tripUpdatePost->brdVO : " + brdVO); o 
+		int data = this.tripBoardService.tripUpdate(brdVO);
+		log.info("data : " + data);
+		if (data > 0) {// 성공
+			return "redirect:/member/tripBoard/tripDetail?" + brdVO.getBrdId();
+		} else {// 실패
+			return "redirect:/member/tripBoard/tripWriter";
+		}
+	}
+	
+	// 여행후기 글 삭제
+	// 요청데이터 : let data = {brdId: }
+	@ResponseBody
+	@PostMapping("/tripDelete")
+	public String tripDelete(@RequestBody BrdVO brdVO) {
+		//BrdVO(brdId=D0120230629004, brdKnd=null,...
+		log.info("brdVO : " +brdVO);
+//		brdVO.setBrdId(brdVO.getBrdId());
+//		log.info("brdVO : "+ brdVO);
+		int result = this.tripBoardService.tripDelete(brdVO);
+		
+
+		if (result > 0) {// 성공
+			return "success";
+		} else {// 실패
+			return "fail";
+		}
+	}
+	
+	//글 신고하기
+	@ResponseBody
+	@PostMapping("/tripReprt")
+	public String tripReprt(@RequestBody BrdVO brdVO) {
+		log.info("brdVO : " + brdVO);
+		int result = this.tripBoardService.tripReprt(brdVO);
+		log.info("brdId : " + brdVO.getBrdId());
+		
+		if (result > 0) {// 성공
+			return "success";
+		} else {// 실패
+			return "fail";
+		}
+	}
+	
+	//댓글 작성하기
+	@ResponseBody
+	@PostMapping("/cmtWrite")
+	public String cmtWrite(@RequestBody CmtVO cmtVO,Principal principal) {
+		
+		String cmtWr = principal.getName();
+		cmtVO.setCmtWr(cmtWr);
+		//cmtVO : CmtVO(cmtId=null, cmtWr=test01, cmtCntn=sfad, cmtDt=null, brdId=D0120230629424, repCmtId=null, repLevel=0)
+		log.info("cmtVO : " + cmtVO);
+		
+		int result = this.tripBoardService.cmtWrite(cmtVO);
+		log.info("result : " + result);
+		
+		if (result > 0) {// 성공
+			return "success";
+		} else {// 실패
+			return "fail";
+		}
+	}
+	
+	
+	//댓글 수정하기
+	@ResponseBody
+	@PostMapping("/cmtUpdate")
+	public String cmtUpdate(@RequestBody CmtVO cmtVO, Model model,Principal principal) {
+		
+		String cmtWr = principal.getName();
+		cmtVO.setCmtWr(cmtWr);
+		model.addAttribute("cmtWr");
+		
+		int result = this.tripBoardService.cmtUpdate(cmtVO);
+		
+		model.addAttribute("result",result);
+		
+		if (result > 0) {// 성공
+			return "success";
+		} else {// 실패
+			return "fail";
+		}
+	}
+
+	//댓글 삭제하기
+	@ResponseBody
+	@PostMapping("/cmtDelete")
+	public String cmtDelete(@RequestBody CmtVO cmtVO, Model model) {
+		
+		
+		int result = this.tripBoardService.cmtDelete(cmtVO);
+		
+		model.addAttribute("result",result);
+		
+		if (result > 0) {// 성공
+			return "success";
+		} else {// 실패
+			return "fail";
+		}
+	}
+	//대댓글 기능
+	//대댓글 작성하기
+	@ResponseBody
+	@PostMapping("/replyWrite")
+	public String replyWrite(@RequestBody CmtVO cmtVO,Principal principal,Model model) {
+		
+		
+		String cmtWr = principal.getName();
+		cmtVO.setCmtWr(cmtWr);
+		log.info("cmtWr :" +cmtWr);
+		
+		int result = this.tripBoardService.replyWrite(cmtVO);
+		log.info("result : " + result);
+		
+		String repCmtId = cmtVO.getCmtId();
+		model.addAttribute("repCmtId",repCmtId);
+		log.info("repCmtId : " + repCmtId);
+		
+		if (result > 0) {// 성공
+			return "success";
+		} else {// 실패
+			return "fail";
+		}
+	}
+	
+	
+	@GetMapping("/magazineList")
+	public String tourMagazineList(Model model
+								 , @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+								 , @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+								 , @RequestParam(value = "sort", required = false, defaultValue = "") String sort
+								 , @RequestParam(value = "period", required = false, defaultValue = "") String period) {
+		log.info("currentPage : " + currentPage);
+		log.info("keyword : " + keyword);
+		log.info("sort : " + sort);
+		
+		Map<String,String> map = new HashMap<String, String>();
+		int size = 9;
+		
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		map.put("keyword", keyword);
+		map.put("sort", sort);
+		
+		if(!period.equals("")) {
+			String[] dateTodate = new String[3];
+			dateTodate = period.split("\\s");
+			if(dateTodate.length < 3) {
+				log.debug("Split Length : " + dateTodate.length);
+				return "redirect:/admin/advertise/request";
+			}
+			map.put("periodSt", dateTodate[0]);
+			map.put("periodEd", dateTodate[2]);
+		}
+		
+		List<BrdVO> magazineList = this.tripBoardService.magazineList(map);
+		log.info("MagazineList : " + magazineList);
+		
+		int total = this.tripBoardService.getTotalMagazine(map);
+
+		PagingDTO<BrdVO> data = new PagingDTO<BrdVO>(total, currentPage, size, magazineList);
+		model.addAttribute("data", data);
+
+		
+		return "member/tripBoard/magazineList";
+	}
+	
+	@GetMapping("/magazineDetail")
+	public String magazineDetail(Model model
+							   , @RequestParam("brdId") String brdId) {
+		log.info("brdId : " + brdId);
+		
+		BrdVO vo = this.tripBoardService.magazineDetail(brdId);
+		log.info("BrdVO : " + vo);
+		
+		model.addAttribute("data", vo);
+		
+		return "member/tripBoard/magazine";
+	}
+}

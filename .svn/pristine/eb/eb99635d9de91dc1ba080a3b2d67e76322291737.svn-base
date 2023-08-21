@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.business.mapper.BsRsvMapper">
+	<!-- resultMap 선언 -->
+	<resultMap id="bsRsvListMap" type="bsRsvListVO">
+		<result column="MEM_ID" property="memId" />
+		<result column="MEM_BIR" property="memBir" />
+		<result column="MEM_NM" property="memNm" />
+		<result column="MEM_TEL" property="memTel" />
+		<result column="GRAD_ID" property="gradId" />
+		<result column="BUSI_ID" property="busiID" />
+		<result column="RSV_DT" property="rsvDt" />
+		<result column="RSV_ID" property="rsvId" />
+		<result column="RM_NM" property="rmNm" />
+		<result column="RM_NUM" property="rmNum" />
+		<result column="RSV_ST" property="rsvSt" />
+		<result column="RSV_ED" property="rsvEd" />
+		<result column="RSV_DT_STR" property="rsvDtStr" />
+		<result column="RSV_CODE" property="rsvCode" />
+		<result column="RSV_PERIOD" property="rsvPeriod" />
+		<result column="PAY_MTH" property="payMth" />
+		<result column="RM_PR" property="rmPr" />
+		<result column="ROW_NO" property="rowNo" />
+		<result column="RPRSV_NM" property="rprsvNm" />
+	</resultMap>
+	<select id="rsvList" parameterType="hashMap" resultMap="bsRsvListMap">
+		WITH T AS (
+		    SELECT 
+		        A.RSV_ID,   
+		        ROW_NUMBER() OVER (ORDER BY A.RSV_DT desc) AS ROW_NO, 
+		        A.RSV_DT AS RSV_DT, 
+		        A.MEM_ID AS MEM_ID,
+		       (SELECT MEM_TEL FROM MEM WHERE MEM_ID = A.MEM_ID ) AS MEM_TEL,
+		       (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID ) AS MEM_NM,
+		        A.BUSI_ID AS BUSI_ID,
+		        (SELECT RM_NM FROM RM WHERE RM_ID = C.RM_ID) AS RM_NM,  
+		        (SELECT RM_NUM FROM RM_DE WHERE RM_ID = C.RM_ID)  AS RM_NUM,
+		        (SELECT RPRSV_NM FROM BUSI WHERE BUSI_ID = B.BUSI_ID)  AS RPRSV_NM,
+		        C.RSV_ST ||CHR(13) || '~'||CHR(13)  || C.RSV_ED AS RSV_PERIOD,
+		        FN_CODE_TO_NM(A.RSV_CODE) AS RSV_CODE
+		    FROM 
+		        RSV A
+		    INNER JOIN 
+		        BUSI B ON B.BUSI_ID = A.BUSI_ID
+		    LEFT JOIN 
+		        RSV_STY C ON C.RSV_ID = A.RSV_ID    
+		    WHERE (A.RSV_CODE = 'K01' OR A.RSV_CODE='K02')
+		      AND B.BUSI_ID = #{busiId}
+<!-- 		예약자명 검색  -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) LIKE '%' || #{keyword} || '%'
+		</if>
+<!-- 		 예약 기간 검색  -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND (SELECT RSV_ST FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND (SELECT RSV_ED FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.ROW_NO BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+	
+	
+	
+	<!-- 예약 상세 -->
+	<select id="rsvDetail" parameterType="String" resultMap="bsRsvListMap">
+		WITH T AS (
+		    SELECT 
+		        A.RSV_ID,   
+		         A.RSV_DT AS RSV_DT,
+		         TO_CHAR(A.RSV_DT,'YYYY/MM/DD') AS RSV_DT_STR, 
+		        A.MEM_ID AS MEM_ID,
+		       (SELECT MEM_TEL FROM MEM WHERE MEM_ID = A.MEM_ID ) AS MEM_TEL,
+		       (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID ) AS MEM_NM,
+		       (SELECT GRAD_ID FROM MEM WHERE MEM_ID = A.MEM_ID) AS GRAD_ID,
+		       (SELECT MEM_BIR FROM MEM WHERE MEM_ID = A.MEM_ID) AS MEM_BIR,
+		        A.BUSI_ID AS BUSI_ID,
+		        (SELECT RM_NM FROM RM WHERE RM_ID = C.RM_ID) AS RM_NM,  
+		        (SELECT RM_NUM FROM RM_DE WHERE RM_ID = C.RM_ID)  AS RM_NUM,
+		        (SELECT RM_PR FROM RM WHERE RM_ID = C.RM_ID ) AS RM_PR,
+		        (SELECT PAY_MTH FROM PAY WHERE RSV_ID = D.RSV_ID) AS PAY_MTH,
+		        
+		        C.RSV_ST || '~' || C.RSV_ED AS RSV_PERIOD,
+		        FN_CODE_TO_NM(A.RSV_CODE) AS RSV_CODE
+		    FROM 
+		        RSV A
+		    INNER JOIN 
+		        BUSI B ON B.BUSI_ID = A.BUSI_ID
+		    INNER JOIN 
+		        RSV_STY C ON C.RSV_ID = A.RSV_ID  
+		    INNER JOIN 
+		        PAY D ON D.RSV_ID = A.RSV_ID 
+		    WHERE 
+		        A.RSV_ID = #{rsvId}
+		)
+		SELECT T.*
+		FROM T
+	</select>
+	
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM RSV A
+		WHERE (A.RSV_CODE = 'K01' OR A.RSV_CODE='K02')
+		AND A.BUSI_ID = #{busiId}
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) LIKE '%' || #{keyword} || '%'
+		</if>
+<!-- 		 예약 기간 검색  -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND (SELECT RSV_ST FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND (SELECT RSV_ED FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	<!-- 취소현황 -->
+	<resultMap id="bsRfdListMap" type="bsRfdListVO">
+	  <result column="ROW_NO" property="no" />
+	  <result column="RM_NUM" property="rmNum" />
+	  <result column="RM_NM" property="rmNm" />
+	  <result column="RSV_ST" property="rsvSt" />
+	  <result column="RSV_ED" property="rsvEd" />
+	  <result column="RSV_DT_STR" property="rsvDtStr" />
+	  <result column="MEM_NM" property="memNm" />
+	  <result column="MEM_TEL" property="memTel" />
+	  <result column="MEM_ID" property="memId" />
+	  <result column="PAY_PR" property="payPr" />
+	  <result column="RSV_CODE" property="rsvCode" />
+	  <result column="RFD_RESN" property="rfdResn" />
+	  <result column="RFD_DT" property="rfdDt" />
+	  <result column="BusiId" property="busiId" />
+	</resultMap>
+	
+	
+	<select id="rfdList" parameterType="hashMap" resultMap="bsRfdListMap" > 
+	WITH T AS (
+		SELECT 
+		ROW_NUMBER() OVER(ORDER BY D.RFD_DT DESC) AS ROW_NO,
+		B.RM_NUM AS RM_NUM ,
+		D.RFD_RESN AS RFD_RESN,
+		C.PAY_PR AS PAY_PR,
+		FN_CODE_TO_NM(A.RSV_CODE) AS RSV_CODE,
+		D.RFD_DT AS RFD_DT,
+		A.MEM_ID AS MEM_ID,
+		(SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) AS MEM_NM,
+		(SELECT MEM_TEL FROM MEM WHERE MEM_ID =A.MEM_ID) AS MEM_TEL,
+		(SELECT RM_NM FROM RM WHERE RM_ID = B.RM_ID) AS RM_NM
+		    
+		FROM RSV A 
+		INNER JOIN RSV_STY B
+		   ON A.RSV_ID = B.RSV_ID
+		   
+		INNER JOIN PAY C 
+		   ON A.RSV_ID = C.RSV_ID
+		INNER JOIN RFD_REQ D
+		   ON C.PAY_ID = D.PAY_ID
+		      
+		WHERE (A.RSV_CODE = 'K03' OR A.RSV_CODE='K04')
+		  AND A.BUSI_ID = #{busiId}
+		  
+		  <!-- 		예약자명 검색  -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT MEM_NM FROM MEM WHERE MEM_ID = A.MEM_ID) LIKE '%' || #{keyword} || '%'
+		</if>
+<!-- 		 예약 기간 검색  -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND (SELECT RSV_ST FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND (SELECT RSV_ED FROM RSV_STY WHERE RSV_ID = A.RSV_ID) &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.ROW_NO BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+		  
+		  
+		  
+	</select>
+	
+	<select id="getTotalRfd" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM RFD_REQ A
+		WHERE (SELECT BUSI_ID FROM RSV WHERE RSV_ID =(SELECT RSV_ID FROM PAY WHERE PAY_ID = A.PAY_ID))= #{busiId}
+		AND (SELECT RSV_CODE FROM RSV WHERE RSV_ID = (SELECT RSV_ID FROM PAY WHERE PAY_ID = A.PAY_ID)) = 'K03'
+		<!-- 요청자명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT (SELECT MEM_NM FROM MEM WHERE MEM_ID = C.MEM_ID)
+		         FROM RSV C
+		         WHERE (SELECT RSV_ID FROM PAY WHERE PAY_ID = A.PAY_ID) = C.RSV_ID)
+		        LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 요청 일자 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND A.RFD_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND A.RFD_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,520 @@
+<%@page import="com.fasterxml.jackson.databind.ObjectMapper"%>
+<%@page import="kr.or.ddit.vo.ChatVO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
+<style>
+* {
+	margin: 0;
+	padding: 0;
+}
+
+.container {
+	width: 50%;
+	height: 330px;
+}
+
+.rb {
+	width: 10%;
+	height: 400px;
+	border: 1px;
+	left: 100px;
+	position: absolute;
+	text-align: left;
+}
+
+.chat_wrap .header {
+	font-size: 14px;
+	padding: 15px 0;
+	background: #5143d9;
+	color: white;
+	text-align: center;
+}
+
+.rb .header {
+	font-size: 14px;
+	padding: 15px 0;
+	background: #5143d9;
+	color: white;
+	text-align: center;
+	border-radius: 10px;
+}
+
+.chat_wrap .chat {
+	padding-bottom: 80px;
+	width: auto;
+	height: 330px;
+	overflow: auto;
+}
+
+.chat_wrap .chat ul {
+	width: 100%;
+	list-style: none;
+}
+
+.chat_wrap .chat ul li {
+	width: 100%;
+}
+
+.chat_wrap .chat ul li.left {
+	text-align: left;
+}
+
+.chat_wrap .chat ul li.right {
+	text-align: right;
+}
+
+.chat_wrap .chat ul li>div {
+	font-size: 13px;
+}
+
+.chat_wrap .chat ul li>div.sender {
+	margin: 10px 20px 0 20px;
+	font-weight: bold;
+}
+
+.chat_wrap .chat ul li>div.message {
+	display: inline-block;
+	word-break: break-all;
+	margin: 5px 20px;
+	max-width: 75%;
+	border: 1px solid #888;
+	padding: 10px;
+	border-radius: 5px;
+	background-color: #FCFCFC;
+	color: #555;
+	text-align: left;
+}
+.chat_wrap .chat ul li>div.chatCt {
+	display: inline-block;
+	word-break: break-all;
+	margin: 5px 20px;
+	max-width: 75%;
+	border: 1px solid #888;
+	padding: 10px;
+	border-radius: 5px;
+	background-color: #FCFCFC;
+	color: #555;
+	text-align: left;
+}
+
+.chat_wrap .input-div {
+	bottom: 0;
+	width: 50%;
+	background-color: #FFF;
+	text-align: center;
+}
+
+.chat_wrap .input-div>textarea {
+	width: 200%;
+	height: 80px;
+	border: none;
+	padding: 10px;
+	float: left;
+	border: 1px solid #5143d9;
+}
+
+.format {
+	display: none;
+}
+
+.radio-button {
+	display: none;
+}
+
+.radio-button-label {
+	display: inline-block;
+	padding: 10px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.radio-button-label:hover {
+	background-color: #d3d3d3;
+}
+
+.radio-button:checked+.radio-button-label {
+	background-color: #7c7c7c;
+	color: #fff;
+}
+</style>
+<link rel="stylesheet" type="text/css" href="/resources/booking/assets/vendor/choices/css/choices.min.css">
+
+<script type="text/javascript">
+$(function () {
+	$("#search").on("change", function () {
+		var select = $(this).val();
+		
+		const container = document.getElementById('rb');
+	    const labels = document.querySelectorAll('.radio-button-label');
+		
+		for (let i = 0; i < labels.length; i++) {
+	    	const labelValue = labels[i].innerText;
+	    	if (labelValue === currInList[i]) {
+                return;
+            }
+	    }
+	    const radioButton = document.createElement('input');
+        radioButton.type = 'radio';
+        radioButton.name = 'radioButtons';
+        radioButton.value = select;
+        radioButton.className = 'radio-button';
+
+        const label = document.createElement('label');
+        label.textContent = select;
+        label.className = 'radio-button-label';
+
+        container.appendChild(radioButton);
+        container.appendChild(label);
+        container.appendChild(document.createElement('br'));
+	
+	});
+});
+</script>
+
+<!-- Page main content START -->
+<div class="page-content-wrapper p-xxl-4">
+
+	<form class="row g-4 align-items-center" id="frm01">
+		<div class="col-lg-6">
+			<h1 class="h3 mb-3 mb-sm-0">업체 상담/채팅</h1>
+		</div>
+		
+		<div class="col-lg-2">
+		</div>
+
+		<div class="col-lg-4" id="searchBar" hidden>
+			<div class="form-control-border form-control-transparent form-fs-md d-flex">
+				<!-- Select input -->
+				<div class="flex-grow-1">
+					<select class="form-select js-choice" data-search-enabled="true" id="search">
+						<option selected value="">업체 선택</option>
+						<c:forEach var="busiVO" items="${busiList}" varStatus="stat">
+							<option value="${busiVO.lginId}">${busiVO.busiNm}</option>
+						</c:forEach>
+					</select>
+				</div>
+			</div>
+		</div>
+	</form>
+	
+	<div class="card shadow mt-5">
+		<!-- Card body START -->
+		<div class="card-body">
+			<div class="col-xl-10 mx-auto text-center">
+				<p class="lead mb-0">1:1실시간 채팅</p>
+			
+				<!-- Switch START -->
+				<form class="d-flex align-items-center justify-content-center mt-2">
+					<!-- Label -->
+					<span class="h6 mb-0 fw-bold">비활성화</span>
+					<!-- Switch -->
+					<div class="form-check form-switch form-check-lg mx-3 mb-0">
+						<input class="form-check-input mt-0 price-toggle" type="checkbox"
+							id="flexSwitchCheckDefault">
+					</div>
+					<!-- Label -->
+					<div class="position-relative">
+						<span class="h6 mb-0 fw-bold">활성화</span>
+					</div>
+				</form>
+				<!-- Switch END -->
+			</div>
+			<br />
+			<!-- 접속자 목록 -->
+			<div class="rb" id="radioButtonsContainer" hidden>
+				<div class="header">채팅방 목록</div>
+				<c:forEach var="chatRmVO" items="${chatList}" varStatus="stat">
+					<div class="body" id="rb">
+							<input type="radio" name="radioButtons" value="${chatRmVO.chatRmId}" class="radio-button">
+							<label class="radio-button-label">${chatRmVO.memId}</label>
+					</div>
+				</c:forEach>
+			</div>
+			
+			<div class="rb" id="radioButtonsContainer" hidden>
+				<div class="header"></div>
+				<div class="body" id="rb"></div>
+			</div>
+			
+			<!-- 채팅화면 시작 -->
+			<div class="container" id="chattingCard">
+			</div>
+			<!-- 채팅화면 끝 -->
+		</div>
+		<!-- Card footer END -->
+	</div>
+	
+	<div class="page-content-wrapper p-xxl-4" id="info"  hidden>
+		<div class="container" id="memberInfo">
+		</div>
+	</div>
+</div>
+<!-- Page main content END -->
+
+
+<script type="text/javascript">
+//현재 시간 가져오기
+var today = new Date();
+var year = today.getFullYear();
+var month = ('0' + (today.getMonth() + 1)).slice(-2);
+var day = ('0' + today.getDate()).slice(-2);
+var dateString = year + '-' + month + '-' + day;
+
+var hours = ('0' + today.getHours()).slice(-2);
+var minutes = ('0' + today.getMinutes()).slice(-2);
+var seconds = ('0' + today.getSeconds()).slice(-2);
+var timeString = hours + ':' + minutes + ':' + seconds;
+
+var totalTime = dateString + timeString
+console.log(totalTime);
+
+var currChatRm = "";
+
+//채팅창 설정
+const Chat = (function() {
+	const myName = "${id}";
+
+	$("#flexSwitchCheckDefault").on("click", function() {
+		// 토글버튼 활성화 시
+		if ($(this).is(":checked")) {
+			//접속자 목록 보이기
+			document.getElementById('radioButtonsContainer').removeAttribute('hidden');
+			document.getElementById('searchBar').removeAttribute('hidden');
+
+			//채팅용 웹소켓 열기
+			var sockChat = new SockJS("/chat");
+			socketChat = sockChat;
+
+			socketChat.onopen = function() {
+				loginMsg();
+			};
+
+			//**서버로부터 메세지를 받았을 때 **
+			socketChat.onmessage = function(event) {
+				var chatVO = JSON.parse(event.data);
+				
+				if (chatVO.idSet !== null) {
+					var currIn = Array.from(chatVO.idSet);
+				}
+				
+				//1. 채팅 화면에 보이기
+				receiveChat(chatVO);
+				//2. 전체회원 라디오버튼
+				$.each(currIn, function(index, curr) {
+				});
+				createRadioButtons(currIn);
+			}
+
+		} else {
+			// 채팅창 사라지기
+			var elements = document.getElementsByClassName('chat_wrap');
+			for (var i = 0; i < elements.length; i++) {
+			  elements[i].setAttribute('hidden', 'true');
+			}
+			document.getElementById('radioButtonsContainer')
+					.setAttribute('hidden', 'true');
+
+			let msg = {
+				"sender" : "${id}",
+				"receiver" : "OUT",
+				"chatCntn" : "${id} 님이 퇴장하셨습니다."
+			}
+			socketChat.send(JSON.stringify(msg));
+			// 채팅용 웹소켓 초기화
+			socketChat.close();
+			socketChat = null;
+		}
+	});
+
+	// init 함수
+	function init() {
+		// enter 키 이벤트
+		$(document).on('keydown', 'div.input-div textarea',function(e) {
+			if (e.keyCode == 13 && !e.shiftKey) {
+				e.preventDefault();
+				const message = $(this).val();
+				// 메시지 전송
+				sendMessage(message, currChatRm);
+				// 입력창 clear
+				clearTextarea();
+			}
+		});
+	}
+
+	// 메세지 태그 생성
+	function createMessageTag(LR_className, senderName, message) {
+		// 형식 가져오기
+		let chatLi = $('div.chat.format ul li').clone();
+
+		// 값 채우기
+		chatLi.addClass(LR_className);
+		chatLi.find('.sender span').text(senderName);
+		chatLi.find('.message span').text(message);
+
+		return chatLi;
+	}
+
+	// 메세지 태그 append
+	function appendMessageTag(LR_className, senderName, message) {
+		const chatLi = createMessageTag(LR_className, senderName, message);
+
+		$('div.chat:not(.format) ul').append(chatLi);
+
+		// 스크롤바 아래 고정
+		$('div.chat').scrollTop($('div.chat').prop('scrollHeight'));
+	}
+
+	// 메세지 전송
+	function sendMessage(message,currChatRm) {
+		// 서버에 전송하는 코드로 후에 대체
+		const sendData = {
+			"sender" : "${id}",
+			"receiver" : currChatRm,
+			"chatCntn" : message
+		};
+		socketChat.send(JSON.stringify(sendData));
+	}
+
+	// 메세지 입력박스 내용 지우기
+	function clearTextarea() {
+		$('div.input-div textarea').val('');
+	}
+
+	// 메세지 수신(1.sender가 내이름이면 오른쪽에 2.receiver가 내이름이고, sender가 채팅방명이여야 왼쪽에)
+	function receiveChat(chatVO) {
+		const LR = (chatVO.sender === myName) ? "right" : (chatVO.receiver === myName && chatVO.sender === currChatRm) ? "left" : "";
+	
+	  	if (LR === "right") {
+	  		appendMessageTag(LR, chatVO.sender, chatVO.chatCntn);
+	  	} else if (LR === "left") {
+	  		appendMessageTag(LR, chatVO.sender, chatVO.chatCntn);
+	  	}
+	}
+	//로그인 메세지 발송
+	function loginMsg() {
+		let msg = {
+			sender : "${id}",
+			receiver : "IN",
+			chatCntn : "${id}님이 입장하셨습니다."
+		}
+		socketChat.send(JSON.stringify(msg));
+	}
+
+	// 라디오 버튼을 생성하는 함수
+	function createRadioButtons(currInList) {
+	    const container = document.getElementById('rb');
+	    const labels = document.querySelectorAll('.radio-button-label');
+	    
+	    for (let i = 0; i < currInList.length; i++) {
+	        if (myName !== currInList[i]) { // myName과 currInList[i]이 다를 때만 라디오 버튼 생성
+	    		
+	        	for (let i = 0; i < labels.length; i++) {
+	    	    	const labelValue = labels[i].innerText;
+	    	    	if (labelValue === currInList[i]) {
+	                    return;
+	                }
+	    	    }
+	        
+	            const radioButton = document.createElement('input');
+	            radioButton.type = 'radio';
+	            radioButton.name = 'radioButtons';
+	            radioButton.value = currInList[i];
+	            radioButton.className = 'radio-button';
+	
+	            const label = document.createElement('label');
+	            label.textContent = currInList[i];
+	            label.className = 'radio-button-label';
+	
+	            container.appendChild(radioButton);
+	            container.appendChild(label);
+	            container.appendChild(document.createElement('br'));
+	        }
+	    }
+	}
+	
+
+	return {
+		'init' : init
+	};
+})();
+
+$(function() {
+	Chat.init();
+	
+	// 채팅방을 생성하는 함수
+	function createChatButtons(ChatId, ChatRmId) {
+		if ($("#" + ChatId).length > 0) {
+			return; // 이미 같은 id의 div가 있으면 함수 종료
+		}
+		
+		chatHtml = `
+			<div class="chat_wrap">
+				<div class="header" id="` + ChatId + `">` + ChatId + `</div>
+				<div class="chat border">
+					<ul>
+					</ul>
+				</div>
+				<div class="input-div">
+					<textarea cols="10" rows="10" placeholder="메세지를 입력해주세요"></textarea>
+				</div>`;
+				
+		const inChatList = JSON.parse(`${inTheChat}`);
+		for (let i = 0; i < inChatList.length; i++) {
+			const element = inChatList[i];
+			if(element.chatRmId == ChatRmId){
+				chatHtml += `
+					<div class="chat format">
+						<ul>
+							<li>
+								<div class="sender">
+									<span>` + element.sender + `</span>
+								</div>
+								<div class="chatCt">
+									<span>` + element.chatCntn + `</span>
+								</div>
+							</li>
+						</ul>
+					</div>
+				`;
+		  	}
+		}
+		chatHtml += 
+			`<div class="chat format">
+				<ul>
+					<li>
+						<div class="sender">
+							<span></span>
+						</div>
+						<div class="message">
+							<span></span>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</div>`;
+		let msg = {
+			sender : "${id}",
+			receiver : "IN",
+			chatCntn : "${id}님이 입장하셨습니다."
+		}
+		socketChat.send(JSON.stringify(msg));
+		$("#chattingCard").html(chatHtml);
+		console.log(chatHtml);
+	}
+	
+	$(document).on("click", ".radio-button-label", function() {
+		$(".chat_wrap").attr('hidden','hidden');
+		var ChatId = $(this).text();
+	    var ChatRmId = $(this).siblings("input[type='radio']").val();
+		createChatButtons(ChatId, ChatRmId);
+		currChatRm = ChatId;
+		$(".chat_wrap:has(#" + ChatId + ")").removeAttr('hidden');
+		
+	});
+});
+</script>
+
+<script src="/resources/booking/assets/vendor/choices/js/choices.min.js"></script>

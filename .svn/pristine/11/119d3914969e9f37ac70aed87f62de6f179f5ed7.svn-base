@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.member.mapper.TripBoardMapper">
+
+	<sql id="where">
+		<!-- 전체검색 -->
+		<!-- 제목, 작성자, 내용 -->
+		<if test="keyword!=null">
+			AND (
+		        BRD_TT LIKE '%' || #{keyword} || '%' OR
+		        FRST_WRTR LIKE '%' || #{keyword} || '%' OR 
+		        BRD_CNTN LIKE '%' || #{keyword}|| '%'
+			)
+		</if>
+	</sql>
+	<sql id="tour">
+		<if test="keyword!=null">
+			AND (
+		       TOUR_NM '%' || #{keyword} || '%'
+			)
+		</if>
+	
+	</sql>
+	
+	<sql id="sort">
+		<!-- 정렬 -->
+		<if test="sort!=''">
+			<choose>
+				<when test="sort=='frstDt'">
+					ORDER BY FRST_DT DESC
+				</when>
+				<when test="sort=='brdLike'">
+					ORDER BY BRD_LIKE DESC
+				</when>
+				<when test="sort=='inqCnt'">
+					ORDER BY INQ_CNT DESC
+				</when>
+			</choose>	
+		</if>
+	</sql>
+
+<!-- 여행후기 메인 글 정렬 최신순 -->
+<select id="tripRecList" parameterType ="hashMap" resultType="brdVO">
+		SELECT
+		    BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, BRD_DEL, 
+		    INTR, INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, 
+		    FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT, ATTACH_ID,INQ_CNT
+		FROM BRD
+		WHERE BRD_KND='D01' AND BRD_DEL!='Y'
+		ORDER BY FRST_DT DESC 
+</select>
+
+<!-- 여행후기 메인 글 인기순(좋아요순) 정렬  -->
+<select id="tripLikeList" parameterType ="hashMap" resultType="brdVO">
+		SELECT
+		    BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, BRD_DEL, 
+		    INTR, INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, 
+		    FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT, ATTACH_ID,INQ_CNT
+		FROM BRD
+		WHERE BRD_KND='D01' AND BRD_DEL !='Y'
+		ORDER BY BRD_LIKE DESC 
+</select>
+
+<!-- 여행후기 조회수 -->
+<update id="tripViewCnt" parameterType="String">
+	UPDATE BRD
+	SET INQ_CNT = INQ_CNT + 1
+	WHERE BRD_ID = #{brdId}
+</update>
+
+<!-- 여행후기 글 목록  LIST -->
+<select id="tripBoardList" parameterType ="hashMap" resultType="brdVO">
+		WITH T AS(
+		SELECT
+			<choose>
+				<when test="sort=='frstDt'">
+					ROW_NUMBER() OVER(ORDER BY FRST_DT DESC) RNUM,
+				</when>
+				<when test="sort=='brdLike'">
+					ROW_NUMBER() OVER(ORDER BY BRD_LIKE DESC) RNUM,
+				</when>
+				<when test="sort=='inqCnt'">
+					ROW_NUMBER() OVER(ORDER BY INQ_CNT DESC) RNUM,
+				</when>
+				<otherwise>
+					ROW_NUMBER() OVER(ORDER BY BRD_ID DESC) RNUM,
+				</otherwise>
+			</choose>	
+		    BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, BRD_DEL, 
+		    INTR, INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, 
+		    FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT, ATTACH_ID,INQ_CNT
+		FROM BRD
+		WHERE BRD_KND='D01' AND BRD_DEL !='Y'
+		<include refid="where"></include>
+<!-- 		<include refid="sort"></include> -->
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+</select>
+
+
+<!-- 여행후기 글 등록 -->
+<!-- 1.글 등록 -->
+<insert id="tripAddWrite" parameterType="brdVO">
+	<selectKey resultType="String" order="BEFORE" keyProperty="brdId">
+		SELECT NVL(SUBSTR(MAX(BRD_ID),1,11)||TRIM(TO_CHAR(SUBSTR(MAX(BRD_ID),-3,3)+1,'000')),#{brdKnd}||TO_CHAR(SYSDATE,'YYYYMMDD')||'001')
+		FROM BRD 
+		WHERE BRD_KND = #{brdKnd} AND SUBSTR(BRD_ID,4,8) = TO_CHAR(SYSDATE,'YYYYMMDD')
+	</selectKey>
+	INSERT INTO BRD (BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, TOUR_ID, FRST_WRTR, FRST_DT,LAST_WRTR, LAST_DT)
+	VALUES (#{brdId}, #{brdKnd}, #{brdTt}, #{brdCntn}, #{tourId}, #{frstWrtr}, SYSDATE, #{lastWrtr}, SYSDATE)
+</insert>
+
+<!-- 2.첨부파일 테이블 등록 -->
+<insert id="attachInsert" parameterType="attachVO">
+	<selectKey resultType="String" order="BEFORE" keyProperty="attachId">
+		SELECT NVL(MAX(TO_NUMBER(ATTACH_ID)),0)+1 FROM ATTACH
+	</selectKey>
+	INSERT INTO ATTACH(ATTACH_ID, ATTACH_DEL) VALUES(#{attachId},'N')
+</insert>
+
+<!-- 3.첨부파일_상세 테이블  등록-->
+<update id="attachDeInsert" parameterType="java.util.List">
+	<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+		INTO ATTACH_DE(ATTACH_DE_ID, ATTACH_ID, ORG_NM, FILE_NM, SAVE_PATH, FILE_SZ, FILE_TY, FILE_DEL,FILE_DT) 
+		VALUES(#{idx}+1,#{attachDeVO.attachId},#{attachDeVO.orgNm},#{attachDeVO.fileNm},
+		#{attachDeVO.savePath},#{attachDeVO.fileSz},#{attachDeVO.fileTy},'N',SYSDATE)
+	</foreach>
+</update>
+
+<!-- 4.brd 테이블의  ATTACH_ID 처리 -->
+<update id="attachIdUpdate" parameterType="brdVO">
+	UPDATE BRD
+	SET ATTACH_ID = #{attachId}
+	WHERE BRD_ID = #{brdId}
+</update>
+
+<!--5. 여행지 선택하기   -->
+<select id="tourList" parameterType="tourVO" resultType="tourVO">
+SELECT TOUR_ID,TOUR_NM 
+FROM TOUR
+ORDER BY TOUR_NM
+</select>
+
+<!-- 6. 여행지명 불러오기 -->
+<select id="tourNm" parameterType="tourVO" resultType="tourVO">
+SELECT TOUR_NM
+FROM TOUR
+WHERE TOUR_ID=#{tourId}
+</select>
+
+<!-- 여행후기 글 상세보기 -->
+<resultMap type="brdVO" id="tripBoardMap">
+	  <result property="brdId" column="BRD_ID" />
+	  <result property="brdTt" column="BRD_TT" />
+	  <result property="brdCntn" column="BRD_CNTN" jdbcType="CLOB" javaType="java.lang.String"/> 
+	  <result property="brdLike" column="BRD_LIKE" />
+	  <result property="tourId" column="TOUR_ID" />
+	  <result property="lastWrtr" column="LAST_WRTR" />
+	  <result property="lastDt" column="LAST_DT" />
+	  <result property="frstWrtr" column="FRST_WRTR" />
+	  <result property="frstDt" column="FRST_DT" />
+	  <result property="attachId" column="ATTACH_ID" />
+	  <collection property="attachVOList" resultMap = "attachMap"></collection>
+	  <collection property="cmtVOList" resultMap = "cmtMap"></collection>
+</resultMap>
+
+<resultMap type="attachVO" id="attachMap">
+	<result property="attachId" column="ATTACH_ID" />
+	<result property="attachDel" column="ATTACH_DEl" />
+	<collection property="attachDeVOList" resultMap = "attachDeMap"></collection>
+</resultMap>
+
+<resultMap type="attachDeVO" id="attachDeMap">
+	<result property="attachDeId" column="ATTACH_DEl" />
+	<result property="attachId" column="ATTACH_ID" />
+	<result property="orgNm" column="ORG_NM" />
+	<result property="fileNm" column="FILE_NM" />
+	<result property="savePath" column="SAVE_PATH" />
+	<result property="fileSz" column="FILE_SZ" />
+	<result property="fileTy" column="FILE_TY" />
+	<result property="fileDel" column="FILE_DEL" />
+
+</resultMap>
+
+<resultMap type="cmtVO" id="cmtMap">
+	<result property="cmtId" column="CMT_ID" />
+	<result property="cmtWr" column="CMT_WR" />
+	<result property="cmtCntn" column="CMT_CNTN" />
+	<result property="cmtDt" column="CMT_DT" />
+	<result property="brdId" column="BRD_ID" />
+</resultMap>
+
+<!-- 여행후기 게시글 상세보기-->
+<select id="tripDetail" parameterType="brdVO" resultType="brdVO">
+SELECT
+    A.BRD_ID,
+    A.BRD_KND,
+    A.BRD_TT,
+    A.BRD_DEL,
+    A.BRD_LIKE,
+    A.TOUR_ID,
+    A.FRST_WRTR,
+    A.FRST_DT,
+    A.LAST_WRTR,
+    A.LAST_DT,
+    A.ATTACH_ID,
+    A.INQ_CNT,
+    A.BRD_CNTN,
+    B.ATTACH_DEL,
+    C.ATTACH_DE_ID,
+    C.ORG_NM,
+    C.FILE_NM,
+    C.SAVE_PATH,
+    C.FILE_SZ,
+    C.FILE_TY,
+    C.FILE_DEL
+FROM
+    BRD A
+    LEFT JOIN ATTACH B ON A.ATTACH_ID = B.ATTACH_ID
+    LEFT JOIN ATTACH_DE C ON B.ATTACH_ID = C.ATTACH_ID
+WHERE BRD_KND='D01'AND BRD_ID=#{brdId} AND BRD_DEL !='Y'
+
+</select>
+
+<!-- 첨부파일 불러오기 -->
+<select id="savePath" parameterType="brdVO" resultType="String">
+SELECT C.SAVE_PATH
+	FROM ATTACH_DE C 
+		LEFT JOIN ATTACH B ON C.ATTACH_ID = B.ATTACH_ID
+   		LEFT JOIN BRD A ON A.ATTACH_ID = B.ATTACH_ID
+   	WHERE BRD_KND='D01'AND BRD_ID=#{brdId}
+</select>
+
+<!-- 게시글 좋아요 기능 -->
+<!-- 좋아요 눌렀는지 안 눌렀는지 확인 -->
+<select id="findLike" resultType="Integer">
+	SELECT COUNT(*) FROM LIKE_BRD WHERE BRD_ID=#{brdId} AND MEM_ID=#{memId}
+</select>
+<!-- 1-1) 게시글 좋아요 클릭 시  -->
+<update id="likeBrd" parameterType="likeBrdVO">
+	UPDATE BRD SET BRD_LIKE=BRD_LIKE+1 WHERE BRD_ID=#{brdId}
+</update>
+<!-- 1-2) (LIKE_BRD 테이블)게시글 좋아요를 클릭한 회원아이디, 게시판아이디, 언제 INSERT-->
+<insert id="insertBrd" parameterType="likeBrdVO">
+	INSERT INTO LIKE_BRD(MEM_ID, BRD_ID, LIKE_DT) VALUES(#{memId},#{brdId},SYSDATE)
+</insert>
+
+<!-- 2-1) 게시글 좋아요 한번 더 클릭하면 비활성화 -->
+<update id="dislikeBrd" parameterType="likeBrdVO">
+	UPDATE BRD SET BRD_LIKE=BRD_LIKE-1 WHERE BRD_ID=#{brdId}
+</update>
+
+<!-- 2-2) (LIKE_BRD 테이블)게시글 좋아요를 클릭한 회원아이디, 게시판아이디, 언제 DELETE-->
+<delete id="deleteBrd" parameterType="likeBrdVO">
+	DELETE FROM LIKE_BRD WHERE MEM_ID = #{memId} AND BRD_ID=#{brdId}
+</delete>
+
+
+
+<!-- 페이징 처리 -->
+<!-- 총 게시글 갯수 출력 -->
+<select id="countBoard" parameterType="hashMap" resultType="int">
+	SELECT COUNT(*) FROM BRD WHERE BRD_KND='D01' AND BRD_DEL!='Y'
+	<include refid="where"></include>
+	<include refid="sort"></include>
+</select>
+
+<!-- 글 신고 -->
+<update id="tripReprt" parameterType="brdVO">
+ UPDATE BRD SET REPRT = REPRT + 1 WHERE BRD_ID=#{brdId}
+</update>
+
+
+
+<!-- 여행후기 글 수정 -->
+<!-- 1.여행후기 게시판 테이블 수정 -->
+<update id="tripUpdate" parameterType="brdVO">
+UPDATE BRD SET BRD_TT = #{brdTt},
+			   BRD_CNTN = #{brdCntn},
+			   TOUR_ID = #{tourId},
+			   LAST_WRTR = #{lastWrtr},
+			   LAST_DT=SYSDATE
+	  	   WHERE BRD_ID = #{brdId}
+</update>
+
+<update id="attachDeBefUpdate" parameterType="brdVO">
+	DELETE FROM ATTACH_DE
+	WHERE  ATTACH_ID = (SELECT ATTACH_ID FROM BRD WHERE BRD_ID = #{brdId})
+</update>
+
+<!-- 2.첨부파일 상세 테이블 업데이트-->
+<update id="attachDeUpdate" parameterType="java.util.List">
+	<foreach collection="list" item="attachDeVO" index="idx" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+		INTO ATTACH_DE(ATTACH_DE_ID, ATTACH_ID, ORG_NM, FILE_NM, SAVE_PATH, FILE_SZ, FILE_TY, FILE_DEL,FILE_DT) 
+		VALUES(#{idx}+1,(SELECT ATTACH_ID FROM BRD WHERE BRD_ID = #{attachDeVO.brdId}),#{attachDeVO.orgNm},#{attachDeVO.fileNm},
+		#{attachDeVO.savePath},#{attachDeVO.fileSz},#{attachDeVO.fileTy},'N',SYSDATE)
+	</foreach>
+</update>
+
+
+
+<!-- 여행후기 글 삭제 -->
+<!-- 1. BRD 테이블 삭제여부 -> 'Y' -->
+<update id="tripDelete" parameterType="brdVO">
+UPDATE BRD SET BRD_DEL = 'Y' 
+		   WHERE BRD_ID = #{brdId}
+</update>
+<!-- 2. ATTACH 테이블 삭제여부  -> 'Y'-->
+<update id="tripAttachDelete" parameterType="brdVO">
+UPDATE ATTACH SET ATTACH_DEL = 'Y'
+	WHERE ATTACH_ID = (SELECT ATTACH_ID FROM BRD WHERE BRD_ID = #{brdId})
+</update>
+<!-- 3. ATTACH_DE 테이블 삭제여부 -> 'Y' -->
+<update id="tripAttachDeDelete" parameterType="brdVO">
+UPDATE ATTACH_DE SET FILE_DEL = 'Y'
+	WHERE ATTACH_ID = (SELECT ATTACH_ID FROM BRD WHERE BRD_ID = #{brdId})
+</update>
+
+
+<!-- 댓글 -->
+<!-- 1.댓글 작성 -->
+<insert id="cmtWrite" parameterType="cmtVO">
+<selectKey resultType="String" order="BEFORE" keyProperty="cmtId">
+SELECT NVL(
+    SUBSTR(MAX(CMT_ID), 1, 3) || TRIM(TO_CHAR(TO_NUMBER(SUBSTR(MAX(CMT_ID), -2, 2)) + 1, '00')),'01') 
+FROM CMT
+</selectKey>
+INSERT INTO CMT (
+    CMT_ID, 
+    CMT_WR,
+    CMT_CNTN,
+    CMT_DT,
+    BRD_ID,
+    REP_LEVEL
+) VALUES (
+    #{cmtId},
+    #{cmtWr},
+    #{cmtCntn},
+    SYSDATE,
+    #{brdId},
+    1
+)
+</insert>
+<!-- 2.. 댓글 수정 -->
+<update id="cmtUpdate" parameterType="cmtVO">
+UPDATE CMT
+    SET
+        CMT_CNTN = #{cmtCntn},
+        CMT_DT = SYSDATE
+WHERE
+	CMT_ID =#{cmtId} AND
+	BRD_ID =#{brdId}
+</update>
+<!-- 3. 댓글/대댓글 삭제 -->
+<delete id="cmtDelete" parameterType="cmtVO">
+DELETE FROM CMT
+WHERE
+	CMT_ID =#{cmtId} AND
+	BRD_ID =#{brdId}
+</delete>	
+<!-- 4. 댓글 조회-->
+<select id="cmtDetail" parameterType="hashMap" resultType="cmtVO">
+SELECT 
+	CMT_ID, CMT_WR, CMT_CNTN, CMT_DT, BRD_ID,REP_LEVEL
+FROM CMT
+WHERE BRD_ID=#{brdId} AND REP_LEVEL=1
+ORDER BY CMT_DT DESC
+</select>
+
+<!-- 5. 댓글 개수 -->
+<select id="cmtCount" parameterType="cmtVO" resultType="int">
+	SELECT COUNT(*) FROM CMT WHERE BRD_ID=#{brdId}
+</select>
+
+<!-- 대댓글 기능 -->
+<!-- 1. 대댓글 작성하기 -->
+<insert id="replyWrite" parameterType="cmtVO">
+<selectKey resultType="String" order="BEFORE" keyProperty="cmtId">
+SELECT NVL(
+    SUBSTR(MAX(CMT_ID), 1, 3) || TRIM(TO_CHAR(TO_NUMBER(SUBSTR(MAX(CMT_ID), -2, 2)) + 1, '00')),'01') 
+FROM CMT
+</selectKey>
+INSERT INTO CMT (
+    CMT_ID,
+    CMT_WR,
+    CMT_CNTN,
+    CMT_DT,
+    BRD_ID,
+    REP_CMT_ID,
+    REP_LEVEL
+) VALUES (
+   #{cmtId},
+   #{cmtWr},
+   #{cmtCntn},
+   	SYSDATE,
+   #{brdId},
+   #{repCmtId},
+   2
+)
+</insert>
+<!-- 2.대댓글 조회하기 -->
+<select id="replyDetail" parameterType="cmtVO" resultType="cmtVO">
+SELECT A.CMT_ID, A.CMT_WR, A.CMT_CNTN, A.CMT_DT, A.BRD_ID, B.REP_CMT_ID
+FROM CMT A
+JOIN (
+    SELECT CMT_ID, REP_CMT_ID
+    FROM CMT
+    WHERE REP_LEVEL = 2
+) B ON A.CMT_ID = B.CMT_ID
+</select>
+
+<!-- 대댓글 수 조회하기 -->
+<select id="repCmtCount" parameterType="cmtVO" resultType ="int">
+SELECT CMT_ID AS repCount FROM CMT WHERE REP_CMT_ID = #{repCmtId}
+</select>
+
+
+</mapper>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.business.mapper.BsCalculMapper">
+
+	<select id="selectCalcul" parameterType="hashMap" resultType="kr.or.ddit.vo.CalculVO">
+		WITH T AS(
+			SELECT 
+				 ROW_NUMBER() OVER (ORDER BY A.PAY_DT) AS RNUM
+			   , TO_CHAR(A.PAY_PR, '999,999,999') AS PAY_PR
+			   , TO_CHAR(A.PAY_PR*0.1, '999,999,999') AS VAT 
+			   , TO_CHAR(A.PAY_PR*0.03, '999,999,999') AS broker_fee
+			   , TO_CHAR(A.PAY_PR - (A.PAY_PR*0.03) - (A.PAY_PR*0.1), '999,999,999') AS profit
+			   , A.PAY_DT
+			   , A.PAY_MTH
+			   , A.RSV_ID
+			   , B.RSV_DT
+			   , (SELECT MEM_NM FROM MEM WHERE MEM_ID = B.MEM_ID) AS MEM_NM
+			FROM PAY A
+			INNER JOIN RSV B ON A.Rsv_Id = B.Rsv_Id
+			WHERE A.RFD_CK IS NULL
+			    AND BUSI_ID = #{busiId}
+			    AND PAY_DT BETWEEN #{startDt} AND #{endDt}
+			    AND RSV_DT &lt; SYSDATE
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 5) - 4 AND #{currentPage} * 5
+	</select>
+
+	<select id="sumCalcul" parameterType="hashMap" resultType="java.lang.String">
+		SELECT
+		    SUM(PAY_PR)
+		FROM PAY A
+		INNER JOIN RSV B ON A.Rsv_Id = B.Rsv_Id
+		WHERE A.RFD_CK IS NULL
+		    AND BUSI_ID = #{busiId}
+		    AND PAY_DT BETWEEN #{startDt} AND #{endDt}
+		    AND RSV_DT &lt; SYSDATE 
+	</select>
+	<select id="vatCalcul" parameterType="hashMap" resultType="java.lang.String">
+		SELECT
+		    SUM(PAY_PR)*0.1
+		FROM PAY A
+		INNER JOIN RSV B ON A.Rsv_Id = B.Rsv_Id
+		WHERE A.RFD_CK IS NULL
+		    AND BUSI_ID = #{busiId}
+		    AND PAY_DT BETWEEN #{startDt} AND #{endDt}
+		    AND RSV_DT &lt; SYSDATE 
+	</select>
+	<select id="feeCalcul" parameterType="hashMap" resultType="java.lang.String">
+		SELECT
+		    SUM(PAY_PR)*0.03
+		FROM PAY A
+		INNER JOIN RSV B ON A.Rsv_Id = B.Rsv_Id
+		WHERE A.RFD_CK IS NULL
+		    AND BUSI_ID = #{busiId}
+		    AND PAY_DT BETWEEN #{startDt} AND #{endDt}
+		    AND RSV_DT &lt; SYSDATE 
+	</select>
+	
+	<select id="totalCalcul" parameterType="hashMap" resultType="java.lang.String">
+		SELECT
+		    COUNT(PAY_PR)
+		FROM PAY A
+		INNER JOIN RSV B ON A.Rsv_Id = B.Rsv_Id
+		WHERE A.RFD_CK IS NULL
+		    AND BUSI_ID = #{busiId}
+		    AND PAY_DT BETWEEN #{startDt} AND #{endDt}
+		    AND RSV_DT &lt; SYSDATE 
+	</select>
+
+</mapper>
+
+<!-- xml에서  < > 는 중요한 의미를 갖기때문에 비교연산자로 사용할 수 없다. 
+	 <는 &lt;
+	 >는 &gt;
+	 "는 &quot;
+	 '는 &apos;
+	 &는 &amp;로 대체되어야 합니다. -->

@@ -1,0 +1,16 @@
+package kr.or.ddit.admin.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.RfdListVO;
+
+public interface AdRfdMapper {
+	// 환불 요청 목록
+	public List<RfdListVO> rfdList();
+	
+	public RfdListVO rfdDetail(String payId);
+	
+	public int rfdAccept(String payId);
+
+	public int rfdDenied(String payId);
+}

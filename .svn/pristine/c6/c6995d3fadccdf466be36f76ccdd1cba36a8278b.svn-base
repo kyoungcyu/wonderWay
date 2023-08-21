@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mapper.MmTrnMapper">
+	
+	<!-- <resultMap type="busiVO" id="busiMap">
+		
+		<collection property="adStatus" column="BUSI_Id" select="getAdStatus"></collection>
+		
+	</resultMap> -->
+	
+
+	<!--기차역에 맞는 아이디 가져오기  -->
+	<select id="getStationId" parameterType="String" resultType="String">
+		SELECT STATION_ID
+		FROM TRN_STATION
+		WHERE STATION_NM=#{stationNm}
+	</select>
+	
+	
+	<!--객실 가져오기  -->
+	<select id="getRm" parameterType="String" resultType="trnRmVO">
+		SELECT RM_NUM,TRN_KND, SEAT_TYPE
+		FROM TRN_RM
+		WHERE TRN_KND=#{trnKnd}
+		ORDER BY CAST(RM_NUM AS INTEGER)
+	</select>
+	
+	
+	
+	
+	<!-- 랜덤 좌석 배정  -->
+	<select id="getRndSeat" parameterType="hashMap"  resultType="trnSeatVO">
+		SELECT * FROM(
+			SELECT TS.SEAT_ID, TR.RM_NUM
+			FROM TRN_SEAT TS 
+			JOIN TRN_RM TR ON TR.SEAT_TYPE = TS.SEAT_TYPE
+			WHERE NOT EXISTS (
+					SELECT 1
+					WHERE TRN_NUM=#{trnNum}
+					AND ST_LOC=#{stLoc}
+					AND AR_LOC=#{arLoc}
+					AND ST_TM=#{stTm}
+					AND AR_TM=#{arTm}
+                    AND TRN_KND=#{trnKnd}
+                    AND RM_NUM=#{rmNum}
+                    AND SEAT_ID=TS.SEAT_ID)
+			ORDER BY DBMS_RANDOM.RANDOM)
+		<![CDATA[
+		WHERE ROWNUM <=1
+		]]>
+	</select>
+	
+	
+	
+	<!--좌석 가져오기  -->
+	<select id="getSeat" parameterType="hashMap" resultType="trnSeatVO" >
+		SELECT TS.SEAT_ID, TS.SEAT_TYPE,
+    	CASE WHEN EXISTS (SELECT 1
+						FROM TRN_RSV
+						WHERE TRN_NUM=#{trnNum}
+						AND ST_LOC=#{stLoc}
+						AND AR_LOC=#{arLoc}
+						AND ST_TM=#{stTm}
+						AND AR_TM=#{arTm}
+                        AND TRN_KND=#{trnKnd}
+                        AND RM_NUM=#{rmNum}
+                        AND SEAT_ID=TS.SEAT_ID)
+						THEN 'N' ELSE 'Y' END AS SEAT_STATUS
+		FROM TRN_SEAT TS
+		WHERE TS.SEAT_TYPE=(SELECT SEAT_TYPE
+		                    FROM TRN_RM
+		                    WHERE RM_NUM=#{rmNum})
+		ORDER BY TS.SEAT_ID DESC
+	</select>
+	
+	
+	<!--회원 예약시 테이블에 인서트  -->
+	<insert id="insertMemRsv" parameterType="hashMap">
+		INSERT ALL
+			INTO TR_RSV (TR_RSV_ID, TR_RSV_DT, MEM_ID, CM_CODE)
+		    	VALUES (#{trRsvId},#{trRsvDt},#{memId},'T01')
+		    INTO PAY (PAY_ID, PAY_PR, PAY_DT, PAY_MTH, TR_RSV_ID)
+		    	VALUES (#{payId}, #{payPr}, #{payDt}, 'KG이니시스', #{trRsvId})
+		   	<foreach collection="seatArray" item="seatId" separator=" ">
+		    INTO TRN_RSV (TR_RSV_ID, TRN_NUM, TRN_KND, ST_LOC, AR_LOC, ST_TM, AR_TM, SEAT_ID, RM_NUM)
+		    	VALUES(#{trRsvId},#{trnNum},#{trnKnd},#{stLoc}, #{arLoc},TO_DATE(#{stTm},'yyyy/MM/dd HH24:MI'),TO_DATE(#{arTm},'yyyy/MM/dd HH24:MI'),#{seatId},#{rmNum})
+		    </foreach>
+		SELECT 1 FROM DUAL
+	</insert>
+	
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

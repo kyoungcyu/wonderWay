@@ -1,0 +1,123 @@
+package kr.or.ddit.admin.service.impl;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.admin.mapper.AdTourMapper;
+import kr.or.ddit.admin.service.AdTourService;
+import kr.or.ddit.util.CommonFile;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.TourVO;
+import lombok.extern.slf4j.Slf4j;
+import kr.or.ddit.vo.TourVO;
+
+@Slf4j
+@Service
+public class AdTourServiceImpl implements AdTourService{
+	
+	@Autowired
+	AdTourMapper adTourMapper;
+	
+	@Override
+	public List<TourVO> tourList(Map<String, String> map) {
+		return this.adTourMapper.tourList(map);
+	}
+
+	@Override
+	public int getTotal(Map<String, String> map) {
+		return this.adTourMapper.getTotal(map);
+	}
+	
+	@Transactional
+	@Override
+	public int tourReg(TourVO tourVO) {
+		AttachVO attachVO = new AttachVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+
+		int result = this.adTourMapper.tourReg(tourVO);
+		log.info("result1 : " + result);
+		result += this.adTourMapper.attachInsert(attachVO);
+		log.info("result2 : " + result);
+
+		// <input name="picture" type="file"
+		MultipartFile picture = tourVO.getAttachVOList().get(0).getAttachDeVOList().get(0).getPicture();
+		String orgNm = picture.getOriginalFilename();
+		
+		// UUID 처리 시작
+		UUID uuid = UUID.randomUUID();
+		String fileNm = uuid.toString() + "_" + orgNm;
+
+		// 파일 업로드 시작 ===
+		File uploadPath = new File(CommonFile.uploadFolder+"\\tourImage", CommonFile.getFolder());
+		if (uploadPath.exists() == false) {
+			uploadPath.mkdirs();
+		}
+
+		// 설계
+		File saveFile = new File(uploadPath, fileNm);
+		try {
+			picture.transferTo(saveFile);
+
+			AttachDeVO attachDeVO = new AttachDeVO();
+			attachDeVO.setAttachId(attachVO.getAttachId());
+			attachDeVO.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm); // 파일 저장 경로
+			attachDeVO.setOrgNm(orgNm);// 파일 원본 명
+			attachDeVO.setFileNm(fileNm);// 파일 저장명
+			attachDeVO.setFileSz(picture.getSize()); // 파일 사이즈
+			attachDeVO.setFileTy(picture.getContentType()); // 파일 컨텐츠 타입
+
+			log.info("insert할 attachDeVO : " + attachDeVO);
+
+			attachDeVOlist.add(attachDeVO);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+		// AttachDeVO(attachDeId=null, attachId=null, orgNm=다운로드.jpg
+		// , fileNm=3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		// , savePath=/2023/06/26/3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		// , fileSz=4687, fileTy=image/jpeg, fileDel=null, picture=null)
+
+		result += this.adTourMapper.attachDeInsert(attachDeVOlist);
+		log.info("result3 : " + result);
+
+		tourVO.setAttachId(attachVO.getAttachId());
+		log.info("result3->tourVO : " + tourVO);
+
+		result += this.adTourMapper.attachIdUpdate(tourVO);
+		log.info("result4 : " + result);
+		
+		return result;
+	}
+
+	@Override
+	public String getImgPath(String tourId) {
+		return this.adTourMapper.getImgPath(tourId);
+	}
+
+	@Override
+	public TourVO tourDetail(String tourId) {
+		return this.adTourMapper.tourDetail(tourId);
+	}
+
+	@Override
+	public int tourDel(String tourId) {
+		int cnt = this.adTourMapper.tourDel(tourId);
+		cnt += this.adTourMapper.tourAttachDel(tourId);
+		
+		return cnt;
+	}
+
+	@Override
+	public int insertTourExcel(TourVO tourVO) {
+		return this.adTourMapper.insertTourExcel(tourVO);
+	}
+}

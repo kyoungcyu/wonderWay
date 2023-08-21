@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.business.mapper.BsStatisMapper">
+
+	<!-- 1. 방예약 선호도 (방, 예약건수) -->
+	<select id="rsvRm" parameterType="hashMap" resultType="hashMap">
+		SELECT
+		    TO_CHAR(C.RM_NM) AS RM_ID,
+		    TO_CHAR(COUNT(B.RM_ID)) AS RSV_COUNT
+		FROM RSV A
+		INNER JOIN RSV_STY B ON A.RSV_ID = B.RSV_ID
+		INNER JOIN RM C ON C.RM_ID = B.RM_ID
+		WHERE A.BUSI_ID = #{busiId}
+		    AND A.RSV_DT BETWEEN #{startDt} AND #{endDt}
+		GROUP BY C.RM_NM
+	</select>
+
+	<!-- 2. 날짜별 찜 수(날짜, 예약건수) -->
+	<select id="wishDate" parameterType="hashMap" resultType="hashMap">
+		SELECT
+			TO_CHAR(WISH_DT) as WISH_DT,
+			TO_CHAR(COUNT(WISH_DT)) AS RSV_COUNT
+		FROM WISH
+		WHERE BUSI_ID = #{busiId}
+			AND WISH_DT BETWEEN #{startDt} AND #{endDt}
+		GROUP BY WISH_DT
+		ORDER BY 1
+	</select>
+
+	<!-- 22. 날짜별 예약 추이(날짜, 예약건수) -->
+	<select id="rsvDate" parameterType="hashMap" resultType="hashMap">
+		SELECT
+			TO_CHAR(A.RSV_DT) as RSV_DT,
+			TO_CHAR(COUNT(A.RSV_DT)) AS RSV_COUNT
+		FROM RSV A
+		INNER JOIN RSV_STY B ON A.RSV_ID = B.RSV_ID
+		WHERE A.BUSI_ID = #{busiId}
+			AND A.RSV_DT BETWEEN #{startDt} AND #{endDt}
+		GROUP BY A.RSV_DT
+		ORDER BY 1
+	</select>
+
+	<!-- 3-1. 여성의 연령대별 예약건수 -->
+	<select id="rsvFemale" parameterType="hashMap" resultType="hashMap">
+		SELECT
+		    FLOOR(TRUNC(MONTHS_BETWEEN(SYSDATE, C.Mem_Bir) / 12) / 10) * 10 || C.Mem_Gen AS GENERATION,
+		    TO_CHAR(COUNT(A.RSV_ID)) AS RSV_COUNT
+		FROM RSV A
+		INNER JOIN RSV_STY B ON A.RSV_ID = B.RSV_ID
+		INNER JOIN MEM C ON A.MEM_ID = C.MEM_ID
+		WHERE A.BUSI_ID = #{busiId}
+		    AND A.RSV_DT BETWEEN #{startDt} AND #{endDt}
+		AND C.Mem_Gen = 'F'
+		GROUP BY FLOOR(TRUNC(MONTHS_BETWEEN(SYSDATE, C.Mem_Bir) / 12) / 10) * 10 || C.Mem_Gen
+		ORDER BY 1
+	</select>
+	<!-- 3-2. 남성의 연령대별 예약건수 -->
+	<select id="rsvMale" parameterType="hashMap" resultType="hashMap">
+		SELECT
+		    FLOOR(TRUNC(MONTHS_BETWEEN(SYSDATE, C.Mem_Bir) / 12) / 10) * 10 || C.Mem_Gen AS GENERATION,
+		    TO_CHAR(COUNT(A.RSV_ID)) AS RSV_COUNT
+		FROM RSV A
+		INNER JOIN RSV_STY B ON A.RSV_ID = B.RSV_ID
+		INNER JOIN MEM C ON A.MEM_ID = C.MEM_ID
+		WHERE A.BUSI_ID = 'B0100011'
+		    AND A.RSV_DT BETWEEN #{startDt} AND #{endDt}
+		AND C.Mem_Gen = 'M'
+		GROUP BY FLOOR(TRUNC(MONTHS_BETWEEN(SYSDATE, C.Mem_Bir) / 12) / 10) * 10 || C.Mem_Gen
+		ORDER BY 1
+	</select>
+
+	<!-- 4. 많이 예약한 MBTI (MBTI, 예약건수) -->
+	<select id="rsvMbti" parameterType="hashMap" resultType="hashMap">
+		SELECT
+			C.Mem_Mbti,
+			TO_CHAR(COUNT(A.RSV_ID)) AS RSV_COUNT
+		FROM RSV A
+		INNER JOIN RSV_STY B ON A.RSV_ID = B.RSV_ID
+		INNER JOIN MEM C ON A.MEM_ID = C.MEM_ID
+		WHERE A.BUSI_ID = #{busiId}
+			AND A.RSV_DT BETWEEN #{startDt} AND #{endDt}
+		GROUP BY C.Mem_Mbti
+	</select>
+
+</mapper>

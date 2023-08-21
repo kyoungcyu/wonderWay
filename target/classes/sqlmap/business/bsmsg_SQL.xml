@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.member.mapper.MmMsgMapper">
+
+	<!-- 받은쪽지함 화면출력+ 페이징처리하기위한 쿼리 -->
+	<select id="recvMsg" parameterType="hashMap" resultType="msgVO">
+		WITH T
+		AS(
+		SELECT  ROW_NUMBER() OVER(ORDER BY MSG_ID DESC) AS RNUM,
+		A.MSG_ID,
+		C.MEM_ID AS RECV_ID,
+		C.MEM_NM AS RECV_NM,
+		A.CNTN,
+		A.SEND_DT,
+		B.BUSI_ID AS SEND_ID,
+		B.BUSI_NM AS SEND_NM
+
+		FROM MSG A
+		LEFT JOIN BUSI B ON B.BUSI_ID = A.SEND_ID
+		LEFT JOIN MEM C ON C.MEM_ID = A.RECV_ID
+		WHERE RECV_ID = #{memId}
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN
+		(#{currentPage} * 5) - 4 AND #{currentPage} * 5
+	</select>
+
+	<select id="sendMsg" parameterType="hashMap" resultType="msgVO">
+		WITH T
+		AS(
+		SELECT  ROW_NUMBER() OVER(ORDER BY MSG_ID DESC) AS RNUM,
+		A.MSG_ID,
+		C.MEM_ID  AS SEND_ID,
+		C.MEM_NM AS SEND_NM,
+		A.CNTN,
+		A.SEND_DT,
+		B.BUSI_ID AS RECV_ID,
+		B.BUSI_NM AS RECV_NM
+		FROM MSG A
+		LEFT JOIN BUSI B ON B.BUSI_ID = A.RECV_ID
+		LEFT JOIN MEM C ON C.MEM_ID = A.SEND_ID
+		WHERE SEND_ID = #{memId}
+
+		)
+		SELECT * FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 5) - 4 AND
+		#{currentPage} * 5
+	</select>
+
+	
+	<select id="recvTotal" parameterType="String" resultType="int">
+		SELECT COUNT(MSG_ID)
+		FROM MSG
+		WHERE RECV_ID = #{memId}
+	</select>
+	
+	<select id="sendTotal" parameterType="String" resultType="int">
+		SELECT COUNT(MSG_ID)
+		FROM MSG
+		WHERE SEND_ID = #{memId}
+	</select>
+
+</mapper>
+
+

@@ -1,0 +1,58 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<!-- Main content START -->
+<div class="col-lg-8 col-xl-9">
+
+	<!-- Offcanvas menu button -->
+	<div class="d-grid mb-0 d-lg-none w-100">
+		<button class="btn btn-primary mb-4" type="button"
+			data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar"
+			aria-controls="offcanvasSidebar">
+			<i class="fas fa-sliders-h"></i> Menu
+		</button>
+	</div>
+
+	<div class="vstack gap-4">
+		<!-- Update email START -->
+		<div class="card border">
+			<!-- Card header -->
+			<div class="card-header border-bottom">
+				<h4 class="card-header-title">Update email</h4>
+				<p class="mb-0">
+					Your current email address is <span class="text-primary">example@gmail.com</span>
+				</p>
+			</div>
+
+			<!-- Card body START -->
+			<div class="card-body">
+				<form>
+					<!-- Email -->
+				<div class="mb-3">
+					<label class="form-label">현재 이메일 주소<span class="text-danger">*</span></label> 
+					<input type="email" class="form-control" placeholder="Enter your email id" >
+				</div>
+				<div class="col-md-8"  >
+					<div>
+						<label class="form-label">변경할 이메일 주소<span class="text-danger">*</span></label>
+						<input type="text" class="form-control id="newEmail" readonly>
+						<button class="btn btn-danger-soft mb-0">인증하기</button>
+					</div>
+				</div>
+				
+				<div class="mb-3">
+					<label class="form-label">인증코드를 입력하세요.<span class="text-danger">*</span></label> 
+					<input type="email" class="form-control" placeholder="Enter your email id">
+				</div>
+					
+					<div class="text-end mt-3">
+						<a href="#" class="btn btn-primary mb-0">변경하기</a>
+					</div>
+				</form>
+			</div>
+			<!-- Card body END -->
+		</div>
+		<!-- Update email END -->
+	</div>
+	<!-- Main content END -->
+</div>

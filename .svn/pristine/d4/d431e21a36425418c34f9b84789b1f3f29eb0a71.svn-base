@@ -1,0 +1,14 @@
+package kr.or.ddit.member.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BusiVO;
+
+public interface MmAcmService {
+
+	//숙소 검색
+	public List<BusiVO> searchAcm(Map<String, String> map);
+	
+	
+}

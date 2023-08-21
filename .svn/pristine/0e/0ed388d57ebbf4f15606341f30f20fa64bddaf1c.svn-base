@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdBusiMapper">
+	<select id="styList" resultType="busiVO">
+		SELECT
+		    BUSI_ID, LGIN_ID, BUSI_PW, BUSI_NM, BUSI_LOC, BUSI_REP, BUSI_SCR, BUSI_X, BUSI_IMG,
+		     BUSI_DC, BUSI_CODE, BUSI_NO, LATI, LONGI, BUSI_INFO, BUSI_EMAIL, BUSI_TEL, W_MONEY
+		FROM BUSI
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

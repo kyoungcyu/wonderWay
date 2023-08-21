@@ -1,0 +1,112 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<!-- Main content START -->
+<div class="col-lg-8 col-xl-9">
+	<!-- Offcanvas menu button -->
+	<div class="d-grid mb-0 d-lg-none w-100">
+		<button class="btn btn-primary mb-4" type="button"
+			data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar"
+			aria-controls="offcanvasSidebar">
+			<i class="fas fa-sliders-h"></i> Menu
+		</button>
+	</div>
+
+	<!-- Card START -->
+	<div class="card border">
+		<!-- Card header -->
+		<div class="card-header border-bottom">
+			<h4 class="card-header-title">Delete Account</h4>
+		</div>
+
+		<!-- Card body START -->
+		<div class="card-body">
+			<h6>${data.memId}님 정말 탈퇴하시겠어요?</h6>
+			<ul>
+				<li>계정을 삭제하면 {조태희} 님의 모든 정보가 삭제됩니다.</li>
+				<li>탈퇴 후에는 작성하신 리뷰를 수정 혹은 삭제하실 수 없어요. 탈퇴 신청 전에 꼭 확인해주세요.</li>
+			</ul>
+			<div class="form-check form-check-md my-4">
+				<input class="form-check-input" type="checkbox" value=""
+					id="deleteaccountCheck"> <label class="form-check-label"
+					for="deleteaccountCheck">회원 탈퇴 유의사항을 확인하였으며 동의합니다.</label>
+			</div>
+			<a href="/member/mypage/myInfo"class="btn btn-success-soft btn-sm mb-2 mb-sm-0">취소</a> 
+			<button class="btn btn-danger btn-sm mb-0" id ="deleteMem">회원탈퇴</button>
+		</div>
+		<!-- Card body END -->
+	</div>
+	<!-- Card END -->
+</div>
+<!-- Main content END -->
+
+
+<!-- 모달창 시작 -->	
+	<div class="card border" id = "modal" style="display: none;">
+		<!-- Card header -->
+		<div class="card-header border-bottom">
+			<h4 class="card-header-title">현재 비밀번호를 입력해주세요.</h4>
+			
+		</div>
+		<!-- 모달창 내용 시작 -->
+		<div class="card-body" id="content">
+		    <form id="submitForm" method="post">
+		        <div>
+		            <input type="password" name="password" placeholder="현재 비밀번호 입력" required/>
+		        </div>
+		    </form>
+			<button class="btn btn-danger btn-sm mb-0" id ="passCheck">회원탈퇴하기</button>
+		</div>
+		<!-- 모달창 내용 끝 -->
+	</div>
+<!-- 모달창 끝 -->	
+
+<script type="text/javascript">
+	$("#deleteMem").click(function(){
+		if($("#deleteaccountCheck").is(":checked")){
+			let result = confirm("정말 탈퇴하시겠습니까?");
+			console.log("result : "+result);
+			if(result >0){
+				$("#modal").css("display","block");
+
+				
+			}
+		}else{
+			alert("회원탈퇴 유의사항에 동의해주세요.");
+		}
+	})
+</script>
+
+<style>
+#modal{
+	z-index : 1;
+	background-color: rgba(0,0,0,.3);
+	position:fixed;
+	left:0;
+	top: 0;
+	width:100%;
+	height:100%;
+}
+  #modal>#content{
+	width:300px;
+	margin:100px auto;
+	padding:20px;
+	position: relative;
+	background-color:#fff;
+}
+
+  #modal .close{
+    position:absolute;
+    top:4px;
+    right:4px;	
+    font-size:20px;
+    border:0;
+    background-color: #fff;
+  } 
+  #modal .close:hover,
+  #modal .close:focus {
+    color : #000;
+    text-decoration: none;
+    cursor :pointer;
+  }
+</style>

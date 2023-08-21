@@ -1,0 +1,15 @@
+package kr.or.ddit.admin.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.RsvListVO;
+
+public interface AdRsvMapper {
+	// 예약 목록
+	public List<RsvListVO> rsvList();
+	
+	public RsvListVO rsvDetail(String memId);
+	
+	public List<RsvListVO> rsvFilter(Map<String,String> map);
+}

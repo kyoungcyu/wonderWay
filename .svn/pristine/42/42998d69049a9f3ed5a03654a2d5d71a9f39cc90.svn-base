@@ -1,0 +1,148 @@
+package kr.or.ddit.business.controller;
+
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.business.service.BsBusiService;
+import kr.or.ddit.business.service.BsRsvService;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.vo.BsRfdListVO;
+import kr.or.ddit.vo.BsRsvListVO;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.RfdListVO;
+import kr.or.ddit.vo.RsvListVO;
+import lombok.extern.slf4j.Slf4j;
+
+
+@Slf4j
+@RequestMapping("/business/reserve")
+@Controller
+public class BsRsvController {
+	
+	
+	@Autowired
+	BsBusiService bsBusiService;
+	
+	@Autowired
+	BsRsvService bsRsvService;
+	
+	@GetMapping("/resList")
+	public String resList(Model model, HttpSession session, @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+			, @RequestParam(value = "size", required = false, defaultValue = "10") int size
+			, @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+			, @RequestParam(value = "period", required = false, defaultValue = "") String period) {
+		BusiVO busiVO =  (BusiVO) session.getAttribute("vo");
+		log.info(" 예약내역으로 왔따");
+		
+		log.info("busiVO:" +busiVO);
+		
+		Map<String,String> map = new HashMap<String, String>();
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		map.put("keyword", keyword);
+		map.put("busiId", busiVO.getBusiId());
+		
+		// 날짜선택 잘못햇을시 
+		if(!period.equals("")) {
+			String[] dateTodate = new String[3];
+			dateTodate = period.split("\\s");
+			if(dateTodate.length < 3) {
+				log.debug("Split Length : " + dateTodate.length);
+				return "redirect:/business/reserve/resList";
+			}
+			map.put("periodSt", dateTodate[0]);
+			map.put("periodEd", dateTodate[2]);
+		} 
+		
+		
+		log.info("map : " + map);
+		
+		List<BsRsvListVO> rsvListVOList = this.bsRsvService.rsvList(map);
+		log.info("예약목록 :"+ rsvListVOList) ;
+		log.info("map : " + map);
+
+		int total = this.bsRsvService.getTotal(map);
+		
+		log.info("total : " + total);
+		
+		model.addAttribute("data", new PagingDTO<BsRsvListVO>(total, currentPage, size, rsvListVOList));
+		model.addAttribute("vo", busiVO);
+		
+		
+		
+		return "business/reserve/resList";
+	}
+	
+	// 예약내역 상세보기
+	@PostMapping("/resListPost")
+	@ResponseBody
+	public BsRsvListVO resListPost(@RequestParam("rsvId") String rsvId) {
+		log.info(" ListPost로 왓따");
+		
+		BsRsvListVO data = this.bsRsvService.rsvDetail(rsvId);
+		
+		log.info("data :" + data);
+		
+		return data;
+	}
+	
+	
+	
+	@GetMapping("/rfdList")
+	public String rfdList(Model model, HttpSession session, @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage
+			, @RequestParam(value = "size", required = false, defaultValue = "10") int size
+			, @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+			, @RequestParam(value = "period", required = false, defaultValue = "") String period) {
+		BusiVO busiVO =  (BusiVO) session.getAttribute("vo");
+		log.info(" 취소내역으로 왔따");
+		Map<String,String> map = new HashMap<String, String>();
+		
+		map.put("currentPage", Integer.toString(currentPage));
+		map.put("size", String.valueOf(size));
+		map.put("keyword", keyword);
+		map.put("busiId", busiVO.getBusiId());
+		
+		log.info("busiID:" + busiVO.getBusiId());
+		
+		if(!period.equals("")) {
+			String[] dateTodate = new String[3];
+			dateTodate = period.split("\\s");
+			if(dateTodate.length < 3) {
+				log.debug("Split Length : " + dateTodate.length);
+				return "redirect:/business/reserve/rfdList";
+			}
+			map.put("periodSt", dateTodate[0]);
+			map.put("periodEd", dateTodate[2]);
+		}
+		
+		List<BsRfdListVO> rfdListVOList = this.bsRsvService.rfdList(map);
+		log.info("환불 목록 : " + rfdListVOList);
+		int total = this.bsRsvService.getTotalRfd(map);
+		log.info("map : " + map);
+		
+		PagingDTO<BsRfdListVO> data = new PagingDTO<BsRfdListVO>(total, currentPage, size, rfdListVOList); 
+		
+		log.info("data : " + data);
+		model.addAttribute("data", data);
+		
+		model.addAttribute("vo", busiVO);
+		
+		return "business/reserve/rfdList";
+	}
+	
+	
+	
+}

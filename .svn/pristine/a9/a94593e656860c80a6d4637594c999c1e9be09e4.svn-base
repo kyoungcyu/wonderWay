@@ -1,0 +1,23 @@
+package kr.or.ddit.vo;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import lombok.Data;
+
+@Data
+public class RsvListVO implements Serializable {
+	private String memId;
+	private String rsvId;
+	private String memNm;
+	private String gradId;
+	private String busiCode;
+	private String busiNm;
+	private String payMth;
+	private Date rsvDt;
+	private String rsvDtStr;
+	private String rsvPeriod;
+	private int payPr;
+	private String rsvCode;
+	private int remainDate;
+}

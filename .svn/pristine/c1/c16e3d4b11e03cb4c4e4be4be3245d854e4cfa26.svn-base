@@ -1,0 +1,37 @@
+package kr.or.ddit.member.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.RmVO;
+import kr.or.ddit.vo.RvwVO;
+
+public interface MmAcmService {
+
+	//숙소 검색-체크인날짜,인원,방개수로
+	public List<BusiVO> searchAcm(Map<String, String> map);
+	
+	//숙소검색-숙소명으로
+	public List<BusiVO> searchForName(Map<String, String> map);
+
+	//숙소 상세 페이지
+	public BusiVO detailAcm(BusiVO busiVO);
+	
+	//객실 가져오기
+	public List<RmVO> getRoom(Map<String, String> map);
+	
+	//리뷰 가져오기
+	public List<RvwVO> getReview(Map<String, String> map);
+
+	//리뷰 총개수
+	public int getTotalReview(String busiId);
+
+	//검색필터
+	public List<BusiVO> searchFilter(Map<String, Object> map);
+
+
+	
+	
+}

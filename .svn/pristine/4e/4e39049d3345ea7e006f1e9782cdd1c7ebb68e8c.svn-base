@@ -1,0 +1,19 @@
+package kr.or.ddit.business.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MsgVO;
+
+@Service
+public interface BsMsgService {
+
+	List<MsgVO> recvMsg(String busiId);
+
+	List<MsgVO> sendMsg(String busiId);
+
+	int msgInsert(MsgVO msgVO);
+
+}

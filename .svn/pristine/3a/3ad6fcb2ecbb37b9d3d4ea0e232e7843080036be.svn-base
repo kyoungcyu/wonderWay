@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.member.mapper.CscMapper">
+	<!-- 자주 사용되는 구문을 따로 관리 -->
+	<sql id="where">
+		<!-- 전체 검색 -->
+	    <if test="keyword!=null and !keyword.equals('')">
+    	AND    (
+            BRD_ID   LIKE '%' || #{keyword} || '%' OR
+            BRD_TT   LIKE '%' || #{keyword} || '%' OR
+            BRD_CNTN   LIKE '%' || #{keyword} || '%' OR
+            FRST_WRTR LIKE '%' || #{keyword} || '%'
+        )
+        </if>
+	</sql>
+	
+	<!-- 공지사항 -->
+	<select id="cscNoticeList" parameterType="hashMap" resultType="brdVO">
+		WITH T AS(
+		    SELECT
+		    	ROW_NUMBER() OVER(ORDER BY BRD_ID) RNUM,
+		        BRD_ID, BRD_KND, BRD_TT, BRD_DEL, INTR, INTR_RESN,
+			    BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, FRST_WRTR, FRST_DT,
+			    LAST_WRTR, LAST_DT, ATTACH_ID, INQ_CNT, BRD_CNTN
+		     FROM BRD
+		     WHERE BRD_KND = 'D03'
+		       AND INTR = 'N'
+		    <include refid="where"></include>
+		    ORDER BY FRST_DT DESC
+		)
+		SELECT T.*
+		FROM   T
+		WHERE  T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1) 
+						  AND (#{currentPage} * #{size})
+	</select>
+	
+	<!-- 공지글 수 -->
+	<select id="cscNoticeTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM BRD
+		WHERE  BRD_KND = 'D03'
+		<include refid="where"></include>
+	</select>
+	
+	<!-- 공지사항 상세 -->
+	<select id="cscNoticeDetail" parameterType="brdVO" resultType="brdVO">
+		SELECT
+		    BRD_ID, BRD_KND, BRD_TT, BRD_DEL, INTR, INTR_RESN,
+		    BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, FRST_WRTR, FRST_DT,
+		    LAST_WRTR, LAST_DT, ATTACH_ID, INQ_CNT, BRD_CNTN
+		FROM
+		    BRD
+		WHERE
+		    BRD_ID = #{brdId}
+	</select>
+	
+	<!-- 공지사항 조회수 -->
+	<update id="noticeCnt" parameterType="String">
+		UPDATE BRD
+		   SET INQ_CNT = INQ_CNT + 1
+		WHERE BRD_ID = #{brdId}
+	</update>
+	
+	<select id="checkLikeBrd" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) 
+		FROM LIKE_BRD 
+		WHERE BRD_ID=#{brdId} AND MEM_ID=#{memId}
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

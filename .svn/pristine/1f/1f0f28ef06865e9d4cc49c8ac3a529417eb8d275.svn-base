@@ -1,0 +1,19 @@
+package kr.or.ddit.member.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.MemVO;
+
+public interface MmMemService {
+	//회원가입
+	public int registerMem(MemVO memVO);
+	
+	//아이디 중복검사
+	public int checkMemId(MemVO memVO);
+
+	//이메일 중복검사
+	public int checkMemEmail(MemVO memVO);
+	
+}

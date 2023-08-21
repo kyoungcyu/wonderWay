@@ -1,0 +1,93 @@
+package kr.or.ddit.member.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.CupnVO;
+import kr.or.ddit.vo.GradVO;
+import kr.or.ddit.vo.HCupnVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.MmRsvListVO;
+import kr.or.ddit.vo.MmRsvRntcarListVO;
+import kr.or.ddit.vo.PayVO;
+import kr.or.ddit.vo.RfdReqVO;
+import kr.or.ddit.vo.RsvVO;
+
+public interface MypageService {
+	
+	//내 프로필
+	//마이페이지 - 내 프로필 - 내 정보(권한 미포함)
+	public MemVO detailMyInfo(String memId);
+	
+	// 회원정보 변경
+	// 마이페이지 - 내 프로필 - 정보 수정
+	public int updateMyInfo(MemVO memVO);
+	
+	//마이페이지 - 내 프로필 - 이메일 변경
+	public int updateMyEmail(MemVO memVO);
+	
+	// 마이페이지 - 내 프로필 - 비밀번호 변경
+	public int updateMyPass(MemVO memVO);
+	
+	
+	
+	//예약내역
+	// 예약완료 조회
+	public RsvVO rsvDetail(RsvVO rsvVO);
+	//숙박 조회
+	public List<MmRsvListVO> allBooking(Map<String, String> map);
+	//렌터카 조회
+	public List<MmRsvRntcarListVO> rntBooking(Map<String, String> map);
+	
+	//예약완료 취소 시
+	//1-1 환불 100%
+	//1-1 환불요청 테이블 인서트
+	public int rfdOk(RfdReqVO rfdReqVO);
+	//2-1. 수수료 존재할 시 환불테이블 insert
+	public int rfdRequest(RfdReqVO rfdReqVO);
+	
+	
+	//예약취소 내역 조회(1.환불 100%, 2.환불 100% x)
+	//1. 환불 100%
+	public List<MmRsvListVO> rsvCancel30Bef(Map<String, String> map);
+	
+	//결제완료 (1.RSV_ST < today : 결제확인 2.RSV_ST > today : 리뷰작성)
+	//1.리뷰작성
+	public List<MmRsvListVO> completePay(Map<String, String> map);
+	//2.결제확인
+	public List<MmRsvListVO> completePayBefUse(Map<String, String> map);
+	
+	//취소확정 -> K04
+	public List<MmRsvListVO> rsvCancelK04(Map<String, String> map);
+
+	
+	
+	
+	
+	//쿠폰함
+	//등급조회
+	public GradVO myGrad(String memId);
+	//쿠폰함 조회
+	public List<CupnVO> myCoupon(String memId);
+	//쿠폰존 조회
+	public List<CupnVO> couponZone(CupnVO cupnVO);
+	//쿠폰 다운로드
+	public int downCoupon(HCupnVO hCupnVO);
+	
+	
+	//나의 작성글 내역
+	//이용완료된 방 조회
+	public List<MmRsvRntcarListVO> completeBooking(String memId);
+	//리뷰조회
+	public List<BrdVO> myReviewList(String frstWrtr);
+	
+	
+	
+	//회원탈퇴
+	public int deleteMem(MemVO memVO);
+
+
+
+
+}

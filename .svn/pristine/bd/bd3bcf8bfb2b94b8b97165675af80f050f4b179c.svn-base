@@ -1,0 +1,483 @@
+package kr.or.ddit.member.controller;
+
+import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.member.service.MmAcmService;
+import kr.or.ddit.util.PagingDTO;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CvfcVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RmDeVO;
+import kr.or.ddit.vo.RmVO;
+import kr.or.ddit.vo.RvwVO;
+
+@RequestMapping("/member/acm")
+@Controller
+public class AcmController{
+	private static final Logger log = LoggerFactory.getLogger(AcmController.class);
+	
+
+
+	@Autowired
+	MmAcmService mmAcmService;
+
+	/** 숙소 검색 메인페이지로
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("/main")
+	public String acmMain(Model model) {
+
+		return "member/acm/acmMain";
+	}
+	
+
+	
+	/**검색 조건 처리-세션에 담아줌
+	 * @param model
+	 * @param busiLoc
+	 * @param guestRoomNum
+	 * @param checkInOut
+	 * @param session
+	 * @return
+	 */
+	@PostMapping("/search")
+	public String searchAcm(Model model,
+			@RequestParam(value="busiLoc",required=false) String busiLoc,
+		    @RequestParam(value="guestRoomNum",required=false, defaultValue="2 Guest 1 Room") String guestRoomNum,
+		    @RequestParam(value="checkInOut",required=false) String checkInOut,
+			@RequestParam(value="busiNm",required=false) String busiNm,
+		    HttpSession session){
+		
+		//체크인날짜, 인원, 방개수로 검색
+		if(busiNm==null) {
+			if(checkInOut==null || checkInOut=="") {
+				LocalDate now =LocalDate.now();
+		        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+		        String StrNow=now.format(formatter);
+				
+		        checkInOut=StrNow + "to"+ Integer.toString(Integer.parseInt(StrNow)+1);
+				
+			}
+			
+			String rsvSt=checkInOut.split("to")[0].trim();
+			String rsvEd=checkInOut.split("to")[1].trim();
+			String guestNum=guestRoomNum.split(" ")[0];
+			String rmNum=guestRoomNum.split(" ")[2];
+			
+				
+			//검색조건 유지위해 세션처리
+			session.setAttribute("busiLoc",busiLoc);
+			session.setAttribute("guestRoomNum",guestRoomNum);
+			session.setAttribute("guestNum",guestNum);
+			session.setAttribute("rmNum",rmNum);
+			session.setAttribute("checkInOut",checkInOut);
+			session.setAttribute("rsvSt",rsvSt);
+			session.setAttribute("rsvEd",rsvEd);
+			session.setAttribute("busiNm",busiNm);
+			
+		}else {
+			session.setAttribute("busiLoc",busiLoc);
+			session.setAttribute("busiNm",busiNm);
+		}
+		
+		return "redirect:/member/acm/search/result";
+	}
+	
+	
+	
+	/**검색 결과 리스트 
+	 * @param model
+	 * @param session
+	 * @return 
+	 */
+	@GetMapping("/search/result")
+	public String searchResultAcm(Model model, HttpSession session){
+		
+		//세션에서 값 가져온다 
+		String busiLoc= (String) session.getAttribute("busiLoc");
+		String guestRoomNum= (String) session.getAttribute("guestRoomNum");
+		String guestNum= (String) session.getAttribute("guestNum");
+		String rmNum= (String) session.getAttribute("rmNum");
+		String rsvSt= (String) session.getAttribute("rsvSt");
+		String rsvEd= (String) session.getAttribute("rsvEd");
+		String busiNm= (String) session.getAttribute("busiNm");
+		
+		//숙소 검색 위해 쿼리로 들어갈 검색 조건 저장 map
+		Map<String,String> map = new HashMap<String, String>();
+		
+		//체크인날짜, 인원,방개수로 검색 
+		if(busiNm==null) {
+			
+		map.put("busiLoc",busiLoc);
+		map.put("guestNum",guestNum);
+		map.put("rmNum",rmNum);
+		map.put("rsvSt",rsvSt);
+		map.put("rsvEd",rsvEd);
+		
+		log.info("map:"+map);
+		
+		//조건에 맞는 숙소, 방리스트, 방 최대값 얻기
+		List<BusiVO> busiVOList = this.mmAcmService.searchAcm(map);
+		int maxRmPr=this.mmAcmService.getMaxRmPr(map);
+		
+		model.addAttribute("busiVOList", busiVOList);
+		model.addAttribute("busiLoc", busiLoc);
+		model.addAttribute("guestRoomNum", guestRoomNum);
+		model.addAttribute("rsvSt", rsvSt);
+		model.addAttribute("rsvEd", rsvEd);
+		model.addAttribute("maxRmPr", maxRmPr);
+		
+		
+		
+		//숙소 이름으로 검색 
+		}else {
+			
+			map.put("busiLoc",busiLoc);
+			map.put("busiNm",busiNm);
+			
+			List<BusiVO> busiVOList = this.mmAcmService.searchForName(map);
+			int maxRmPr=this.mmAcmService.getMaxRmPr(map);
+			
+			model.addAttribute("busiVOList", busiVOList);
+			model.addAttribute("busiLoc", busiLoc);
+			model.addAttribute("busiNm", busiNm);
+			model.addAttribute("maxRmPr", maxRmPr);
+
+		}
+		
+		return "member/acm/acmList";
+	}
+	
+	
+	
+	@GetMapping("/search/orderByStar")
+	public String orderByStar(Model model, HttpSession session){
+		
+		String busiLoc= (String) session.getAttribute("busiLoc");
+		String guestRoomNum= (String) session.getAttribute("guestRoomNum");
+		String guestNum= (String) session.getAttribute("guestNum");
+		String rmNum= (String) session.getAttribute("rmNum");
+		String rsvSt= (String) session.getAttribute("rsvSt");
+		String rsvEd= (String) session.getAttribute("rsvEd");
+		String busiNm= (String) session.getAttribute("busiNm");
+		
+		//숙소 검색 위해 쿼리로 들어갈 검색 조건 저장 map
+		Map<String,String> map = new HashMap<String, String>();
+		log.error("에러입니다", busiNm);
+		
+		map.put("busiLoc",busiLoc);
+		map.put("guestNum",guestNum);
+		map.put("rmNum",rmNum);
+		map.put("rsvSt",rsvSt);
+		map.put("rsvEd",rsvEd);
+		
+		log.info("map:"+map);
+		
+		//조건에 맞는 숙소,방리스트, 최대가격 얻기
+		List<BusiVO> busiVOList = this.mmAcmService.orderByStar(map);
+		int maxRmPr=this.mmAcmService.getMaxRmPr(map);
+		
+		model.addAttribute("busiVOList", busiVOList);
+		model.addAttribute("busiLoc", busiLoc);
+		model.addAttribute("guestRoomNum", guestRoomNum);
+		model.addAttribute("rsvSt", rsvSt);
+		model.addAttribute("rsvEd", rsvEd);
+		model.addAttribute("maxRmPr", maxRmPr);
+
+		//forwarding
+		return "member/acm/acmList";
+		
+	}
+	
+	
+	/**
+	 * @param model
+	 * @param session
+	 * @return
+	 */
+	@GetMapping("/search/orderByALL")
+	public String orderByALL(Model model, HttpSession session){
+		
+		String busiLoc= (String) session.getAttribute("busiLoc");
+		String guestRoomNum= (String) session.getAttribute("guestRoomNum");
+		String guestNum= (String) session.getAttribute("guestNum");
+		String rmNum= (String) session.getAttribute("rmNum");
+		String rsvSt= (String) session.getAttribute("rsvSt");
+		String rsvEd= (String) session.getAttribute("rsvEd");
+		String busiNm= (String) session.getAttribute("busiNm");
+		
+		//숙소 검색 위해 쿼리로 들어갈 검색 조건 저장 map
+		Map<String,String> map = new HashMap<String, String>();
+		log.error("에러입니다", busiNm);
+		
+		
+		map.put("busiLoc",busiLoc);
+		map.put("guestNum",guestNum);
+		map.put("rmNum",rmNum);
+		map.put("rsvSt",rsvSt);
+		map.put("rsvEd",rsvEd);
+		
+		log.info("map:"+map);
+		
+		//조건에 맞는 숙소,방리스트, 최대가격 얻기
+		List<BusiVO> busiVOList = this.mmAcmService.orderByCntAll(map);
+		int maxRmPr=this.mmAcmService.getMaxRmPr(map);
+
+		
+		model.addAttribute("busiVOList", busiVOList);
+		model.addAttribute("busiLoc", busiLoc);
+		model.addAttribute("guestRoomNum", guestRoomNum);
+		model.addAttribute("rsvSt", rsvSt);
+		model.addAttribute("rsvEd", rsvEd);
+		model.addAttribute("maxRmPr", maxRmPr);
+
+		
+		
+		return "member/acm/acmList";
+		
+	}
+	
+	/**필터사용 재검색 
+	 * @param acmTypeList
+	 * @param minPr
+	 * @param maxPr
+	 * @param star
+	 * @param session
+	 * @returns
+	 */
+	@GetMapping("/searchfilter")
+	public String searchFilter(Model model,
+			@RequestParam(value="acmTypeList",required=false) List<String> acmTypeList, 
+			@RequestParam(value="cvfcList",required=false) List<String> cvfcList, 
+			@RequestParam(value="minPr",required=false) String minPr,
+			@RequestParam(value="maxPr",required=false) String maxPr,
+			@RequestParam(value="star",required=false) String star,
+			
+			HttpSession session
+			) {
+		
+		String busiLoc= (String) session.getAttribute("busiLoc");
+		String guestNum= (String) session.getAttribute("guestNum");
+		String rmNum= (String) session.getAttribute("rmNum");
+		String rsvSt= (String) session.getAttribute("rsvSt");
+		String rsvEd= (String) session.getAttribute("rsvEd");
+		
+		
+		//숙소 검색 위해 쿼리로 들어갈 검색 조건 저장 map
+		Map<String, Object> map = new HashMap<String, Object>();
+		
+		map.put("busiLoc",busiLoc);
+		map.put("guestNum",guestNum);
+		map.put("rmNum",rmNum);
+		map.put("rsvSt",rsvSt);
+		map.put("rsvEd",rsvEd);
+		map.put("star",star);
+		map.put("minPr",minPr);
+		map.put("maxPr",maxPr);
+		map.put("acmTypeList", acmTypeList);
+		map.put("cvfcList", cvfcList);
+		
+		log.info( "나와"+acmTypeList);
+		
+		log.info("map:"+map);
+		List<BusiVO>busiVOList = mmAcmService.searchFilter(map);
+		
+		model.addAttribute("busiVOList",busiVOList);
+		
+		return "member/acm/acmList";
+	}
+	
+	
+	/** 숙소 클릭시 숙소 디테일 정보 페이지로 
+	 * @param busiId
+	 * @param currentPage
+	 * @param busiVO
+	 * @param model
+	 * @param session
+	 * @return
+	 */
+	@GetMapping("/detail/{busiId}")
+	public String acmDetail(@PathVariable(value="busiId",required=true) String busiId,
+			@RequestParam(value="currentPage",required=false,defaultValue="1") int currentPage,
+			@ModelAttribute BusiVO busiVO,
+			Model model,
+			HttpSession session) {
+		
+		//숙소정보
+		busiVO = this.mmAcmService.detailAcm(busiVO);
+		
+		//아동,펫,장애인,흡연 여부
+		Map <String,String> mapKPDS = this.mmAcmService.availKPDS(busiId);
+		log.info("=====mapKPDS",mapKPDS);
+
+		
+		//편의시설 정보
+		log.info("busiId : " + busiId);
+		List<CvfcVO> cvfcVOList = this.mmAcmService.getCvfc(busiId);
+		System.out.println("편의시설 : "+cvfcVOList);
+		
+		//객실정보
+		String rsvSt= (String) session.getAttribute("rsvSt");
+		String rsvEd= (String) session.getAttribute("rsvEd");
+		
+		Map<String,String> RmMap = new HashMap<String, String>();
+		RmMap.put("busiId",busiId);
+		RmMap.put("rsvSt",rsvSt);
+		RmMap.put("rsvEd",rsvEd);
+		List<RmVO> rmVOList=this.mmAcmService.getRm(RmMap);
+		
+		//예약된객실도 
+		List<RmVO> rsvedRmVOList=this.mmAcmService.getReservedRm(RmMap);
+
+		
+		
+		//리뷰
+		Map<String,String> RvwMap = new HashMap<String, String>();
+		RvwMap.put("busiId",busiId);
+		RvwMap.put("currentPage", Integer.toString(currentPage));
+		List<RvwVO> rvwVOList= this.mmAcmService.getRvw(RvwMap);
+		
+		log.info("busiVO:"+busiVO);
+		log.info("rvwVO:"+rvwVOList);
+		
+		int total = this.mmAcmService.getTotalRvw(busiId);
+		
+		//model에 값 넣기
+		model.addAttribute("busiVO",busiVO);
+		model.addAttribute("mapKPDS",mapKPDS);
+		model.addAttribute("cvfcVOList",cvfcVOList);
+		model.addAttribute("rmVOList",rmVOList);
+		model.addAttribute("rsvedRmVOList",rsvedRmVOList);
+		model.addAttribute("rvwTotal",total);
+		model.addAttribute("rvw", new PagingDTO<RvwVO>(total, currentPage, 5, rvwVOList));
+
+		return "member/acm/acmDetail";
+	}
+
+	
+	
+	
+	
+	
+	
+	/**방 상세정보 클릭시 모달창에 정보 넘겨줌 
+	 * @param rmId
+	 * @return
+	 */
+	@ResponseBody
+	@PostMapping("/rmDetail")
+	public List<RmVO> rmDetail(@RequestParam("rmId") String rmId) {
+		
+		List<RmVO> rmVOList = mmAcmService.rmDetail(rmId);
+
+		System.out.println(rmVOList);
+
+		return rmVOList;
+	}
+	
+	
+	
+	/** 방 예약하기 클릭시 예약정보 넘겨줌
+	 * @param model
+	 * @param rmId
+	 * @param rmNum
+	 * @param session
+	 * @return
+	 */
+	@PostMapping("/reserveRm")
+	public String reserveRm(Model model,
+			@RequestParam("busiId") String busiId,
+			@RequestParam("rmId") String rmId,
+			@RequestParam("rmNum") String rmNum,
+			HttpSession session,
+			Principal principal
+			) {
+		
+		String memId = principal.getName();
+		log.info("아이디야",memId);
+		
+		//회원정보
+		MemVO memVO = mmAcmService.getMemInfo(memId);
+		
+		//검색 조건 넣기 위한 map
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("rmId",rmId);
+		map.put("rmNum",rmNum);
+		
+		BusiVO busiVO =mmAcmService.rsvInfo(map);
+		
+		//체크인아웃날짜 가져오기
+		String rsvSt= (String) session.getAttribute("rsvSt");
+		String rsvEd= (String) session.getAttribute("rsvEd");
+		
+		//아동,펫,장애인,흡연 여부
+		Map <String,String> mapKPDS = this.mmAcmService.availKPDS(busiId);
+		
+		
+		model.addAttribute("busiVO",busiVO);
+		model.addAttribute("rsvSt",rsvSt);
+		model.addAttribute("rsvEd",rsvEd);
+		model.addAttribute("mapKPDS",mapKPDS);
+		model.addAttribute("memVO",memVO);
+		
+		
+		return "member/acm/acmRsv";
+	}
+	
+	
+	@PostMapping("/payComplete")
+	public String payComplete(
+			@RequestBody Map<String, String> data) {
+
+		log.info("아작스로 받아왔다 data",data);
+		int insertN=this.mmAcmService.rsvInsert(data);
+		
+		log.info("인서트",insertN);
+		
+		return "redirect:/member/acm/rsvConfirm";
+	}
+	
+	
+	@GetMapping("/rsvConfirm")
+	public  String rsvConfirm() {
+		
+		return "member/acm/acmRsvConfirm";
+	}
+	
+}

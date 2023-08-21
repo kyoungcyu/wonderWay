@@ -1,0 +1,222 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="sec"
+	uri="http://www.springframework.org/security/tags"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+<style>
+.card-img{
+width : 352px;
+height : 352px;
+}
+</style>
+<script>
+	$(function() {
+		$("#styLoc").on("change", function() {
+			var styLoc = $(this).val();
+			console.log("styLoc : " + styLoc);
+			$("#frm").submit();
+		});
+	});
+</script>
+
+
+
+<body>
+	<!-- **************** MAIN CONTENT START **************** -->
+
+	<!-- =======================
+Main banner START -->
+<section class = "pt-0">
+	<section class="pt-4 pt-md-5">
+		<div class="container">
+			<div class="row g-4 justify-content-between">
+				<!-- Title -->
+				<div class="col-lg-7 col-xl-8">
+					<h1 class="mb-4">
+						MBTI별 </br>인기있는 숙소가 </br> <span class="position-relative z-index-9">궁금하신가요?
+							<!-- SVG START --> <span
+							class="position-absolute top-50 start-50 translate-middle z-index-n1 d-none d-sm-block mt-4">
+								<svg width="390.5px" height="21.5px" viewBox="0 0 445.5 21.5">
+								<path class="fill-primary opacity-7"
+										d="M409.9,2.6c-9.7-0.6-19.5-1-29.2-1.5c-3.2-0.2-6.4-0.2-9.7-0.3c-7-0.2-14-0.4-20.9-0.5 c-3.9-0.1-7.8-0.2-11.7-0.3c-1.1,0-2.3,0-3.4,0c-2.5,0-5.1,0-7.6,0c-11.5,0-23,0-34.5,0c-2.7,0-5.5,0.1-8.2,0.1 c-6.8,0.1-13.6,0.2-20.3,0.3c-7.7,0.1-15.3,0.1-23,0.3c-12.4,0.3-24.8,0.6-37.1,0.9c-7.2,0.2-14.3,0.3-21.5,0.6 c-12.3,0.5-24.7,1-37,1.5c-6.7,0.3-13.5,0.5-20.2,0.9C112.7,5.3,99.9,6,87.1,6.7C80.3,7.1,73.5,7.4,66.7,8 C54,9.1,41.3,10.1,28.5,11.2c-2.7,0.2-5.5,0.5-8.2,0.7c-5.5,0.5-11,1.2-16.4,1.8c-0.3,0-0.7,0.1-1,0.1c-0.7,0.2-1.2,0.5-1.7,1 C0.4,15.6,0,16.6,0,17.6c0,1,0.4,2,1.1,2.7c0.7,0.7,1.8,1.2,2.7,1.1c6.6-0.7,13.2-1.5,19.8-2.1c6.1-0.5,12.3-1,18.4-1.6 c6.7-0.6,13.4-1.1,20.1-1.7c2.7-0.2,5.4-0.5,8.1-0.7c10.4-0.6,20.9-1.1,31.3-1.7c6.5-0.4,13-0.7,19.5-1.1c2.7-0.1,5.4-0.3,8.1-0.4 c10.3-0.4,20.7-0.8,31-1.2c6.3-0.2,12.5-0.5,18.8-0.7c2.1-0.1,4.2-0.2,6.3-0.2c11.2-0.3,22.3-0.5,33.5-0.8 c6.2-0.1,12.5-0.3,18.7-0.4c2.2-0.1,4.4-0.1,6.7-0.1c11.5-0.1,23-0.2,34.6-0.4c7.2-0.1,14.4-0.1,21.6-0.1c12.2,0,24.5,0.1,36.7,0.1 c2.4,0,4.8,0.1,7.2,0.2c6.8,0.2,13.5,0.4,20.3,0.6c5.1,0.2,10.1,0.3,15.2,0.4c3.6,0.1,7.2,0.4,10.8,0.6c10.6,0.6,21.1,1.2,31.7,1.8 c2.7,0.2,5.4,0.4,8,0.6c2.9,0.2,5.8,0.4,8.6,0.7c0.4,0.1,0.9,0.2,1.3,0.3c1.1,0.2,2.2,0.2,3.2-0.4c0.9-0.5,1.6-1.5,1.9-2.5 c0.6-2.2-0.7-4.5-2.9-5.2c-1.9-0.5-3.9-0.7-5.9-0.9c-1.4-0.1-2.7-0.3-4.1-0.4c-2.6-0.3-5.2-0.4-7.9-0.6 C419.7,3.1,414.8,2.9,409.9,2.6z"></path>
+							</svg>
+						</span> <!-- SVG END -->
+						</span>
+					</h1>
+					<p class="lead mb-0">간단문항으로 MBTI 알아보고 숙소 추천 해드릴게요!</p>
+				</div>
+
+				<div class="card rounded-3 border p-3 pb-2">
+					<!-- Avatar and info START -->
+					<div class="d-flex justify-content-center align-items-center">
+						<h4 class="text-center">
+							<span style="color: red;">${param.styMbti}</span> <span class="fw-light">가 많이 찾은 숙소</span>
+							<span style="color: red;"> TOP 3!</span>
+						</h4>
+					</div>
+
+					<!-- Avatar and info START -->
+
+				</div>
+
+
+			</div>
+			<!-- Row END -->
+		</div>
+	</section>
+
+	<!-- =======================
+Main banner START -->
+
+	<!-- ======================= Team START -->
+	<div>
+	<section class="py-0">
+		<div class="container">
+
+			<!-- 여행지
+			요청URI : /member/rcm/styMbtiResult?styMbti=INFP&styLoc=부산
+			요청방식 : get
+			요청파라미터 : styMbti=INFP&styLoc=부산
+			
+			[ submit 후 데이터 ]
+			//list : MbtiStyRcmVO(styMbti=INFP, styLoc=부산, styId1=B0100126, styId2=B0100034, styId3=B0100122)
+		
+			//detail1 : BusiVO(busiId=null, lginId=null, busiPw=null, busiNm=송원모텔, busiLoc=부산광역시 영도구 대교동1가 182-1번지,
+			//detail2 : BusiVO(busiId=null, lginId=null, busiPw=null, busiNm=오션 더 포인트호텔, busiLoc=부산광역시 수
+			//detail3 : BusiVO(busiId=null, lginId=null, busiPw=null, busiNm=엑스모텔, busiLoc=부산광역시 부산진구
+			 -->
+			<form id="frm" method="get"
+				action="/member/rcm/styMbtiResult">
+				<div class="col-md-3 ms-md-auto">
+				<input type="hidden" name="styMbti" value="${param.styMbti}" />
+					<select class="form-select js-choice" name="styLoc" id="styLoc"
+						data-search-enabled="true">
+						<option value="" selected>선택해주세요</option>
+						<option value="서울" 
+							<c:if test="${param.styLoc=='서울'}">selected</c:if>
+						>서울</option>
+						<option value="인천"
+							<c:if test="${param.styLoc=='인천'}">selected</c:if>
+						>인천</option>
+						<option value="경기"
+							<c:if test="${param.styLoc=='경기'}">selected</c:if>
+						>경기</option>
+						<option value="강원"
+							<c:if test="${param.styLoc=='강원'}">selected</c:if>
+						>강원</option>
+						<option value="충청"
+							<c:if test="${param.styLoc=='충청'}">selected</c:if>
+						>충청</option>
+						<option value="전라"
+							<c:if test="${param.styLoc=='전라'}">selected</c:if>
+						>전라</option>
+						<option value="경상"
+							<c:if test="${param.styLoc=='경상'}">selected</c:if>
+						>경상</option>
+						<option value="부산"
+							<c:if test="${param.styLoc=='부산'}">selected</c:if>
+						>부산</option>
+						<option value="제주"
+							<c:if test="${param.styLoc=='제주'}">selected</c:if>
+						>제주</option>
+					</select>
+					<div class="choices__list choices__list--single"></div>
+				</div>
+			</form>
+
+			<!-- Team START -->
+			<div class="row g-4 mt-2">
+			
+				<!-- 추천 1 START -->
+				<div class="col-4">
+					<div
+						class="card card-img-scale card-element-hover overflow-hidden bg-transparent">
+						<div class="card-img-scale-wrapper rounded-3">
+							<!-- Image -->
+						<img src="/resources/upload/busi${detail1.busiImg}"
+								class="card-img" alt="">
+							<!-- Card overlay -->
+							<div
+								class="card-img-overlay d-flex align-items-center justify-content-center p-3">
+								<!-- Social button -->
+								<a href="/member/rcm/testMbti" id="test"
+									class="btn btn-lg text-white bg-transparent border-0">
+								</a>
+							</div>
+						</div>
+					</div>
+					<!-- Card body -->
+					</br>
+					<div>
+						<span><h5>숙소명 : ${detail1.busiNm}</h5></span> <span><h5>숙소 위치 : ${detail1.busiLoc}</h5></span>
+					</div>
+				</div>
+				<!-- Team item END -->
+
+
+				<!-- 추천 2 START -->
+
+				<div class="col-4">
+					<div
+						class="card card-img-scale card-element-hover overflow-hidden bg-transparent">
+						<div class="card-img-scale-wrapper rounded-3">
+							<!-- Image -->
+							<img src="/resources/upload/busi${detail2.busiImg}"
+								class="card-img" alt="">
+							<!-- Card overlay -->
+							<div
+								class="card-img-overlay d-flex align-items-center justify-content-center p-3">
+								<!-- Social button -->
+								<a href="/member/rcm/testMbti" id="test"
+									class="btn btn-lg text-white bg-transparent border-0">
+								</a>
+							</div>
+						</div>
+					</div>
+					<!-- Card body -->
+					</br>
+					<div>
+						<span><h5>숙소명 :  ${detail2.busiNm}</h5></span> <span><h5>숙소 위치 :  ${detail2.busiLoc}</h5></span>
+					</div>
+
+
+				</div>
+				<!-- Team item END -->
+
+
+
+				<!-- 추천 3 START -->
+
+				<div class="col-4">
+					<div
+						class="card card-img-scale card-element-hover overflow-hidden bg-transparent">
+						<div class="card-img-scale-wrapper rounded-3">
+							<!-- Image -->
+							<img src="/resources/upload/busi${detail3.busiImg}"
+								class="card-img" alt="">
+							<!-- Card overlay -->
+							<div
+								class="card-img-overlay d-flex align-items-center justify-content-center p-3">
+								<!-- Social button -->
+								<a href="/member/rcm/testMbti" id="test"
+									class="btn btn-lg text-white bg-transparent border-0">
+								</a>
+							</div>
+						</div>
+					</div>
+					<!-- Card body -->
+					</br>
+					<div>
+						<span><h5>숙소명 :  ${detail3.busiNm}</h5></span> <span><h5>숙소 위치 : ${detail3.busiLoc}</h5></span>
+					</div>
+
+
+				</div>
+				<!-- Team item END -->
+
+			</div>
+			<!-- Team END -->
+		</div>
+	</section>
+</section>
+	</body>

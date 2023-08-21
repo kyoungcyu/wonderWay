@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mapper.MemRcmMapper">
+	<!-- 회원 맞춤 렌트카 추천 -->
+	<select id="rcmRntList" parameterType="rcmRntVO" resultType="rcmRntVO">
+		SELECT 
+		    GENERATION,
+		    CAR_KND_1 ,
+		    CAR_KND_2 ,
+		    CAR_KND_3 ,
+		    CAR_CODE_1,
+		    CAR_CODE_2,
+		    CAR_CODE_3,
+		    MAX_PP_1, 
+		    MAX_PP_2, 
+		    MAX_PP_3,
+           CAR_IMG_1, 
+           CAR_IMG_2,
+           CAR_IMG_3,
+           CAR_IMGT_1, 
+           CAR_IMGT_2,
+           CAR_IMGT_3
+           
+		FROM CAR_RCM
+		WHERE GENERATION =(
+		SELECT
+			FLOOR(TRUNC(MONTHS_BETWEEN(SYSDATE, MEM_BIR) / 12) / 10) * 10 || MEM_GEN AS GENERATION
+		FROM MEM
+		WHERE MEM_ID = #{memId})
+</select>
+
+	<!-- 회원 맞춤 숙소 추천 -->
+	<select id="rcmStyList" parameterType="rcmStVO" resultType="rcmStVO">
+		SELECT
+		     AGE, GEN, LOC, ACMD_CODE, BUSI_ID_0,
+		     BUSI_ID_1, BUSI_ID_2, BUSI_ID_3,
+		     BUSI_ID_4, BUSI_ID_5, BUSI_ID_6,
+		     BUSI_ID_7, BUSI_ID_8, BUSI_ID_9
+		FROM
+		    STY_RCM
+		WHERE AGE = #{age} 
+		  and GEN = #{gen}
+		  and LOC = #{loc}
+		  and ACMD_CODE = #{acmdCode} 
+	</select>
+	
+	<!-- 회원 맞춤 숙소 조회 -->
+	<select id="rcmBusiSty" parameterType="rcmStVO" resultType="busiVO">
+		SELECT 
+		    B.BUSI_ID, B.BUSI_NM, B.BUSI_LOC, B.RPRSV_NM, B.BUSI_SCR, B.BUSI_IMG, B.BUSI_CODE,
+		    B.BUSI_NO, B.BUSI_INFO, B.BUSI_EMAIL, B.BUSI_TEL, B.ACMD_CODE
+		FROM
+		    BUSI B
+		WHERE
+		    B.BUSI_ID IN (
+		        SELECT 
+		            R.BUSI_ID_0
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		        UNION
+		        SELECT
+		            R.BUSI_ID_1
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		        UNION
+		        SELECT
+		            R.BUSI_ID_2
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		        UNION
+		        SELECT
+		            R.BUSI_ID_3
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		        UNION
+		        SELECT
+		            R.BUSI_ID_4
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		        UNION
+		        SELECT
+		            R.BUSI_ID_5
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		        UNION
+		        SELECT
+		            R.BUSI_ID_6
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		        UNION
+		        SELECT
+		            R.BUSI_ID_7
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		        UNION
+		        SELECT
+		            R.BUSI_ID_8
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		        UNION
+		        SELECT
+		            R.BUSI_ID_9
+		        FROM
+		            STY_RCM R
+		        WHERE
+		            R.AGE = #{age} AND R.GEN = #{gen} AND R.LOC = #{loc} AND R.ACMD_CODE = #{acmdCode}
+		    )
+		ORDER BY
+		    CASE
+		    	WHEN SUBSTR(B.BUSI_LOC, 1, 2) = #{loc} THEN -1
+		        WHEN B.ACMD_CODE = #{acmdCode} THEN 0
+		        ELSE 1
+		    END
+	</select>
+
+	
+	
+	<!-- MBTI별 숙소 추천 - 조회 
+	//mbtiStyRcmVO : MbtiStyRcmVO(styMbti=INFP, styLoc=부산, styId1=null, styId2=null, styId3=null)
+	result : MbtiStyRcmVO(styMbti=INFP, styLoc=부산, styId1=B0100126, styId2=B0100034, styId3=B0100122)
+	-->
+	<select id="styMbtiRcm" parameterType="mbtiStyRcmVO" resultType="mbtiStyRcmVO">
+	SELECT STY_MBTI, STY_LOC, STY_ID_1, STY_ID_2, STY_ID_3 
+	FROM MBTI_STY_RCM
+	WHERE
+	STY_LOC=#{styLoc} AND
+	STY_MBTI =#{styMbti}
+	</select>
+	
+	<!-- mbti별 숙소 상세 조회 -->
+	<select id="styMbtiRcmDetail" parameterType="busiVO" resultType="busiVO">
+	SELECT BUSI_NM, BUSI_LOC FROM BUSI WHERE BUSI_ID =#{busiId}
+	</select>
+
+	
+	
+	
+	<!-- mbti별 여행지 추천 -->
+	<select id="mbtiTourNm" parameterType="String" resultType="kr.or.ddit.vo.RcmMbtiTourVO">
+		 SELECT TOUR_ID_1, TOUR_ID_2, TOUR_ID_3
+		   FROM MBTI_TOUR_RCM
+		  WHERE TOUR_MBTI = #{tourMbti}
+	
+	</select>
+	
+	
+	<!-- 여행 선호도 조사 Query -->
+	
+	<!-- 회원 등록 유무 체크 -->
+	<select id="checkMember" parameterType="String" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+	    FROM PSNL_PRFR
+	    WHERE MEM_ID = #{memId}
+	</select>
+	
+	<!-- 회원 존재 시, update -->
+	<update id="checkMemberUpdate" parameterType="hashMap">
+		UPDATE PSNL_PRFR
+        SET
+            ACTIVE = #{active},
+            MOOD = #{mood},
+            LOC_PRFR = #{locaPrefer},
+            STY_CL = #{styCl},
+            TGRPN = #{tgrpn},
+            EXPRNC = #{exprnc},
+            PLAN = #{plan},
+            PVTCAR = #{pvtCar},
+            LOCATION = #{location}
+        WHERE MEM_ID = #{memId}
+	</update>
+	
+	<!-- 회원 부재 시, insert -->
+	<insert id="checkMemberInsert" parameterType="hashMap">
+		INSERT INTO PSNL_PRFR(
+				MEM_ID
+		      , ACTIVE
+		      , MOOD
+		      , LOC_PRFR
+		      , STY_CL
+		      , TGRPN
+		      , EXPRNC
+		      , PLAN
+		      , PVTCAR
+		      , LOCATION
+		)
+		VALUES(
+				#{memId}
+		      , #{active}
+		      , #{mood}
+		      , #{locaPrefer}
+		      , #{styCl}
+		      , #{tgrpn}
+		      , #{exprnc}
+		      , #{plan}
+		      , #{pvtCar}
+		      , #{location}
+		)
+	</insert>
+	
+	<!-- 추천된 여행지 상세 정보 -->
+	<select id="locRcmDetail" parameterType="String" resultType="rcmLocVO">
+		SELECT  TOUR_ID AS TOUR_ID
+		      , TOUR_NM AS TOUR_NM
+		      , FN_CODE_TO_NM(TOUR_CODE) AS TOUR_CODE
+		      , TOUR_DC AS TOUR_DC
+		      , LATI AS LATI
+		      , LONGI AS LONGI
+		      , ATTACH_ID AS ATTACH_ID
+		      , TOUR_LOC AS TOUR_LOC
+		FROM TOUR
+		WHERE TOUR_NM LIKE '%' || #{tourNm} || '%'
+	</select>
+	
+	
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

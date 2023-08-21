@@ -1,0 +1,9 @@
+package kr.or.ddit.member.service;
+
+import kr.or.ddit.vo.RcmStyVO;
+
+public interface MemRcmService {
+
+	//회원 맞춤 숙소 추천
+	public RcmStyVO rcmStyList(RcmStyVO rcmStyVO);
+}

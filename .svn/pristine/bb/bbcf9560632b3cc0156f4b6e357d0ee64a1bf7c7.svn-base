@@ -1,0 +1,179 @@
+package kr.or.ddit.admin.service.impl;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.admin.mapper.AdBrdMapper;
+import kr.or.ddit.admin.mapper.AdMemMapper;
+import kr.or.ddit.admin.service.AdBrdService;
+import kr.or.ddit.admin.service.AdMemService;
+import kr.or.ddit.util.CommonFile;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.MemVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class AdBrdServiceImpl implements AdBrdService{
+	@Autowired
+	AdBrdMapper brdMapper;
+	
+	//게시판 목록
+	@Override
+	public List<BrdVO> brdList(Map<String, String> map){
+		return this.brdMapper.brdList(map);
+	}
+	
+	//게시글 수
+	@Override
+	public int brdTotal(Map<String,String> map) {
+		return this.brdMapper.brdTotal(map);
+	};
+	
+	//공지사항 목록
+	@Override
+	public List<BrdVO> brdNotice(Map<String, String> map) {
+		return this.brdMapper.brdNotice(map);
+	};
+	
+	//공지글 수
+	@Override
+	public int noticeTotal(Map<String,String> map) {
+		return this.brdMapper.noticeTotal(map);
+	};
+	
+	//공지사항 작성
+	@Transactional
+	@Override
+	public int noticeRegistration(BrdVO brdVO) {
+		AttachVO attachVO = new AttachVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+
+		int result = this.brdMapper.noticeRegistration(brdVO);
+		result += this.brdMapper.attachInsert(attachVO);
+
+		// <input name="picture" type="file"
+		MultipartFile picture = brdVO.getAttachVOList().get(0).getAttachDeVOList().get(0).getPicture();
+		String orgNm = picture.getOriginalFilename();
+
+		// UUID 처리 시작
+		UUID uuid = UUID.randomUUID();
+		String fileNm = uuid.toString() + "_" + orgNm;
+
+		// 파일 업로드 시작 ===
+		File uploadPath = new File(CommonFile.uploadFolder+"\\notice", CommonFile.getFolder());
+		if (uploadPath.exists() == false) {
+			uploadPath.mkdirs();
+		}
+
+		// 설계
+		File saveFile = new File(uploadPath, fileNm);
+		try {
+			picture.transferTo(saveFile);
+
+			AttachDeVO attachDeVO = new AttachDeVO();
+			attachDeVO.setAttachId(attachVO.getAttachId());
+			attachDeVO.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm); // 파일 저장 경로
+			attachDeVO.setOrgNm(orgNm);// 파일 원본 명
+			attachDeVO.setFileNm(fileNm);// 파일 저장명
+			attachDeVO.setFileSz(picture.getSize()); // 파일 사이즈
+			attachDeVO.setFileTy(picture.getContentType()); // 파일 컨텐츠 타입
+
+			log.info("insert할 attachDeVO : " + attachDeVO);
+
+			attachDeVOlist.add(attachDeVO);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+		// AttachDeVO(attachDeId=null, attachId=null, orgNm=다운로드.jpg
+		// , fileNm=3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		// , savePath=/2023/06/26/3a5ae71f-a921-4b47-88b2-4fd5f11d5c96_다운로드.jpg
+		// , fileSz=4687, fileTy=image/jpeg, fileDel=null, picture=null)
+
+		result += this.brdMapper.attachDeInsert(attachDeVOlist);
+
+		brdVO.setAttachId(attachVO.getAttachId());
+
+		result += this.brdMapper.attachIdUpdate(brdVO);
+		
+		return result;
+	};
+	
+	//공지사항 작성 - 첨부파일
+	@Override
+	public int attachInsert(AttachVO attachVO) {
+		return this.brdMapper.attachInsert(attachVO);
+	};
+	
+	//공지사항 작성 - 첨부파일_상세
+	@Override
+	public int attachDeInsert(List<AttachDeVO> attachDeVOlist) {
+		return this.brdMapper.attachDeInsert(attachDeVOlist);
+	};
+	
+	//공지사항 작성 - 첨부파일 아이디 update
+	@Override
+	public int attachIdUpdate(BrdVO brdVO) {
+		return this.brdMapper.attachIdUpdate(brdVO);
+	};
+	
+	//공지사항 공지 상태 변경
+	@Override
+	public int noticeIntr(BrdVO brdVO) {
+		return this.brdMapper.noticeIntr(brdVO);
+	};
+	
+	//공지사항 삭제
+	@Override
+	public int noticeDelete(BrdVO brdVO) {
+		return this.brdMapper.noticeDelete(brdVO);
+	};
+	
+	//게시글 상세
+	@Override
+	public BrdVO brdSelect(BrdVO brdVO) {
+		return this.brdMapper.brdSelect(brdVO);
+	};
+	
+	//공지사항 수정 진행
+	@Override
+	public int noticeModifyPost(BrdVO brdVO) {
+		return this.brdMapper.noticeModifyPost(brdVO);
+	};
+	
+	//게시물 신고 확인
+	@Override
+	public int reprtCk(BrdVO brdVO) {
+		return this.brdMapper.reprtCk(brdVO);
+	};
+
+	//게시글 차단상태 변경
+	@Override
+	public int blindBrd(BrdVO brdVO) {
+		return this.brdMapper.blindBrd(brdVO);
+	};
+	
+	//고객 문의 목록
+	@Override
+	public List<BrdVO> inquiryList(Map<String, String> map){
+		return this.brdMapper.inquiryList(map);
+	};
+	
+	//게시글 수
+	@Override
+	public int inqTotal(Map<String,String> map) {
+		return this.brdMapper.inqTotal(map);
+	};
+}

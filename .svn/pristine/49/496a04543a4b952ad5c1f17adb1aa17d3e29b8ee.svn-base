@@ -1,0 +1,149 @@
+package kr.or.ddit.business.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.business.service.BsBusiService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MemVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RequestMapping("/business")
+@Controller
+public class BsSignController {
+
+	@Autowired
+	BsBusiService busiService;
+
+	// 렌터카 , 숙박 선택
+	@GetMapping("/log/signUp0")
+	public String signUp0() {
+		return "/business/log/signUp0";
+	}
+	// 렌터카 ,숙박 코드 가져오기
+	@ResponseBody
+	@PostMapping("/log/code")
+	public Map<String, Object> code(HttpSession session, @RequestBody Map<String, Object> map, BusiVO busiVO) {
+
+		log.info("map:" + map);
+
+		String code = (String) map.get("code");
+
+		log.info("busiVO:" + busiVO);
+
+		session.setAttribute("busiCode", code);
+
+		return map;
+	}
+
+	// 회원가입 폼
+	@GetMapping("/log/signUp")
+	public String signUp(@ModelAttribute("busiVO") BusiVO busiVO) {
+		return "/business/log/signUp";
+	}
+
+	// 회원가입 포스트
+	@PostMapping("/log/signUpPost")
+	public String signUpPost(@ModelAttribute("busiVO") @Validated BusiVO busiVO, BindingResult bresult,
+			HttpSession session) {
+		log.info("회원가입 POST왓다 :");
+
+		if (bresult.hasErrors()) {
+			List<ObjectError> allErrors = bresult.getAllErrors();
+			List<ObjectError> globalErrors = bresult.getGlobalErrors();
+			List<FieldError> fieldErrors = bresult.getFieldErrors();
+
+			for (ObjectError objectError : allErrors) {
+				log.error("allError:" + objectError);
+			}
+			for (ObjectError objectError : globalErrors) {
+				log.error("globalError:" + objectError);
+			}
+			for (FieldError fieldError : fieldErrors) {
+				log.error("fieldError:" + fieldError.getDefaultMessage());
+			}
+
+			// forwarding(유효성 검사 결과 오류 발생 시) / redirect는 안됨(재요청)->오류정보가 사라짐
+			return "business/log/signUp";
+		}
+
+		Object bsCode = session.getAttribute("busiCode");
+		String code = (String) bsCode;
+
+		log.info("code:" + code);
+
+		busiVO.setBusiCode(code);
+
+		log.info("busiVO:" + busiVO);
+
+		//int result = this.busiService.create(busiVO);
+		//log.info("result : " + result);
+
+		return "/business/log/bsSignIn";
+	} 
+	
+	// 아이디중복검사
+	@ResponseBody
+	@PostMapping("/log/checkId")
+	public Map<String, String> checkId(@RequestBody BusiVO busiVO) {
+		log.info("busiVO:" + busiVO);
+
+		int result=this.busiService.checkBusiId(busiVO);
+		log.info("result:"+result);
+
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("result",result+"");
+
+		return map;
+	}
+	
+
+	//이메일중복검사
+	@ResponseBody
+	@PostMapping("/log/checkEmail")
+	public Map<String,String> checkMemEmail(@RequestBody BusiVO busiVO){
+		log.info("busiVO:"+busiVO);
+		
+		int result=this.busiService.checkBsEmail(busiVO);
+		log.info("result:"+result);
+		
+		Map<String,String> map=new HashMap<String,String>();
+		map.put("result",result+"");
+		
+		return map;
+		
+	}
+
+	@GetMapping("/log/findId") // 아이디 찾기
+	public String findId() {
+
+		return "business/log/findId";
+	}
+
+	@GetMapping("/log/findPw") // 비밀번호 찾기
+	public String findPw() {
+
+		return "business/log/findPw";
+	}
+
+}

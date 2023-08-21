@@ -1,0 +1,45 @@
+package kr.or.ddit.admin.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.json.simple.JSONObject;
+
+import kr.or.ddit.vo.AdSalesStatVO;
+import kr.or.ddit.vo.AdSalesVO;
+import kr.or.ddit.vo.AdStatsVO;
+import kr.or.ddit.vo.AdadVO;
+import kr.or.ddit.vo.AdvListVO;
+import kr.or.ddit.vo.AdvReqListVO;
+import kr.or.ddit.vo.MemVO;
+import kr.or.ddit.vo.RcmLocVO;
+
+public interface AdSalesService {
+	public List<AdSalesVO> salesList(Map<String, String> map);
+	
+	public List<AdSalesVO> salesListExcel(Map<String, String> map);
+	
+	public int getTotal(Map<String, String> map);
+	
+	public int lastYearSales();
+	
+	public int thisYearSales();
+	
+	public int lastMthSales();
+	
+	public int thisMthSales();
+	
+	public AdSalesStatVO popularBusi();
+	
+	public int thisMthSignIn();
+	
+	public int lastMthSignIn();
+
+	public List<AdStatsVO> salesYMStats(String year);
+	
+	public List<AdStatsVO> rsvYMStats(String year);
+
+	public List<AdStatsVO> memYMStats(String year);
+	
+	public List<AdStatsVO> memAgeStats();
+}

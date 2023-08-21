@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdRfdMapper">
+	<!-- resultMap 선언 -->
+	<resultMap id="rfdListMap" type="rfdListVO">
+	  <result column="PAY_ID" property="payId" />
+	  <result column="MEM_NM" property="memNm" />
+	  <result column="RFD_PR" property="rfdPr" />
+	  <result column="RFD_REQ_DT" property="rfdReqDt" />
+	  <result column="BUSI_NM" property="busiNm" />
+	  <result column="RFD_RESN" property="rfdResn" />
+<!-- 	  <result column="RFD_CK" property="rfdCk" /> -->
+	</resultMap>
+
+	
+	<!-- 환불 요청 목록 -->
+	<select id="rfdList" parameterType="hashMap" resultMap="rfdListMap">
+	WITH T AS(
+	    SELECT 
+	    	   ROW_NUMBER() OVER(ORDER BY A.PAY_ID ASC) RNUM
+	    	 , A.PAY_ID AS PAY_ID
+	    	 , (SELECT (SELECT MEM_NM FROM MEM WHERE MEM_ID = C.MEM_ID)
+		        FROM RSV C
+		        WHERE B.RSV_ID = C.RSV_ID) AS MEM_NM
+		     , (SELECT (SELECT BUSI_NM FROM BUSI WHERE BUSI_ID = C.BUSI_ID)
+		        FROM RSV C
+		        WHERE B.RSV_ID = C.RSV_ID) AS BUSI_NM
+		     , A.RFD_PR AS RFD_PR
+		     , A.RFD_REQ_DT AS RFD_REQ_DT
+		     , A.RFD_RESN AS RFD_RESN
+		     , B.RFD_CK AS RFD_CK
+		FROM RFD_REQ A, PAY B
+		WHERE A.PAY_ID = B.PAY_ID
+		AND B.RFD_CK IS NULL
+		AND (SELECT RSV_CODE FROM RSV WHERE RSV_ID = B.RSV_ID) = 'K03'
+		<!-- 요청자명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT (SELECT MEM_NM FROM MEM WHERE MEM_ID = C.MEM_ID)
+		         FROM RSV C
+		         WHERE B.RSV_ID = C.RSV_ID)
+		        LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 요청 일자 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND A.RFD_REQ_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND A.RFD_REQ_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		<!-- 정렬 검색 -->
+		<if test="sort!=null and !sort.equals('')">
+			<choose>
+				<when test="sort=='rfdUp'">
+					ORDER BY RFD_REQ_DT ASC
+				</when>
+				<when test="sort=='rfdDown'">
+					ORDER BY RFD_REQ_DT DESC
+				</when>
+			</choose>
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+
+	<!-- 요청 상세 -->
+	<select id="rfdDetail" resultMap="rfdListMap">
+	    SELECT A.PAY_ID AS PAY_ID,
+       		  (SELECT (SELECT MEM_NM FROM MEM WHERE MEM_ID = C.MEM_ID)
+		        FROM RSV C
+		        WHERE B.RSV_ID = C.RSV_ID) AS MEM_NM,
+		       A.RFD_PR AS RFD_PR,
+		       A.RFD_REQ_DT AS RFD_REQ_DT,
+		       (SELECT (SELECT BUSI_NM FROM BUSI WHERE BUSI_ID = C.BUSI_ID)
+		        FROM RSV C
+		        WHERE B.RSV_ID = C.RSV_ID) AS BUSI_NM,
+		       A.RFD_RESN AS RFD_RESN,
+		       B.RFD_CK AS RFD_CK
+		FROM RFD_REQ A, PAY B
+		WHERE A.PAY_ID = B.PAY_ID
+		AND A.PAY_ID = #{payId}
+	</select>
+
+	<!-- 요청 승인 -->
+	<update id="rfdAccept" parameterType="String">
+		UPDATE PAY
+		SET RFD_CK = 'Y'
+		  , RFD_DT = SYSDATE
+		WHERE PAY_ID = #{payId}
+	</update>
+
+	<update id="rsvAccept" parameterType="String">
+		UPDATE RSV
+		SET RSV_CODE = 'K04'
+		WHERE RSV_ID = (SELECT RSV_ID FROM PAY WHERE PAY_ID = #{payId})
+	</update>
+	
+	<!-- 요청 거절 -->
+	<update id="rfdDenied" parameterType="String">
+		UPDATE PAY
+		SET RFD_CK = 'N'
+		WHERE PAY_ID = #{payId}
+	</update>
+	
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM RFD_REQ A
+		WHERE 1 = 1
+		AND (SELECT RSV_CODE FROM RSV WHERE RSV_ID = (SELECT RSV_ID FROM PAY WHERE PAY_ID = A.PAY_ID)) = 'K03'
+		AND (SELECT RFD_CK FROM PAY WHERE PAY_ID = A.PAY_ID) IS NULL
+		<!-- 요청자명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND (SELECT (SELECT MEM_NM FROM MEM WHERE MEM_ID = C.MEM_ID)
+		         FROM RSV C
+		         WHERE (SELECT RSV_ID FROM PAY WHERE PAY_ID = A.PAY_ID) = C.RSV_ID)
+		        LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 요청 일자 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND A.RFD_REQ_DT &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND A.RFD_REQ_DT &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+	
+	<update id="rfdUpdateFee" parameterType="hashMap">
+		UPDATE RFD_FEE
+		SET RED_FEE_PER = TO_NUMBER(#{rfdFeePer})
+		WHERE RFD_FEE_ID = #{rfdFeeId}
+	</update>
+</mapper>

@@ -1,0 +1,29 @@
+package kr.or.ddit.member.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.member.mapper.MmAcmMapper;
+import kr.or.ddit.member.service.MmAcmService;
+import kr.or.ddit.vo.BusiVO;
+
+@Service
+public class MmAcmServiceImpl implements MmAcmService {
+
+	@Inject
+	MmAcmMapper mmAcmMapper;
+
+	//숙소검색
+	@Override
+	public List<BusiVO> searchAcm(Map<String, String> map){
+		
+		return this.mmAcmMapper.searchAcm(map);
+	}
+
+
+
+}

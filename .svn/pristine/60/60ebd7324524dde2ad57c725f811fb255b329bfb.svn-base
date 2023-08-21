@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdBrdMapper">
+	<select id="brdList" resultType="brdVO">
+		SELECT
+	        BRD_ID, BRD_KND, BRD_TT, BRD_CNTN, BRD_DEL, INTR, 
+	        INTR_RESN, BRD_LIKE, REPRT, TOUR_ID, REPRT_CK, 
+	        FRST_WRTR, FRST_DT, LAST_WRTR, LAST_DT
+	    FROM BRD
+	    WHERE REPRT_CK = 'N' AND REPRT >= '1'
+	    ORDER BY BRD_ID
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

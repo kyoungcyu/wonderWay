@@ -1,0 +1,61 @@
+package kr.or.ddit.admin.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+
+public interface AdBrdMapper {
+	//게시판 목록
+	public List<BrdVO> brdList(Map<String, String> map);
+	
+	//게시글 수
+	public int brdTotal(Map<String,String> map);
+	
+	//공지사항 목록
+	public List<BrdVO> brdNotice(Map<String, String> map);
+	
+	//공지글 수
+	public int noticeTotal(Map<String,String> map);
+	
+	//공지사항 작성
+	public int noticeRegistration(BrdVO brdVO);
+	
+	//공지사항 작성 - 첨부파일
+	public int attachInsert(AttachVO attachVO);
+	
+	//공지사항 작성 - 첨부파일_상세
+	public int attachDeInsert(List<AttachDeVO> attachDeVOlist);
+	
+	//공지사항 작성 - 첨부파일 아이디 update
+	public int attachIdUpdate(BrdVO brdVO);
+	
+	//공지사항 공지 상태 변경
+	public int noticeIntr(BrdVO brdVO);
+	
+	//공지사항 삭제
+	public int noticeDelete(BrdVO brdVO);
+	
+	//게시글 상세
+	public BrdVO brdSelect(BrdVO brdVO);
+	
+	//공지사항 수정 진행
+	public int noticeModifyPost(BrdVO brdVO);
+	
+	//게시물 신고 확인
+	public int reprtCk(BrdVO brdVO);
+	
+	//게시글 차단상태 변경
+	public int blindBrd(BrdVO brdVO);
+	
+}
+
+
+
+
+
+
+
+

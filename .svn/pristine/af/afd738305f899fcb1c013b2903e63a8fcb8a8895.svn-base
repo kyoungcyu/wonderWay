@@ -1,0 +1,67 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<!-- Main content START -->
+<div class="col-lg-8 col-xl-9">
+
+	<!-- Offcanvas menu button -->
+	<div class="d-grid mb-0 d-lg-none w-100">
+		<button class="btn btn-primary mb-4" type="button"
+			data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar"
+			aria-controls="offcanvasSidebar">
+			<i class="fas fa-sliders-h"></i> Menu
+		</button>
+	</div>
+
+	<div class="vstack gap-4">
+		<!-- Update Password START -->
+		<div class="card border">
+			<!-- Card header -->
+			<div class="card-header border-bottom">
+				<h4 class="card-header-title">비밀번호 변경</h4>
+				<p class="mb-0">
+					<span class="text-primary"></span>
+				</p>
+			</div>
+
+			<!-- Card body START -->
+			<form class="card-body">
+				<!-- Current password -->
+				<div class="mb-3">
+					<label class="form-label">현재 비밀번호를 입력하세요</label> <input
+						class="form-control" type="password" placeholder="냥냥">
+				</div>
+				<!-- New password -->
+				<div class="mb-3">
+					<label class="form-label">새로운 비밀번호를 입력하세요.</label>
+					<div class="input-group">
+						<input class="form-control fakepassword"
+							placeholder="Enter new password" type="password" id="psw-input">
+						<span class="input-group-text p-0 bg-transparent"> <i
+							class="fakepasswordicon fas fa-eye-slash cursor-pointer p-2"></i>
+						</span>
+					</div>
+				</div>
+				<!-- Confirm -->
+				<div class="mb-3">
+					<label class="form-label">새로운 비밀번호를 한번 더 입력하세요.</label> <input
+						class="form-control" type="password"
+						placeholder="Confirm new password">
+				</div>
+
+				<div class="text-end">
+					<a href="#" class="btn btn-primary mb-0" onclick="myPassModify()">비밀번호
+						변경하기</a>
+				</div>
+			</form>
+			<!-- Card body END -->
+		</div>
+		<!-- Update Password END -->
+	</div>
+</div>
+<!-- Main content END -->
+<script type="text/javascript">
+	function myPassModify() {
+		alert("변경");
+	};
+</script>

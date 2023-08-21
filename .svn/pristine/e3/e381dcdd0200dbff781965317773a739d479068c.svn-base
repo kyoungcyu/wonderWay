@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace : xml 파일이 여러개일 수 있음 이를 구별하기 위한 식별 용도로 사용됨 -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdRsvMapper">
+
+	<!-- resultMap 선언 -->
+	<resultMap id="rsvListMap" type="rsvListVO">
+		<result column="MEM_ID" property="memId" />
+		<result column="RSV_ID" property="rsvId" />
+		<result column="MEM_NM" property="memNm" />
+		<result column="GRAD_ID" property="gradId" />
+		<result column="BUSI_CODE" property="busiCode" />
+		<result column="BUSI_NM" property="busiNm" />
+		<result column="PAY_MTH" property="payMth" />
+		<result column="RSV_DT" property="rsvDt" />
+		<result column="RSV_DT_STR" property="rsvDtStr" />
+		<result column="RSV_PERIOD" property="rsvPeriod" />
+		<result column="PAY_PR" property="payPr" />
+		<result column="RSV_CODE" property="rsvCode" />
+		<result column="REMAIN_DATE" property="remainDate" />
+	</resultMap>
+	
+	<sql id="orderBy">
+	   <choose>
+		  <when test="sort=='payMth'">
+			 ORDER BY E.PAY_MTH ASC
+		  </when>
+		  <when test="sort=='rsvAsc'">
+			 ORDER BY A.RSV_DT ASC
+		  </when>
+		  <when test="sort=='rsvDesc'">
+			 ORDER BY A.RSV_DT DESC
+		  </when>
+		  <when test="sort=='busiNmAsc'">
+			 ORDER BY C.BUSI_NM ASC
+		  </when>
+		  <when test="sort=='busiNmDesc'">
+			 ORDER BY C.BUSI_NM DESC
+		  </when>
+	      <otherwise>
+	         ORDER BY D.RSV_ED DESC
+	      </otherwise>
+	   </choose>
+	</sql>
+
+	<!-- 예약 목록 -->
+	<select id="rsvList" parameterType="hashMap" resultMap="rsvListMap">
+		WITH T AS(
+			SELECT
+					ROW_NUMBER() OVER(<include refid="orderBy"></include>) RNUM
+			        , A.MEM_ID AS MEM_ID
+					, A.RSV_ID AS RSV_ID
+					, B.MEM_NM AS MEM_NM
+					, FN_CODE_TO_NM((SELECT BUSI_CODE FROM BUSI WHERE BUSI_ID = A.BUSI_ID)) AS BUSI_CODE
+					, C.BUSI_NM AS BUSI_NM
+					, E.PAY_MTH AS PAY_MTH
+					, A.RSV_DT AS RSV_DT
+			        , TO_CHAR(D.RSV_ST, 'YYYY/MM/DD') || CHR(13) 
+			          || CHR(126) || CHR(13) || TO_CHAR(D.RSV_ED, 'YYYY/MM/DD') AS RSV_PERIOD
+			    	, FN_CODE_TO_NM(A.RSV_CODE) AS RSV_CODE
+			    	, TRUNC(D.RSV_ED - SYSDATE) AS REMAIN_DATE
+			FROM RSV A
+			<if test="page.equals('숙박')">
+				INNER JOIN MEM B ON B.MEM_ID = A.MEM_ID
+				INNER JOIN BUSI C ON C.BUSI_ID = A.BUSI_ID
+				INNER JOIN RSV_STY D ON D.RSV_ID = A.RSV_ID
+				INNER JOIN PAY E ON E.RSV_ID = A.RSV_ID
+			</if>
+			<if test="page.equals('렌터카')">
+				INNER JOIN MEM B ON B.MEM_ID = A.MEM_ID
+				INNER JOIN BUSI C ON C.BUSI_ID = A.BUSI_ID
+				INNER JOIN RSV_RNTCAR D ON D.RSV_ID = A.RSV_ID
+				INNER JOIN PAY E ON E.RSV_ID = A.RSV_ID
+			</if>
+			WHERE 1 = 1
+		<!-- 예약 업체 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND C.BUSI_NM LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND D.RSV_ST &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND D.RSV_ED &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+		<!-- 정렬 검색 -->
+		<if test="sort!=null and !sort.equals('')">
+			<choose>
+				<when test="sort=='payMth'">
+					ORDER BY E.PAY_MTH ASC
+				</when>
+				<when test="sort=='rsvAsc'">
+					ORDER BY A.RSV_DT ASC
+				</when>
+				<when test="sort=='rsvDesc'">
+					ORDER BY A.RSV_DT DESC
+				</when>
+				<when test="sort=='busiNmAsc'">
+					ORDER BY C.BUSI_NM ASC
+				</when>
+				<when test="sort=='busiNmDesc'">
+					ORDER BY C.BUSI_NM DESC
+				</when>
+			</choose>
+		</if>
+		)
+		SELECT T.*
+		FROM T
+		WHERE T.RNUM BETWEEN (#{currentPage} * #{size}) - (#{size} - 1)
+		AND (#{currentPage} * #{size})
+	</select>
+
+
+	<!-- 예약 상세 -->
+	<select id="rsvDetail" parameterType="String" resultMap="rsvListMap">
+		SELECT
+				A.MEM_ID AS MEM_ID
+				, A.RSV_ID AS RSV_ID
+				, B.MEM_NM AS MEM_NM
+				, FN_CODE_TO_NM(B.GRAD_ID) AS GRAD_ID
+				, FN_CODE_TO_NM(C.BUSI_CODE) AS BUSI_CODE
+				, D.PAY_MTH AS PAY_MTH
+				, A.RSV_DT AS RSV_DT
+				, TO_CHAR(A.RSV_DT,'YYYY/MM/DD') AS RSV_DT_STR
+				, TO_CHAR(E.RSV_ST, 'YYYY/MM/DD') || CHR(126) || TO_CHAR(E.RSV_ED, 'YYYY/MM/DD') AS RSV_PERIOD
+				, D.PAY_PR AS PAY_PR
+				, FN_CODE_TO_NM(A.RSV_CODE) AS RSV_CODE
+		FROM RSV A
+		INNER JOIN MEM B ON B.MEM_ID = A.MEM_ID
+		INNER JOIN BUSI C ON C.BUSI_ID = A.BUSI_ID
+		INNER JOIN PAY D ON D.RSV_ID = A.RSV_ID
+		<if test="page.equals('숙박')">
+		INNER JOIN RSV_STY E ON E.RSV_ID = A.RSV_ID
+		</if>
+		<if test="page.equals('렌터카')">
+		INNER JOIN RSV_RNTCAR E ON E.RSV_ID = A.RSV_ID
+		</if>
+		WHERE A.RSV_ID = #{rsvId}
+	</select>
+
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) 
+		FROM RSV A
+		INNER JOIN MEM B ON B.MEM_ID = A.MEM_ID
+		INNER JOIN BUSI C ON C.BUSI_ID = A.BUSI_ID
+		<if test="page.equals('숙박')">
+		INNER JOIN RSV_STY D ON D.RSV_ID = A.RSV_ID
+		</if>
+		<if test="page.equals('렌터카')">
+		INNER JOIN RSV_RNTCAR D ON D.RSV_ID = A.RSV_ID
+		</if>
+		INNER JOIN PAY E ON E.RSV_ID = A.RSV_ID
+		WHERE 1 = 1
+		<!-- 예약자명 검색 -->
+		<if test="keyword!=null and !keyword.equals('')">
+			AND C.BUSI_NM LIKE '%' || #{keyword} || '%'
+		</if>
+		<!-- 예약 기간 검색 -->
+		<if test="periodSt!=null and !periodSt.equals('')">
+			AND D.RSV_ST &gt;= TO_DATE(#{periodSt}, 'YYYY/MM/DD')
+		</if>
+		<if test="periodEd!=null and !periodEd.equals('')">
+			AND D.RSV_ED &lt;= TO_DATE(#{periodEd}, 'YYYY/MM/DD')
+		</if>
+	</select>
+</mapper>

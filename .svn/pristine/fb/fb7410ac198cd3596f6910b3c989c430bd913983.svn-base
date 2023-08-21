@@ -1,0 +1,43 @@
+package kr.or.ddit.business.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.business.mapper.BsCalculMapper;
+import kr.or.ddit.business.service.BsCalculService;
+import kr.or.ddit.vo.CalculVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class BsCalculServiceImpl implements BsCalculService{
+   @Autowired
+   BsCalculMapper bsCalculMapper;
+   
+   @Override
+	public List<CalculVO> selectCalcul(Map<String, Object> calculMap) {
+		return this.bsCalculMapper.selectCalcul(calculMap);
+	}
+   
+   @Override
+   public String sumCalcul(Map<String, Object> calculMap) {
+	   return this.bsCalculMapper.sumCalcul(calculMap);
+   }
+   @Override
+   public String vatCalcul(Map<String, Object> calculMap) {
+	   return this.bsCalculMapper.vatCalcul(calculMap);
+   }
+   @Override
+   public String feeCalcul(Map<String, Object> calculMap) {
+	   return this.bsCalculMapper.feeCalcul(calculMap);
+   }
+   
+   @Override
+   public String totalCalcul(Map<String, Object> calculMap) {
+	   return this.bsCalculMapper.totalCalcul(calculMap);
+   }
+   
+}

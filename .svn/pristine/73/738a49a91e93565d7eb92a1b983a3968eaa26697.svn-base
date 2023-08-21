@@ -1,0 +1,110 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"
+	uri="http://www.springframework.org/security/tags"%>
+
+
+<script
+	src="/resources/booking/assets/vendor/flatpickr/js/flatpickr.min.js"></script>
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/flatpickr/css/flatpickr.min.css">
+<style>
+td {
+	padding: 0px; /* td 간의 간격 조정 */
+	text-align: center; /* td 가운데 정렬 */
+	background-color: #a6a5a2;
+}
+.hi {
+	display: flex;
+	justify-content: flex-end;
+}
+</style>
+<body>
+	<br />
+	<div class="container vstack gap-4">
+		<!-- Title START -->
+		<div class="row">
+			<div class="col-12">
+				<h1 class="fs-4 mb-0">
+				    <div class="hi">
+						<a href="/business/parking/testing01" class="float-right"><i
+							class="bi bi-caret-right-square fa-fw me-1"></i></a> <a
+							href="/business/parking/testing02" class="float-right"><i
+							class="bi bi-caret-right-square-fill fa-fw me-1"></i></a>
+					</div>
+					<i class="bi bi-car-front fa-fw me-1"></i>주차장 현황
+				</h1>
+			</div>
+		</div>
+		<!-- Title END -->
+
+		<!-- Counter START -->
+		<div class="row">
+			<div class="col-12">
+				<div class="card border h-100">
+					<!-- Card header -->
+					<div class="card-header border-bottom">
+						<h5 class="card-header-title">우리 업체 주차장</h5>
+					</div>
+
+					<!-- Card body START -->
+					<div class="card-body">
+						<table>
+							<tr id="parkingLot">
+								<c:forEach var="data2" items="${parkingList}" varStatus="stat2">
+									<td><c:if test="${data2.status eq 1}">
+											<img alt="/resources/upload/parking/on.png"
+												src="/resources/upload/parking/on.png">
+										</c:if> <c:if test="${data2.status eq 0}">
+											<img alt="/resources/upload/parking/off.png"
+												src="/resources/upload/parking/off.png">
+										</c:if></td>
+								</c:forEach>
+							</tr>
+						</table>
+					</div>
+
+					<!-- Card body END -->
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		function updateContent() {
+			param = { "a" : "a"};
+			$.ajax({
+				url : "/business/reparking", // 데이터를 가져올 서버 엔드포인트의 URL
+				method : "post",
+				data: JSON.stringify(param),
+				beforeSend : function(xhr) {
+					xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}")
+				},
+				success : function(response) {
+					console.log("아작스 성공"+response);
+					var parkingList = response;
+					var txt = '';
+				    for (var i = 0; i < parkingList.length; i++) {
+				        var data2 = parkingList[i];
+				        txt += '<td>';
+				        if (data2.status === 1) {
+				            txt += '<img alt="/resources/upload/parking/on.png" src="/resources/upload/parking/on.png">';
+				        }
+				        if (data2.status === 0) {
+				            txt += '<img alt="/resources/upload/parking/off.png" src="/resources/upload/parking/off.png">';
+				        }
+				        txt += '</td>';
+				    }
+
+				    document.getElementById('parkingLot').innerHTML = txt;
+				}
+			});
+		}
+
+		// 0.5초마다 updateContent 함수 호출
+		setInterval(updateContent, 3000);
+	</script>
+</body>
+

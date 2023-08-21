@@ -1,0 +1,81 @@
+package kr.or.ddit.business.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.business.mapper.BsBusiMapper;
+import kr.or.ddit.business.service.BsBusiService;
+import kr.or.ddit.vo.BusiVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class BsBusiServiceImpl implements BsBusiService{
+   @Autowired
+   BsBusiMapper bsBusiMapper;
+   
+   @Override
+   public List<BusiVO> busiList(){
+      return this.bsBusiMapper.busiList();
+   }
+   
+   @Override
+   @Transactional
+   public int create(BusiVO busiVO) {
+	   
+	    int cnt1 = this.bsBusiMapper.create(busiVO);
+	    int cnt2 = this.bsBusiMapper.insertAuth(busiVO);
+	    
+	    return cnt1 + cnt2;
+   }
+   
+   @Override
+   public BusiVO busiOne(BusiVO busiVO){
+      return this.bsBusiMapper.busiOne(busiVO);
+   }
+   @Override
+   public BusiVO userDetail(String lginId){
+      return this.bsBusiMapper.userDetail(lginId);
+   }
+
+   @Override
+   public int checkBusiId(BusiVO busiVO) {
+	   return this.bsBusiMapper.checkBusiId(busiVO);
+}
+   
+   @Override
+   public int checkBsEmail(BusiVO busiVO) {
+	   return this.bsBusiMapper.checkBsEmail(busiVO);
+   }
+   @Override
+   public int resetPw(BusiVO busiVO) {
+	   return this.bsBusiMapper.resetPw(busiVO);
+   }
+   @Override
+   public int resetTel(BusiVO busiVO) {
+	   return this.bsBusiMapper.resetTel(busiVO);
+   }
+
+	@Override
+	public int updateBank(BusiVO busiVO) {
+		return this.bsBusiMapper.updateBank(busiVO);
+	}
+	   
+	@Override
+	public int withDraw(BusiVO busiVO) {
+		return this.bsBusiMapper.withDraw(busiVO);
+	}
+	
+	@Override
+	public int updateGubun(BusiVO busiVO) {
+		return this.bsBusiMapper.updateGubun(busiVO);
+	}
+	
+   
+}

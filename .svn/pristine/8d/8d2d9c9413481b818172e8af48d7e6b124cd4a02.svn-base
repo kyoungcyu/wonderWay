@@ -1,0 +1,22 @@
+package kr.or.ddit.util.websocket.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AlarmVO;
+import kr.or.ddit.vo.ChatVO;
+
+public interface WsMapper {
+
+	public int insertChat(ChatVO chatVO);
+
+	public int insertAlarm(AlarmVO alarmVO);
+
+	public List<AlarmVO> selectAllAlarms(String receiver);
+
+	public int deleteAllAlarms(String receiver);
+	
+	
+	
+	
+}

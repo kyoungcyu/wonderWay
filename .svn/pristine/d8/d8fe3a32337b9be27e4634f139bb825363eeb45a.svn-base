@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.util.poi.mapper.PoiMapper">
+
+	<!--sercviceImpl : {column1=명칭, column5=개요, column4=경도, column3=위도, column2=주소} -->
+	<insert id="tourInsert" parameterType="hashMap">
+		<selectKey order="BEFORE" resultType="string"
+			keyProperty="tourId">
+			select 'S'|| LPAD((SELECT MAX(substr(TOUR_ID,3))+1 FROM
+			TOUR),4,0) from
+			dual
+		</selectKey>
+				INSERT INTO TOUR (
+				TOUR_ID
+				, TOUR_NM
+				, TOUR_DC
+				, LATI
+				, LONGI
+				, TOUR_LOC
+				,TOUR_CODE)
+				
+				VALUES(
+				#{tourId}
+				, #{column1}
+				, #{column8}
+				, #{column6}
+				, #{column7}
+				, '제주'
+				, 'SV'
+				)
+	</insert>
+
+
+<!-- {column1=mbti, column2=memId, column3=tour_id, column4=tour_nm} -->
+	<insert id="brdTourInsert" parameterType="hashMap">
+		<selectKey order="BEFORE" resultType="string" keyProperty="brdId">
+			SELECT NVL(SUBSTR(MAX(BRD_ID),1,11)||TRIM(TO_CHAR(SUBSTR(MAX(BRD_ID),-3,3)+1,'000')),'D01'||TO_CHAR(SYSDATE,'YYYYMMDD')||'001')
+			FROM BRD WHERE BRD_KND = 'D01' AND SUBSTR(BRD_ID,4,8) = TO_CHAR(SYSDATE,'YYYYMMDD')
+		</selectKey>
+				INSERT INTO BRD (
+				    BRD_ID,
+				    BRD_KND,
+				    TOUR_ID,
+				    FRST_WRTR,
+				    FRST_DT,
+				    LAST_WRTR,
+				    LAST_DT,
+				    BRD_TT
+				)
+                VALUES(
+				    #{brdId},
+                    'D01',
+				    #{column3},
+				    #{column2},
+				    SYSDATE,
+				    #{column2},
+				    SYSDATE,
+				    '잘다녀왔습니다')
+	</insert>
+
+
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

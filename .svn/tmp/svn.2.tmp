@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+namespace : xml 파일이 여러개일 수 있음
+이를 구별하기 위한 식별 용도로 사용됨
+ -->
+<mapper namespace="kr.or.ddit.admin.mapper.AdRfdMapper">
+	<!-- resultMap 선언 -->
+	<resultMap id="rfdListMap" type="rfdListVO">
+	  <result column="PAY_ID" property="payId" />
+	  <result column="MEM_NM" property="memNm" />
+	  <result column="RFD_PR" property="rfdPr" />
+	  <result column="RFD_REQ_DT" property="rfdReqDt" />
+	  <result column="BUSI_NM" property="busiNm" />
+	  <result column="RFD_RESN" property="rfdResn" />
+<!-- 	  <result column="RFD_CK" property="rfdCk" /> -->
+	</resultMap>
+
+	
+	<!-- 환불 요청 목록 -->
+	<select id="rfdList" resultMap="rfdListMap">
+	    SELECT A.PAY_ID AS PAY_ID,
+		      (SELECT (SELECT MEM_NM FROM MEM WHERE MEM_ID = C.MEM_ID)
+		        FROM RSV C
+		        WHERE B.RSV_ID = C.RSV_ID) AS MEM_NM,
+		      (SELECT (SELECT BUSI_NM FROM BUSI WHERE BUSI_ID = C.BUSI_ID)
+		        FROM RSV C
+		        WHERE B.RSV_ID = C.RSV_ID) AS BUSI_NM,
+		       A.RFD_PR AS RFD_PR,
+		       A.RFD_REQ_DT AS RFD_REQ_DT,
+		       A.RFD_RESN AS RFD_RESN,
+		       B.RFD_CK AS RFD_CK
+		FROM RFD A, PAY B
+		WHERE A.PAY_ID = B.PAY_ID
+		AND B.RFD_CK IS NULL
+	</select>
+
+
+	<select id="rfdDetail" resultMap="rfdListMap">
+	    SELECT A.PAY_ID AS PAY_ID,
+       		  (SELECT (SELECT MEM_NM FROM MEM WHERE MEM_ID = C.MEM_ID)
+		        FROM RSV C
+		        WHERE B.RSV_ID = C.RSV_ID) AS MEM_NM,
+		       A.RFD_PR AS RFD_PR,
+		       A.RFD_REQ_DT AS RFD_REQ_DT,
+		       (SELECT (SELECT BUSI_NM FROM BUSI WHERE BUSI_ID = C.BUSI_ID)
+		        FROM RSV C
+		        WHERE B.RSV_ID = C.RSV_ID) AS BUSI_NM,
+		       A.RFD_RESN AS RFD_RESN,
+		       B.RFD_CK AS RFD_CK
+		FROM RFD A, PAY B
+		WHERE A.PAY_ID = B.PAY_ID
+		AND A.PAY_ID = #{payId}
+	</select>
+
+	<update id="rfdAccept" parameterType="String">
+		UPDATE PAY
+		SET RFD_CK = 'Y'
+		WHERE PAY_ID = #{payId}
+	</update>
+
+	<update id="rfdDenied" parameterType="String">
+		UPDATE PAY
+		SET RFD_CK = 'N'
+		WHERE PAY_ID = #{payId}
+	</update>
+</mapper>

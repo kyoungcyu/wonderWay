@@ -1,0 +1,24 @@
+package kr.or.ddit.vo;
+
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import lombok.Data;
+
+@Data
+public class CarVO {
+	private String carNum;
+	private String carCode;
+	private String carKnd;
+	private String carYr;
+	private int carFee;
+	private String fuelTy;
+	private String maxPp;
+	private String busiId;
+	private String carOp;
+	private String carImg;
+	
+	private MultipartFile[] uploads;
+	private List<AttachDeVO> attachDeVOList;
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.business.mapper.BsRcmMapper">
+
+	<!--  -->
+	<select id="cvfcRcm" parameterType="hashMap" resultType="cvfcRcmVO">
+		SELECT CVFC_ID_1, CVFC_ID_2, CVFC_ID_3, CVFC_ID_4, CVFC_ID_5, CVFC_ID_6, CVFC_ID_7, CVFC_ID_8, CVFC_ID_9, CVFC_ID_10
+		FROM CVFC_RCM
+		WHERE AGE=#{age}
+		AND GEN=#{gen}
+	</select>
+	
+	
+	<!--  -->
+	<select id="getCvfcInfo" parameterType="String" resultType="cvfcVO">
+		SELECT CVFC_ID, CVFC_NM, CVFC_TYPE, ICON
+		FROM CVFC
+		WHERE CVFC_ID=#{cvfcId}
+	</select>
+	
+</mapper>

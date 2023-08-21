@@ -1,0 +1,201 @@
+package kr.or.ddit.member.controller;
+
+import java.security.Principal;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import kr.or.ddit.member.mapper.MypageMapper;
+import kr.or.ddit.member.service.MypageService;
+import kr.or.ddit.vo.MemVO;
+
+
+@RequestMapping("/member/mypage")
+@Controller
+public class MypageController {
+	
+	private final Logger log = 
+			LoggerFactory.getLogger(this.getClass());
+	
+	@Autowired
+	MypageService mypageService;
+	
+	@Autowired
+	MypageMapper mypageMapper;
+	
+	/////////////////////////////////////////////////
+	
+	//마이페이지- 내 정보
+	@GetMapping("/myInfo")
+	public String myInfo(Principal principal, Model model) {
+	    String memId = principal.getName();
+	    log.info("memId: " + memId);
+
+	    MemVO data = this.mypageService.detailMyInfo(memId);
+	    log.info("data",data);
+
+	    model.addAttribute("data", data);
+	    model.addAttribute("memId",data.getMemId());
+
+	    return "member/mypage/myInfo";
+	}
+
+	
+	//내 프로필 - 정보 수정
+	@PostMapping("/updateMyInfo/{memId}")
+	public String emailiModify(@ModelAttribute MemVO memVO) {
+		log.info("memVO: " +memVO.toString());
+		
+		int result = this.mypageService.updateMyInfo(memVO);
+		log.info("result : " + result);
+		//변경 후 상세 페이지로 재요청
+		return "redirect:/member/mypage/myInfo="+memVO.getMemId();
+	}
+	
+	//나의 이메일 변경
+	@GetMapping("/emailModify")
+	public String emailModify() {
+		return "member/mypage/emailModify";
+	}	
+	
+	//나의 비밀번호 변경
+	@GetMapping("/passModify")
+	public String passModify() {
+		return "member/mypage/passModify";
+	}
+
+	//내 프로필 - 비밀번호 변경
+	@RequestMapping(value="/passModify",method=RequestMethod.POST)
+	public String passModify(@ModelAttribute MemVO memVO) {
+		log.info("memVO: " +memVO.toString());
+		
+		int result = this.mypageService.updateMyPw(memVO);
+		log.info("result : " + result);
+		//변경 후 상세 페이지로 재요청
+		return "redirect:/member/mypage/myInfo="+memVO.getMemId();
+	}
+
+	
+	/////////////////////////////////////////////////
+//	//나의정보-예약내역
+//	@GetMapping("/myBooking")
+//	public String myBookList(Model model,@ModelAttribute RsvVO rsvVO, @PathVariable(value="rsvId",required = true)String rsvId) {
+//		log.info("memVO: " +rsvVO.toString());
+//		log.info("rsvId: "  + rsvId);
+//		log.info("rsvVO: "  + rsvVO);
+//		
+//		
+//		
+//		return "mypage/myBooking";
+//	}
+	
+	//예약내역
+	@GetMapping("/myBooking")
+	public String myBooking() {
+		return "member/mypage/myBooking";
+	}	
+	
+	
+	/////////////////////////////////////////////////
+	//나의 카드
+	@GetMapping("/myCard")
+	public String myCard() {
+		return "member/mypage/myCard";
+	}
+	
+	//나의 카드 추가
+	@GetMapping("/myCardAdd")
+	public String myCardAdd() {
+		return "member/mypage/myCardAdd";
+	}
+	
+	/////////////////////////////////////////////////
+	//관심내역
+	@GetMapping("/myLike")
+	public String myLike() {
+		return "member/mypage/myLike";
+	}	
+	/////////////////////////////////////////////////
+	//쿠폰 및 마일리지
+	@GetMapping("/myCoupon")
+	public String myCoupon() {
+		log.info("myCoupon에 왔다");
+		return "member/mypage/myCoupon";
+	}		
+	/////////////////////////////////////////////////
+	//나의 작성글
+	@GetMapping("/myWrite")
+	public String myWrite() {
+		return "member/mypage/myWrite";
+	}	
+	/////////////////////////////////////////////////
+	//업체문의
+	@GetMapping("/myCs")
+	public String myCs() {
+		return "member/mypage/myCs";
+	}
+	////////////////////////////////////////////////
+	//장바구니
+	@GetMapping("/myCart")
+	public String myCart() {
+		return "member/mypage/myCart";
+	}	
+	///////////////////////////////////////////////////
+//	// 회원탈퇴
+//	@RequestMapping(value="deleteMem",method=RequestMethod.POST)
+//	public ModelAndView deleteMem(MemVO memVO, ModelAndView mav) {
+//		log.info("memVO: " + memVO);
+//		int result = this.mypageService.deleteMem(memVO);
+//		log.info("result" + result);
+//		//삭제 성공 : 메인페이지로 이동
+//		if(result > 0) {
+//			mav.setViewName("redirect:/main");
+//		}else {//삭제 실패 : 상세페이지로 이동
+//			mav.setViewName("redirect:/myInfo?memId="+memVO.getMemId());
+//		}
+//		return mav;
+//	}
+	
+	//회원탈퇴 페이지
+	@GetMapping("/deleteMem")
+	public String deleteMem() {
+		return "member/mypage/deleteMem";
+	}
+	
+	//회원탈퇴 처리
+	
+	//서브탭 테스트
+	@GetMapping("/test")
+	public String test() {
+		return "member/mypage/test";
+	}
+	
+	@ResponseBody
+	@PostMapping("/faceRegPost")
+	public MemVO faceReg(Principal principal) {
+		String memId = principal.getName();
+	    log.info("memId: " + memId);
+	    
+	    MemVO data = this.mypageService.detailMyInfo(memId);
+	    log.info("MemVO: " + data);
+	    
+		return data;
+	}
+
+}

@@ -1,0 +1,41 @@
+package kr.or.ddit.business.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.business.mapper.BsAdMapper;
+import kr.or.ddit.business.service.BsAdService;
+import kr.or.ddit.vo.AdadVO;
+import kr.or.ddit.vo.AdvReqListVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class BsAdServiceImpl implements BsAdService{
+   @Autowired
+   BsAdMapper bsAdMapper;
+   
+   @Override
+   public int insertAdReq(AdadVO adadVO) {
+	   int re1 = this.bsAdMapper.insertAdReq(adadVO);
+	   int re2 = this.bsAdMapper.insertAdReqTwo(adadVO);
+	   return re1+re2;
+   }
+   
+   @Override
+   public List<AdvReqListVO> adInUse(String busiId) {
+	   return this.bsAdMapper.adInUse(busiId);
+   }
+   
+   @Override
+   public int adRfdReq(String adReqId) {
+	   int re1 = this.bsAdMapper.adRfdReq(adReqId);
+	   int re2 = this.bsAdMapper.rfdCkY(adReqId);
+	   int re3 = this.bsAdMapper.adReqExpY(adReqId);
+	   return re1+re2+re3;
+	   
+   }
+   
+}

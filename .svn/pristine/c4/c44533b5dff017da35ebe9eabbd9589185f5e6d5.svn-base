@@ -1,0 +1,95 @@
+package kr.or.ddit.admin.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.admin.mapper.AdSalesMapper;
+import kr.or.ddit.admin.service.AdSalesService;
+import kr.or.ddit.vo.AdSalesStatVO;
+import kr.or.ddit.vo.AdSalesVO;
+import kr.or.ddit.vo.AdStatsVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class AdSalesServiceImpl implements AdSalesService{
+	@Autowired
+	AdSalesMapper adSalesMapper;
+	
+	@Override
+	public List<AdSalesVO> salesList(Map<String, String> map) {
+		return this.adSalesMapper.salesList(map);
+	}
+
+	@Override
+	public List<AdSalesVO> salesListExcel(Map<String, String> map) {
+		return this.adSalesMapper.salesListExcel(map);
+	}
+
+	@Override
+	public int getTotal(Map<String, String> map) {
+		return this.adSalesMapper.getTotal(map);
+	}
+
+	@Override
+	public int lastYearSales() {
+		return this.adSalesMapper.lastYearSales();
+	}
+
+	@Override
+	public int thisYearSales() {
+		return this.adSalesMapper.thisYearSales();
+	}
+
+	@Override
+	public int lastMthSales() {
+		// TODO Auto-generated method stub
+		return this.adSalesMapper.lastMthSales();
+	}
+
+	@Override
+	public int thisMthSales() {
+		return this.adSalesMapper.thisMthSales();
+	}
+
+	@Override
+	public AdSalesStatVO popularBusi() {
+		return this.adSalesMapper.popularBusi();
+	}
+
+	@Override
+	public int thisMthSignIn() {
+		return this.adSalesMapper.thisMthSignIn();
+	}
+
+	@Override
+	public int lastMthSignIn() {
+		return this.adSalesMapper.lastMthSignIn();
+	}
+
+	@Override
+	public List<AdStatsVO> salesYMStats(String year) {
+		return this.adSalesMapper.salesYMStats(year);
+	}
+
+	@Override
+	public List<AdStatsVO> rsvYMStats(String year) {
+		return this.adSalesMapper.rsvYMStats(year);
+	}
+
+	@Override
+	public List<AdStatsVO> memYMStats(String year) {
+		return this.adSalesMapper.memYMStats(year);
+	}
+
+	@Override
+	public List<AdStatsVO> memAgeStats() {
+		return this.adSalesMapper.memAgeStats();
+	}
+
+}

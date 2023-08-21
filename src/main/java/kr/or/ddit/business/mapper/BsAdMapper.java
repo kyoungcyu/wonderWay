@@ -1,0 +1,23 @@
+package kr.or.ddit.business.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.AdadVO;
+import kr.or.ddit.vo.AdvReqListVO;
+
+public interface BsAdMapper {
+
+	int insertAdReq(AdadVO adadVO);
+
+	int insertAdReqTwo(AdadVO adadVO);
+
+	List<AdvReqListVO> adInUse(String busiId);
+
+	int adRfdReq(String adReqId);
+
+	int rfdCkY(String adReqId);
+
+	int adReqExpY(String adReqId);
+
+}
+

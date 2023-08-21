@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.MemMapper">
+	
+	<!-- 회원 정보 입력 -->
+	<insert id="registerMember" parameterType="memVO">
+		INSERT INTO MEM(MEM_ID, MEM_PW, MEM_NM, MEM_ENM, MEM_FMNM, MEM_BIR, MEM_EMAIL)
+		VALUES(#{memId}, #{memPw}, #{memNm},#{memEnm},#{memFmnm},#{memBir},#{memEmail})
+	</insert>
+	
+	<!-- 아이디 중복 체크 -->
+	<select id="checkMemId" parameterType="memVO" resultType="int">
+		SELECT COUNT(*) FROM MEM WHERE MEM_ID = #{memId}
+	</select>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,158 @@
+package kr.or.ddit.rntCar.service.impl;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.business.mapper.BsRsvMapper;
+import kr.or.ddit.business.service.impl.BsRmServiceImpl;
+import kr.or.ddit.rntCar.mapper.BsRntCarMapper;
+import kr.or.ddit.rntCar.service.BsRntCarService;
+import kr.or.ddit.util.CommonFile;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BsRsvListVO;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.CarVO;
+import kr.or.ddit.vo.RsvRntCarVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class BsRntCarServiceImpl implements BsRntCarService{
+	@Autowired
+	BsRntCarMapper bsRntCarMapper;
+
+	@Override
+	public List<CarVO> carList(Map<String, String> map){
+		return this.bsRntCarMapper.carList(map);
+	}
+	@Override
+	public int getTotal(Map<String, String> map){
+		return this.bsRntCarMapper.getTotal(map);
+	}
+
+	@Override
+	public CarVO detailCar(String carNum){
+		return this.bsRntCarMapper.detailCar(carNum);
+	}
+	@Override
+	public int updateCar(CarVO carVO){
+		return this.bsRntCarMapper.updateCar(carVO);
+	}
+	@Override
+	public String getImgPath(String carNum){
+		return this.bsRntCarMapper.getImgPath(carNum);
+	}
+	@Override
+	public int getImg(CarVO carVO){
+		return this.bsRntCarMapper.getImg(carVO);
+	}
+	
+	@Override
+	public List<RsvRntCarVO> rntRsvList(Map<String, String> map){
+		return this.bsRntCarMapper.rntRsvList(map);
+	}
+	@Override
+	public int carGetTotal(Map<String, String> map){
+		return this.bsRntCarMapper.carGetTotal(map);
+	}
+	@Override
+	public RsvRntCarVO rsvIdDetail(String rsvId){
+		return this.bsRntCarMapper.rsvIdDetail(rsvId);
+	}
+
+	@Override
+	public List<RsvRntCarVO> todayRf(Map<String, Object> checkOutMap){
+		return this.bsRntCarMapper.todayRf(checkOutMap);
+	}
+	@Override
+	public List<RsvRntCarVO> todayCar(Map<String, Object> checkInMap){
+		return this.bsRntCarMapper.todayCar(checkInMap);
+	}
+	@Override
+	public int totalIn(String busiId) {
+		return this.bsRntCarMapper.totalIn(busiId);
+	}
+	@Override
+	public int totalOut(String busiId) {
+		return this.bsRntCarMapper.totalOut(busiId);
+	}
+	@Override
+	public int checkSt(String rsvId){
+		return this.bsRntCarMapper.checkSt(rsvId);
+	}
+	@Override
+	public int checkEd(String rsvId){
+		return this.bsRntCarMapper.checkEd(rsvId);
+	}
+	
+	
+	@Override
+	public int addCar(CarVO carVO){
+		int result =this.bsRntCarMapper.addCar(carVO);
+		
+		log.info("carVO :"+carVO);
+		
+		//2. 첨부파일 처리
+		AttachVO attachVO = new AttachVO();
+		List<AttachDeVO> attachDeVOlist = new ArrayList<AttachDeVO>();
+		log.info("attachDeVOlist :"+attachDeVOlist);
+		
+		//2.1. ATTACH테이블(ATTACH_ID, ATTACH_DEL)에 insert
+		attachVO.setAttachId(carVO.getCarNum());
+		attachVO.setAttachDel("N");
+		log.info("attachVO :"+attachVO);
+		this.bsRntCarMapper.attachInsert(attachVO);
+		
+		//2.2. ATTACH_DE테이블에 insert
+		// <input name="picture" type="file"
+		MultipartFile[] uploads = carVO.getUploads();
+		
+		for(MultipartFile upload : uploads) {
+			String orgNm = upload.getOriginalFilename();
+
+			//UUID 처리 시작
+			UUID uuid = UUID.randomUUID();
+			String fileNm = uuid.toString() + "_" + orgNm;
+
+			// 파일 업로드 시작 ===
+			File uploadPath = new File(CommonFile.uploadFolder+"\\Rnt", CommonFile.getFolder());
+			if (uploadPath.exists() == false) {
+				uploadPath.mkdirs();
+			}
+
+			// 설계
+			File saveFile = new File(uploadPath, fileNm);
+			try {
+				upload.transferTo(saveFile);
+	
+				AttachDeVO attachDeVO = new AttachDeVO();
+				attachDeVO.setAttachId(attachVO.getAttachId());
+				attachDeVO.setSavePath("/" + CommonFile.getFolder().replace("\\", "/") + "/" + fileNm); // 파일 저장 경로
+				attachDeVO.setOrgNm(orgNm);// 파일 원본 명
+				attachDeVO.setFileNm(fileNm);// 파일 저장명
+				attachDeVO.setFileSz(upload.getSize()); // 파일 사이즈
+				attachDeVO.setFileTy(upload.getContentType()); // 파일 컨텐츠 타입
+	
+				log.info("insert할 attachDeVO : " + attachDeVO);
+	
+				attachDeVOlist.add(attachDeVO);
+			} catch (Exception e) {
+				log.error(e.getMessage());
+			}
+		}//end for
+		
+		log.info("attachDeVOlist : " + attachDeVOlist);
+
+		result += this.bsRntCarMapper.attachDeInsert(attachDeVOlist);
+
+		return result;
+	}
+}

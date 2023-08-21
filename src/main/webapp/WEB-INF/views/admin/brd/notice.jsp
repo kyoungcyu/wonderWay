@@ -1,0 +1,227 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+
+<script type="text/javascript">
+$(function(){
+	$("#sort").on("change",function(){
+		$("#frm01").submit();
+	});
+	
+});
+function chageIntr(brdId) {
+	$("#btn01").on("click", function () {
+		let choice = $("#choice").val();
+
+		if (choice == "") {
+			alert("공지여부를 선택해주세요");
+			return;
+		}
+		let object = { "choice": choice, "brdId": brdId };
+		$.ajax({
+			url: "/admin/brd/noticeIntr",
+			contentType: "application/json;charset=utf-8",
+			data: JSON.stringify(object),
+			type: "post",
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+			},
+			success: function (result) {
+				console.log("result : " + result);
+				if (result == "success") {
+					window.location.href = "/admin/brd/notice";
+				} else {
+					alert("실패 메시지");
+				}
+			},
+			error: function () {
+				alert("요청을 처리하는 동안 오류가 발생했습니다");
+			}
+		});
+	});
+}
+
+function delet(brdId) {
+	let object = {"brdId": brdId };
+	
+	// 확인 대화상자를 표시하여 사용자의 응답을 확인합니다.
+	if (confirm("삭제하시겠습니까?")) {
+		$.ajax({
+			url: "/admin/brd/noticeDelete",
+			contentType: "application/json;charset=utf-8",
+			data: JSON.stringify(object),
+			type: "post",
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+			},
+			success: function (result) {
+				console.log("result : " + result);
+				if (result == "success") {
+					window.location.href = "/admin/brd/notice";
+				} else {
+					alert("실패 메시지");
+				}
+			},
+			error: function () {
+				alert("요청을 처리하는 동안 오류가 발생했습니다");
+			}
+		});
+	}
+}
+
+</script>
+
+<!-- Page main content START -->
+<div class="page-content-wrapper p-xxl-4">
+
+	<!-- Filters START -->
+	<form class="row g-4 align-items-center" id="frm01">
+		<div class="col-lg-6">
+			<h1 class="h3 mb-3 mb-sm-0">공지사항</h1>
+		</div>
+
+		<!-- 검색 -->
+		<div class="col-md-6 col-lg-4">
+			<input class="form-control bg-transparent" type="search" placeholder="Search" aria-label="Search" name="keyword" value="${param.keyword}">
+			<button class="bg-transparent p-2 position-absolute top-50 end-0 translate-middle-y border-0 text-primary-hover text-reset" type="submit">
+			</button>
+		</div>
+		
+		<!-- 정렬 -->
+		<div class="col-md-6 col-lg-2">
+			<select class="form-select js-choice" aria-label=".form-select-sm" name="sort" id="sort">
+				<option value="">Sort by</option>
+				<option value="intrN" <c:if test="${param.sort=='intrN'}">selected</c:if>>공지중</option>
+				<option value="intrY" <c:if test="${param.sort=='intrY'}">selected</c:if>>공지끝</option>
+			</select>
+		</div>
+	</form>
+	<!-- Filters END -->
+	
+	<div class="card shadow mt-5">
+		<!-- Card body START -->
+		<div class="card-body">
+			<!-- Hotel room list START -->
+			<div class="table-responsive border-0">
+				<table class="table align-middle p-4 mb-0 table-hover table-shrink">
+					<!-- Table head -->
+					<thead class="table-light">
+						<tr>
+							<th scope="col" class="border-0 rounded-start text-center">게시글ID</th>
+							<th scope="col" class="border-0  text-center">제목</th>
+							<th scope="col" class="border-0  text-center">작성일시</th>
+							<th scope="col" class="border-0  text-center">수정일시</th>
+							<th scope="col" class="border-0  text-center">공지 여부</th>
+							<th scope="col" class="border-0  text-center">작성자</th>
+							<th scope="col" class="border-0  text-center">수정자</th>
+							<th scope="col" class="border-0  text-center">공지</th>
+							<th scope="col" class="border-0 rounded-end  text-center">삭제</th>
+						</tr>
+					</thead>
+					<c:forEach var="brdVO" items="${data.content}" varStatus="stat">
+						<!-- Table body START -->
+						<tbody class="border-top-0">
+							<!-- Table item -->
+							<tr>
+								<td>
+									<a href="/member/csc/cscNoticeDetail?brdId=${brdVO.brdId}"><h6 class="mb-0">${brdVO.brdId}</h6></a>
+								</td>
+								<td>
+									<a href="/member/csc/cscNoticeDetail?brdId=${brdVO.brdId}"><h6 class="mb-0">${brdVO.brdTt}</h6></a>
+								</td>
+								<td><fmt:formatDate value="${brdVO.frstDt}" pattern="yyyy/MM/dd" /></td>
+								<td><fmt:formatDate value="${brdVO.lastDt}" pattern="yyyy/MM/dd" /></td>
+								<td class="text-center">
+									<div class="badge  ${brdVO.intr eq 'N' ? 'bg-success text-success' : 'bg-danger text-danger'} bg-opacity-10">${brdVO.intr == 'N' ? 'O' : 'X'}</div>
+								</td>
+								<td>
+									<div>${brdVO.frstWrtr}</div>
+								</td>
+								<td>
+									<div>${brdVO.lastWrtr}</div>
+								</td>
+								<td class="text-center">
+									<button type="button" class="btn btn-sm btn-primary mb-0" data-bs-toggle="modal" onclick="chageIntr('${brdVO.brdId}')"
+										id="openModal" data-bs-target="#exampleModal" data-bs-whatever="@getbootstrap" >공지</button>
+								</td>
+								<td class="text-center">
+									<button type="button" onclick="delet('${brdVO.brdId}')" class="btn btn-sm btn-danger mb-0">삭제</button>
+								</td>
+							</tr>
+						</tbody>
+						<!-- Table body END -->
+					</c:forEach>
+				</table>
+			</div>
+			<!-- Hotel room list END -->
+		</div>
+		<!-- Card body END -->
+	
+		<!-- Card footer START -->
+		<div class="card-footer pt-0">
+			<!-- Pagination and content -->
+			<div class="d-sm-flex justify-content-sm-between align-items-sm-center">
+				<!-- Content -->
+				<c:set var="endRow" value="${data.currentPage * data.size}" />
+				<c:set var="startRow" value="${endRow - (data.size - 1)}" />
+				<c:set var="total" value="${data.total}" />
+				<c:if test="${endRow>total}">
+					<c:set var="endRow" value="${total}" />
+				</c:if>
+				<p class="mb-sm-0 text-center text-sm-start">Showing ${startRow} to ${endRow} of ${total} entries</p>
+				<!-- Pagination -->
+				<nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
+					<ul class="pagination pagination-sm pagination-primary-soft mb-0 ">
+						<li class="page-item <c:if test='${data.startPage < 6}'>disabled</c:if>" id="dataTable_previous">
+							<a class="page-link" href="/admin/brd/notice?currentPage=${data.startPage-5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="0"  tabindex="-1">Prev</a>
+						</li>
+						<c:forEach var="pNo" begin="${data.startPage}" end="${data.endPage}">
+							<li class="page-item <c:if test='${param.currentPage eq pNo}'>active</c:if>">
+								<a href="/admin/brd/notice?currentPage=${pNo}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="${pNo}" tabindex="0" class="page-link">${pNo}</a>
+							</li>
+						</c:forEach>
+						<li class="page-item <c:if test='${data.endPage == data.totalPages}'>disabled</c:if>" id="dataTable_next">
+							<a class="page-link" href="/admin/brd/notice?currentPage=${data.startPage+5}&sort=${param.sort}&keyword=${param.keyword}" aria-controls="dataTable" data-dt-idx="7"  tabindex="-1">Next</a>
+						</li>
+						<li class="page-item">
+							<a class="page-link" href="/admin/brd/noticeRegistration">공지 작성</a>
+						</li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+		<!-- Card footer END -->
+	</div>
+</div>
+<!-- Page main content END -->
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog  modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">공지 여부 변경</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form name="frm02" id="frm02" action="/admin/brd/noticeIntr" method="POST">
+          <div class="mb-3">
+            <label for="recipient-name" class="col-form-label">공지:</label>
+            <select class="form-select js-choice" aria-label=".form-select-sm" name="choice" id="choice">
+				<option value="">선택해주세요.</option>
+				<option value="N">공지함</option>
+				<option value="Y">공지안함</option>
+			</select>
+          </div>
+          <sec:csrfInput />
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="btn01">전송</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+

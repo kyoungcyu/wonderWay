@@ -1,0 +1,1062 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@page import="java.util.Date"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+
+<script
+	src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+	integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+	crossorigin="anonymous"></script>
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+	integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+	crossorigin="anonymous"></script>
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/font-awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/bootstrap-icons/bootstrap-icons.css">
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/splide-master/dist/css/splide.min.css">
+<link rel="stylesheet" type="text/css"
+	href="/resources/booking/assets/vendor/glightbox/css/glightbox.css">
+
+<style>
+.modal-dialog {
+	max-width: 800px;
+	max-height: 800px;
+}
+</style>
+
+<!-- Main content START -->
+<div class="col-lg-8 col-xl-9 ps-xl-5">
+
+	<!-- Offcanvas menu button -->
+	<div class="d-grid mb-0 d-lg-none w-100">
+		<button class="btn btn-primary mb-4" type="button"
+			data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar"
+			aria-controls="offcanvasSidebar">
+			<i class="fas fa-sliders-h"></i> Menu
+		</button>
+	</div>
+
+	<div class="card border bg-transparent">
+		<!-- Card header -->
+		<div class="card-header bg-transparent border-bottom">
+			<h4 class="card-header-title">예약내역</h4>
+		</div>
+		<!-- Card body START -->
+		<div class="card-body p-0">
+
+			<!-- ======================= Tabs START -->
+
+			<section class="py-2">
+				<div class="container">
+					<!-- Tabs START -->
+					<div class="row">
+						<div class="col-12">
+							<!-- Outer tabs START -->
+							<ul
+								class="nav nav-tabs nav-bottom-line nav-responsive nav-justified"
+								id="tour-pills-tab" role="tablist">
+								<!-- Tab item -->
+								<li class="nav-item" role="presentation">
+									<button class="nav-link active mb-0" id="tour-pills-tab-1"
+										data-bs-toggle="pill" data-bs-target="#tour-pills-tab1"
+										type="button" role="tab" aria-controls="tour-pills-tab1"
+										aria-selected="true">결제대기</button>
+								</li>
+								<!-- Tab item -->
+								<li class="nav-item" role="presentation">
+									<button class="nav-link mb-0" id="tour-pills-tab-2"
+										data-bs-toggle="pill" data-bs-target="#tour-pills-tab2"
+										type="button" role="tab" aria-controls="tour-pills-tab2"
+										aria-selected="false">예약확정</button>
+								</li>
+								<!-- Tab item -->
+								<li class="nav-item" role="presentation">
+									<button class="nav-link mb-0" id="tour-pills-tab-3"
+										data-bs-toggle="pill" data-bs-target="#tour-pills-tab3"
+										type="button" role="tab" aria-controls="tour-pills-tab3"
+										aria-selected="false">이용완료</button>
+								</li>
+								<!-- Tab item -->
+								<li class="nav-item" role="presentation">
+									<button class="nav-link mb-0" id="tour-pills-tab-4"
+										data-bs-toggle="pill" data-bs-target="#tour-pills-tab4"
+										type="button" role="tab" aria-controls="tour-pills-tab4"
+										aria-selected="false">취소내역</button>
+								</li>
+							</ul>
+							<!-- Outer tabs END -->
+						</div>
+					</div>
+					<!-- Tabs END -->
+				</div>
+
+			</section>
+
+			<!-- ======================= Tabs END -->
+
+			<!-- =======================
+Tabs-content START -->
+			<section class="pt-4 pt-md-5">
+				<div class="container">
+
+					<div class="row g-4 g-md-5">
+						<!-- Tabs Content START -->
+						<div class="col-xl-12">
+							<div class="tab-content mb-0" id="tour-pills-tabContent">
+								<!-- Outer tabs contents START -->
+								<!-- 결제대기 시작 -->
+								
+								<!-- 숙소 결제대기 -->
+								<div class="tab-pane fade show active" id="tour-pills-tab1"
+									role="tabpanel" aria-labelledby="tour-pills-tab-1">
+									<c:forEach var="rsvCode1" items="${rsvCodeK01}"
+										varStatus="stat">
+										<div class="card border mb-4" style="margin-bottom: 20px;">
+											<div class="card bg-transparent p-0">
+												<div class="card-body p-2 mt-2">
+													<div class="row g-2 g-sm-4">
+														<div class="col-sm-4">
+															<img
+																src="/resources/booking/assets/images/category/hotel/4by3/04.jpg"
+																class="card-img" alt="Card image">
+														</div>
+														
+														<!-- Card title and rating -->
+														<div class="col-sm-8" style="margin-top: 40px;">
+															<!-- Title -->
+															<h4 class="card-title mb-1">
+																<a href="#">${rsvCode1.rsvId}</a> 
+																<a href="#">${rsvCode1.busiNm}</a> 
+																<a href="#" class="btn btn-sm btn-danger-soft mb-0 float-end cancelBefPay"
+																	style="margin-right: 10px;" onclick="cancelBefPay('${rsvCode1.rsvId}')">취소</a>
+															</h4>
+															<span>${rsvCode1.busiLoc}</span>
+
+															<!-- List -->
+															<ul
+																class="list-group list-group-borderless mb-0 mt-2 small">
+																<li class="list-group-item d-flex p-0"><i
+																	class="far fa-calendar-alt me-2"></i> 
+																	<fmt:formatDate var="checkIn" value="${rsvCode1.checkIn}" pattern="yyyy/MM/dd" />
+																	<fmt:formatDate var="checkOut" value="${rsvCode1.checkOut}" pattern="yyyy/MM/dd" /> 
+																	${checkIn} ${rsvCode1.checkInTime}- ${checkOut}${rsvCode1.checkOutTime}</li>
+																<li class="list-group-item d-flex text-success p-0">
+																	<i class="bi bi-patch-check-fill me-2"></i>Free
+																	Breakfast
+																</li>
+															</ul>
+															<h6 class="mb-0 fw-light small mt-2">
+																${rsvCode1.rmNum} · ${rsvCode1.rmNm}
+															</h6>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</c:forEach>
+									<!-- 숙소 결제대기 -->
+
+									<!-- 교통 -->
+									<!-- 기차 상품 리스트 -->
+									<%-- <c:if test="${rsvCode1.busiCode eq 'B01'}"> --%>
+									<div class="card border mb-4">
+										<!-- Card header -->
+										<div
+											class="card-header d-sm-flex justify-content-sm-between align-items-center">
+											<!-- Airline Name -->
+											<div class="d-flex align-items-center mb-2 mb-sm-0">
+												<img src="/resources/booking/assets/images/element/13.svg"
+													class="w-30px me-2" alt="">
+												<h6 class="fw-normal mb-0">Blogzine Airline (FFR - 5682)</h6>
+											</div>
+											<h6 class="fw-normal mb-0">
+												<span class="text-body">Travel Class:</span> Economy
+											</h6>
+											<a href="#"
+												class="btn btn-sm btn-danger-soft mb-0 float-end cancel"
+												data-bs-toggle="modal" data-bs-target="#cancelModal"
+												data-bs-toggle="modal" data-bs-target="#cancelModal" >취소</a>
+
+										</div>
+										<!-- Card body -->
+										<div class="card-body p-4 pb-0" style="margin-bottom: 20px;">
+											<!-- Ticket item START -->
+											<div class="row g-4">
+												<!-- Airport detail -->
+												<div class="col-sm-4 col-md-4 text-center">
+													<h4>14:50</h4>
+													<p class="mb-0">BOM - Terminal 2 Mumbai, India</p>
+													<p class="mb-0">출발시간</p>
+												</div>
+
+												<!-- Time -->
+												<div class="col-sm-4 col-md-4 my-sm-auto text-center">
+													<!-- Time -->
+													<h5>9hr 50min</h5>
+													<div class="position-relative my-4">
+														<!-- Line -->
+														<hr class="bg-primary opacity-5 position-relative">
+														<!-- Icon -->
+														<div
+															class="icon-md bg-primary text-white rounded-circle position-absolute top-50 start-50 translate-middle">
+															<i class="fa-solid fa-fw fa-plane rtl-flip"></i>
+														</div>
+													</div>
+												</div>
+
+												<!-- Airport detail -->
+												<div class="col-sm-4 col-md-4 text-center">
+													<h4>07:35</h4>
+													<p class="mb-0">JFK - Terminal 2 New York, USA</p>
+													<p class="mb-0">도착시간</p>
+												</div>
+
+											</div>
+											<!-- Ticket item END -->
+										</div>
+
+										<!-- Ticket item END -->
+										<%-- 					<c:if/> --%>
+									</div>
+
+
+									<!-- 렌터카 -->
+									<c:forEach var="carcode2" items="${carcode01}" varStatus="stat">
+										<div class="card border p-4" style="margin-bottom: 10px;">
+											<!-- Card body START -->
+											<div class="card-body p-0">
+												<div class="row g-2 g-sm-4 mb-4">
+													<!-- Card image -->
+													<div class="col-md-4 col-xl-3">
+														<div class="bg-light rounded-3 px-4 py-5">
+															<img
+																src="/resources/booking/assets/images/category/cab/suv.svg"
+																alt="">
+														</div>
+													</div>
+
+													<!-- Card title and rating -->
+													<div class="col-sm-6 col-md-4 col-xl-6">
+														<h4 class="card-title mb-2">
+															<a href="cab-detail.html" class="stretched-link">Ertiga,
+																Xylo</a>
+														</h4>
+														<!-- Nav divider -->
+														<ul class="nav nav-divider h6 fw-normal mb-2">
+															<li class="nav-item"></li>
+															<li class="nav-item">AC</li>
+															<li class="nav-item">6 Seats</li>
+														</ul>
+
+														<!-- Rating Star -->
+														<ul class="list-inline mb-0">
+															<li class="list-inline-item h6 fw-normal me-1 mb-0">4.3</li>
+															<li class="list-inline-item me-0"><i
+																class="fa-solid fa-star text-warning"></i></li>
+															<li class="list-inline-item me-0"><i
+																class="fa-solid fa-star text-warning"></i></li>
+															<li class="list-inline-item me-0"><i
+																class="fa-solid fa-star text-warning"></i></li>
+															<li class="list-inline-item me-0"><i
+																class="fa-solid fa-star text-warning"></i></li>
+															<li class="list-inline-item me-0"><i
+																class="fa-solid fa-star-half-alt text-warning"></i></li>
+														</ul>
+													</div>
+
+													<!-- Button -->
+													<div class="col-sm-6 col-md-4 col-xl-3 text-sm-end">
+														<!-- Discount -->
+														<p class="text-danger mb-0">10% Off</p>
+														<!-- Price -->
+														<ul class="list-inline mb-1">
+															<li
+																class="list-inline-item text-decoration-line-through me-1">$400</li>
+															<li class="list-inline-item h5 mb-0">$350</li>
+														</ul>
+														<a href="#" class="btn btn-dark mb-0">Book Now</a>
+													</div>
+												</div>
+												<!-- Row END -->
+											</div>
+											<!-- Card body END -->
+
+											<!-- Card footer START -->
+											<div class="card-footer border-top p-0 pt-3">
+												<div class="row">
+													<!-- List -->
+													<div class="col-md-6">
+														<ul class="list-group list-group-borderless mb-0">
+															<li class="list-group-item d-flex pb-0 mb-0"><span
+																class="h6 fw-normal mb-0"><i
+																	class="bi bi-check-circle me-2"></i>600Kms included.
+																	After that $15/Kms</span></li>
+															<li class="list-group-item d-flex pb-0 mb-0"><span
+																class="h6 fw-normal mb-0"><i
+																	class="bi bi-check-circle me-2"></i>2 luggage bags </span></li>
+															<li class="list-group-item d-flex pb-0 mb-0"><span
+																class="h6 fw-normal mb-0"><i
+																	class="bi bi-check-circle me-2"></i>Diesel Car</span></li>
+														</ul>
+													</div>
+
+													<!-- Info -->
+													<div class="col-md-6">
+														<ul class="list-group list-group-borderless mb-0">
+															<li
+																class="list-group-item d-flex h6 fw-light text-success pb-0 mb-0">
+																Free Cancellation, till 1 hour of Pick up</li>
+															<li
+																class="list-group-item d-flex h6 fw-light text-success pb-0 mb-0">
+																Free waiting up to 45 minutes</li>
+														</ul>
+													</div>
+
+												</div>
+											</div>
+										</div>
+									</c:forEach>
+									<!-- 렌터카 끝 -->
+								</div>
+								<!-- 결제대기 끝 -->
+
+
+
+								<!-- 결제완료 시작-->
+								<div class="tab-pane fade" id="tour-pills-tab2" role="tabpanel"
+									aria-labelledby="tour-pills-tab-2">
+									<c:forEach var="completePayBefUse" items="${completePayBefUse}"
+										varStatus="stat">
+										<div class="card border mb-4" style="margin-bottom: 20px;">
+											<div class="card bg-transparent p-0">
+												<div class="card-body p-2 mt-2">
+													<div class="row g-2 g-sm-4">
+														<div class="col-sm-4">
+															<img
+																src="/resources/booking/assets/images/category/hotel/4by3/04.jpg"
+																class="card-img" alt="Card image">
+														</div>
+
+														<!-- Card title and rating -->
+														<div class="col-sm-8" style="margin-top: 40px;">
+															<!-- Title -->
+															<h4 class="card-title mb-1">
+																<a href="hotel-detail.html">${completePayBefUse.busiNm}</a> <a
+																	href="#cancelModal"
+																	class="btn btn-sm btn-danger-soft mb-0 float-end cancel" 
+																	style="margin-right: 10px;"
+																	data-bs-toggle="modal" data-bs-target="#cancelModal" onclick="cancelBooking('${completePayBefUse.rsvId}','${completePayBefUse.busiNm}')">예약취소</a>
+															</h4>
+															<span>${completePayBefUse.busiLoc}</span>
+
+															<!-- List -->
+															<ul
+																class="list-group list-group-borderless mb-0 mt-2 small">
+																<li class="list-group-item d-flex p-0"><i
+																	class="far fa-calendar-alt me-2"></i>
+																	<fmt:formatDate var="checkIn" value="${completePayBefUse.checkIn}" pattern="yyyy/MM/dd" />
+																	<fmt:formatDate var="checkOut" value="${completePayBefUse.checkOut}" pattern="yyyy/MM/dd" /> 
+																	${checkIn} ${completePayBefUse.checkInTime}- ${checkOut} ${completePayBefUse.checkOutTime}</li>
+																<li class="list-group-item d-flex text-success p-0">
+																	<i class="bi bi-patch-check-fill me-2"></i>Free
+																	Breakfast
+																</li>
+															</ul>
+															<h6 class="mb-0 fw-light small mt-2">
+																${completePayBefUse.rmNum} · ${completePayBefUse.rmNm}<a
+																	href="hotel-detail.html"
+																	class="btn btn-sm btn-link p-0 mb-0 text-decoration-underline ms-2 float-end">Change
+																	room</a>
+															</h6>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</c:forEach>
+
+
+
+
+									<!-- 렌터카 -->
+									<c:forEach var="carCode2" items="${carCodeK02}"
+										varStatus="stat">
+										<div class="card border mb-4" style="margin-bottom: 20px;">
+											<div class="card bg-transparent p-0">
+												<div class="card-body p-2 mt-2">
+													<div class="row g-2 g-sm-4">
+														<div class="col-sm-4 text-center">
+															<img
+																src="/resources/booking/assets/images/category/cab/suv.svg"
+																class="card-img" alt="Card image">
+														</div>
+
+														<!-- Card title and rating -->
+														<div class="col-sm-8" style="margin-top: 40px;">
+															<!-- Title -->
+															<h4 class="card-title mb-1">
+																<a href="hotel-detail.html">${carCode2.carKnd}</a> <a
+																	href="#cancelModal"
+																	class="btn btn-sm btn-danger-soft mb-0 float-end cancel"
+																	style="margin-right: 10px;"
+																	data-bs-toggle="modal" data-bs-target="#cancelModal" onclick="cancelBooking('${carCode2.rsvId}','${carCode2.carKnd}')">예약취소</a>
+															</h4>
+															<span>${carCode2.carCode}</span>
+
+															<!-- List -->
+															<ul
+																class="list-group list-group-borderless mb-0 mt-2 small">
+																<li class="list-group-item d-flex p-0"><i
+																	class="far fa-calendar-alt me-2"></i>
+																	<fmt:formatDate var="rsvSt" value="${carCode2.rsvSt}" pattern="yyyy/MM/dd" />
+																	<fmt:formatDate var="rsvEd" value="${carCode2.rsvEd}" pattern="yyyy/MM/dd" /> 
+																	${rsvSt}- ${rsvEd}</li>
+																<li class="list-group-item d-flex text-success p-0">
+																	<i class="bi bi-patch-check-fill me-2"></i>Free
+																	Breakfast
+																</li>
+															</ul>
+															<h6 class="mb-0 fw-light small mt-2">
+																${carCode2.carNum} · ${carCode2.carNum}<a
+																	href="hotel-detail.html"
+																	class="btn btn-sm btn-link p-0 mb-0 text-decoration-underline ms-2 float-end">Change
+																	room</a>
+															</h6>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										<!-- Card body END -->
+
+										<!-- Card footer START -->
+										<div class="card-footer border-top p-0 pt-3">
+											<div class="row">
+												<!-- List -->
+												<div class="col-md-12">
+													<ul class="list-group list-group-borderless mb-0">
+														<li class="list-group-item d-flex pb-0 mb-0"><span
+															class="h6 fw-normal mb-0"><i
+																class="bi bi-check-circle me-2"></i>${carCode2.carOp}</span>
+													</ul>
+												</div>
+											</div>
+										</div>
+									</c:forEach>
+									<!-- 렌터카 끝 -->
+
+								</div>
+								<!-- 결제완료 끝 -->
+
+								<!-- 이용완료 시작 -->
+								<div class="tab-pane fade" id="tour-pills-tab3" role="tabpanel"
+									aria-labelledby="tour-pills-tab-3">
+									
+									<!-- 숙소 -->
+									<c:forEach var="completePay" items="${completePay}"
+										varStatus="stat">
+										<div class="card border mb-4" style="margin-bottom: 20px;">
+											<div class="card bg-transparent p-0">
+												<div class="card-body p-2 mt-2">
+													<div class="row g-2 g-sm-4">
+														<div class="col-sm-4">
+															<img
+																src="/resources/booking/assets/images/category/hotel/4by3/04.jpg"
+																class="card-img" alt="Card image">
+														</div>
+
+														<!-- Card title and rating -->
+														<div class="col-sm-8" style="margin-top: 40px;">
+															<!-- Title -->
+															<h4 class="card-title mb-1">
+																<a href="hotel-detail.html">${completePay.busiNm}</a> 
+																<a href="#reviewModal" class="btn btn-sm btn-primary-soft mb-0 float-end review"
+																	data-bs-toggle="modal" data-bs-target="#reviewModal"
+																	style="margin-right: 10px;"onclick="reviewWrite(${completePay.rsvId})">리뷰작성</a>
+																	
+															</h4>
+															<span>${completePay.busiLoc}</span>
+
+															<!-- List -->
+															<ul
+																class="list-group list-group-borderless mb-0 mt-2 small">
+																<li class="list-group-item d-flex p-0"><i
+																	class="far fa-calendar-alt me-2"></i>
+																	<fmt:formatDate var="checkIn" value="${completePay.checkIn}" pattern="yyyy/MM/dd" />
+																	<fmt:formatDate var="checkOut" value="${completePay.checkOut}" pattern="yyyy/MM/dd" /> 
+																	${checkIn} ${completePay.checkInTime}-
+																	${checkOut} ${completePay.checkOutTime}</li>
+																<li class="list-group-item d-flex text-success p-0">
+																	<i class="bi bi-patch-check-fill me-2"></i>Free
+																	Breakfast
+																</li>
+															</ul>
+															<h6 class="mb-0 fw-light small mt-2">
+																${completePay.rmNum} · ${completePay.rmNm}<a
+																	href="hotel-detail.html"
+																	class="btn btn-sm btn-link p-0 mb-0 text-decoration-underline ms-2 float-end">Change
+																	room</a>
+															</h6>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</c:forEach>
+
+
+
+									<!-- 렌터카 -->
+									<!-- 렌터카 -->
+									<c:forEach var="carCode3" items="${carCodeK03}"
+										varStatus="stat">
+										<div class="card border mb-4" style="margin-bottom: 20px;">
+											<div class="card bg-transparent p-0">
+												<div class="card-body p-2 mt-2">
+													<div class="row g-2 g-sm-4">
+														<div class="col-sm-4 text-center">
+															<img
+																src="/resources/booking/assets/images/category/cab/suv.svg"
+																class="card-img" alt="Card image">
+														</div>
+
+														<!-- Card title and rating -->
+														<div class="col-sm-8" style="margin-top: 40px;">
+															<!-- Title -->
+															<h4 class="card-title mb-1">
+																<a href="hotel-detail.html">${carCode3.carKnd}</a>
+																 <a href="#reviewModal" class="btn btn-sm btn-primary-soft mb-0 float-end review"
+																	data-bs-toggle="modal" data-bs-target="#reviewModal"
+																	style="margin-right: 10px;"onclick="reviewWrite(${carCode3.rsvId})"> 리뷰작성 </a>
+															</h4>
+															<span>${carCode3.carCode}</span>
+															<input type="hidden" name="rsvId" id ="rsvId" value="${carCode3.rsvId}">
+
+															<!-- List -->
+															<ul
+																class="list-group list-group-borderless mb-0 mt-2 small">
+																<li class="list-group-item d-flex p-0"><i
+																	class="far fa-calendar-alt me-2"></i>
+																	${carCode3.rsvSt}- ${carCode3.rsvEd}</li>
+																<li class="list-group-item d-flex text-success p-0">
+																	<i class="bi bi-patch-check-fill me-2"></i>Free
+																	Breakfast
+																</li>
+															</ul>
+															<h6 class="mb-0 fw-light small mt-2">
+																${carCode3.carNum}<a
+																	href="hotel-detail.html"
+																	class="btn btn-sm btn-link p-0 mb-0 text-decoration-underline ms-2 float-end">Change
+																	room</a>
+															</h6>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										<!-- Card body END -->
+									</c:forEach>
+									<!-- 렌터카 끝 -->
+
+
+								</div>
+								<!--  이용완료 끝 -->
+
+
+								<!--취소내역 시작 -->
+								<!-- 예약 취소 환불 100% X -->
+								<div class="tab-pane fade" id="tour-pills-tab4" role="tabpanel"
+									aria-labelledby="tour-pills-tab-4">
+								<c:forEach var="rsvCancel30Bef" items="${rsvCancel30Bef}"
+										varStatus="stat">
+										<div class="card border mb-4" style="margin-bottom: 20px;">
+											<div class="card bg-transparent p-0">
+												<div class="card-body p-2 mt-2">
+													<div class="row g-2 g-sm-4">
+														<div class="col-sm-4">
+															<img
+																src="/resources/booking/assets/images/category/hotel/4by3/04.jpg"
+																class="card-img" alt="Card image">
+														</div>
+
+														<!-- Card title and rating -->
+														<div class="col-sm-8" style="margin-top: 40px;">
+															<!-- Title -->
+															<h4 class="card-title mb-1">
+																<a href="hotel-detail.html">${rsvCancel30Bef.busiNm}</a> 
+																<a href="#" class="btn btn-sm btn-warning-soft mb-0 float-end cancel"
+																	style="margin-right: 10px;">취소신청</a>
+																	
+															</h4>
+															<span>${rsvCancel30Bef.busiLoc}</span>
+
+															<!-- List -->
+															<ul
+																class="list-group list-group-borderless mb-0 mt-2 small">
+																<li class="list-group-item d-flex p-0"><i
+																	class="far fa-calendar-alt me-2"></i>
+																	<fmt:formatDate var="checkIn" value="${rsvCancel30Bef.checkIn}" pattern="yyyy/MM/dd" />
+																	<fmt:formatDate var="checkOut" value="${rsvCancel30Bef.checkOut}" pattern="yyyy/MM/dd" /> 
+																	${checkOut} ${rsvCancel30Bef.checkInTime}-
+																	${checkOut} ${rsvCancel30Bef.checkOutTime}</li>
+																<li class="list-group-item d-flex text-success p-0">
+																	<i class="bi bi-patch-check-fill me-2"></i>Free
+																	Breakfast
+																</li>
+															</ul>
+															<h6 class="mb-0 fw-light small mt-2">
+																${rsvCancel30Bef.rmNum} · ${rsvCancel30Bef.rmNm}<a
+																	href="hotel-detail.html"
+																	class="btn btn-sm btn-link p-0 mb-0 text-decoration-underline ms-2 float-end">Change
+																	room</a>
+															</h6>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</c:forEach>
+									
+									<!-- 숙박 - 취소확정 시작 -->
+									<c:forEach var="rsvCancelK04" items="${rsvCancelK04}"
+										varStatus="stat">
+										<div class="card border mb-4" style="margin-bottom: 20px;">
+											<div class="card bg-transparent p-0">
+												<div class="card-body p-2 mt-2">
+													<div class="row g-2 g-sm-4">
+														<div class="col-sm-4">
+															<img
+																src="/resources/booking/assets/images/category/hotel/4by3/04.jpg"
+																class="card-img" alt="Card image">
+														</div>
+
+														<!-- Card title and rating -->
+														<div class="col-sm-8" style="margin-top: 40px;">
+															<!-- Title -->
+															<h4 class="card-title mb-1">
+																<a href="hotel-detail.html">${rsvCancelK04.busiNm}</a> 
+																<a href="#" class="btn btn-sm btn-warning-soft mb-0 float-end cancel"
+																	style="margin-right: 10px;">취소확정</a>
+																	
+															</h4>
+															<span> ${rsvCancelK04.busiLoc}</span>
+															<!-- List -->
+															<ul
+																class="list-group list-group-borderless mb-0 mt-2 small">
+																<li class="list-group-item d-flex p-0"><i
+																	class="far fa-calendar-alt me-2"></i>
+																	<fmt:formatDate var="checkIn" value="${rsvCancelK04.checkIn}" pattern="yyyy/MM/dd" />
+																	<fmt:formatDate var="checkOut" value="${rsvCancelK04.checkOut}" pattern="yyyy/MM/dd" /> 
+																	${checkIn} ${rsvCancelK04.checkInTime}-
+																	${checkOut} ${rsvCancelK04.checkOutTime}</li>
+																<li class="list-group-item d-flex text-success p-0">
+																	<i class="bi bi-patch-check-fill me-2"></i>Free
+																	Breakfast
+																</li>
+															</ul>
+															<h6 class="mb-0 fw-light small mt-2">
+																${rsvCancelK04.rmNum} · ${rsvCancelK04.rmNm}<a
+																	href="hotel-detail.html"
+																	class="btn btn-sm btn-link p-0 mb-0 text-decoration-underline ms-2 float-end">Change
+																	room</a>
+															</h6>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</c:forEach>
+									<!-- 숙박 취소확정 K04 -->
+									
+									
+
+
+									<!-- 렌터카 -->
+									<!-- 렌터카 -->
+									<c:forEach var="carCode3" items="${carCodeK03}"
+										varStatus="stat">
+										<div class="card border mb-4" style="margin-bottom: 20px;">
+											<div class="card bg-transparent p-0">
+												<div class="card-body p-2 mt-2">
+													<div class="row g-2 g-sm-4">
+														<div class="col-sm-4 text-center">
+															<img
+																src="/resources/booking/assets/images/category/cab/suv.svg"
+																class="card-img" alt="Card image">
+														</div>
+
+														<!-- Card title and rating -->
+														<div class="col-sm-8" style="margin-top: 40px;">
+															<!-- Title -->
+															<h4 class="card-title mb-1">
+																<a href="hotel-detail.html">${carCode3.carKnd}</a>
+																 <a href="#" class="btn btn-sm btn-primary-soft mb-0 float-end review"
+																	style="margin-right: 10px;">취소신청 </a>
+															</h4>
+															<span>${carCode3.carCode}</span>
+															<input type="hidden" name="rsvId" id ="rsvId" value="${carCode3.rsvId}">
+
+															<!-- List -->
+															<ul
+																class="list-group list-group-borderless mb-0 mt-2 small">
+																<li class="list-group-item d-flex p-0"><i
+																	class="far fa-calendar-alt me-2"></i>
+																	${carCode3.rsvSt}- ${carCode3.rsvEd}</li>
+																<li class="list-group-item d-flex text-success p-0">
+																	<i class="bi bi-patch-check-fill me-2"></i>Free
+																	Breakfast
+																</li>
+															</ul>
+															<h6 class="mb-0 fw-light small mt-2">
+																${carCode3.carNum}<a
+																	href="hotel-detail.html"
+																	class="btn btn-sm btn-link p-0 mb-0 text-decoration-underline ms-2 float-end">Change
+																	room</a>
+															</h6>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										<!-- Card body END -->
+									</c:forEach>
+									<!-- 렌터카 끝 -->
+
+
+								</div>
+								<!-- 취소내역  -->
+							</div>
+						</div>
+						<!-- Tabs Content END -->
+
+					</div>
+					<!-- Row END -->
+				</div>
+			</section>
+
+
+<!-- 리뷰 작성모달 -->
+			<div class="modal fade" id="reviewModal" tabindex="-1"
+				aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">리뷰 작성하기</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal"
+								aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<form>
+								<div class="mb-3">
+									<label for="message-text" class="col-form-label">별점 </label>
+										<select class="form-select js-choice border-0 z-index-9 bg-transparent">
+											<option value="">선택하세요</option>
+											<option value="1">★★★★★</option>
+											<option value="2">★★★★☆</option>
+											<option value="3">★★★☆☆</option>
+											<option value="4">★★☆☆☆</option>
+											<option value="5">★☆☆☆☆</option>
+										</select>
+								</div>
+								<div class="mb-3">
+									<label for="message-text" class="col-form-label">상품내용 : </label>
+									<textarea class="form-control" id="message-text"></textarea>
+								</div>
+												
+												
+								<div class="mb-3">
+									<label for="message-text" class="col-form-label">첨부파일 : </label>
+									 <input class="form-control" name="attachVOList[0].attachDeVOList[0].picture" type="file" id="image" accept="image/gif, image/jpeg, image/png">
+												<p class="small mb-0 mt-2">
+													<b>주의 :</b> Only JPG, JPEG, and PNG. Our suggested dimensions are 600px * 450px.
+												</p>
+									<!-- 이미지 미리보기 -->
+									<div style="display:hidden"></div>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary"
+								data-bs-dismiss="modal">취소</button>
+							<button type="button" class="btn btn-primary">작성하기</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			${result}
+	<!-- 예약취소 -->
+	<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">예약 취소</h5>
+					<button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form:form id="cancelForm" action="/member/mypage/myCancel" method="post">
+						<div class="mb-3">
+							<label for="recipient-name" class="col-form-label">상품명 : </label>
+							<input type="text" class="form-control" id="busiNm" name="busiNm" readOnly>
+						</div>
+							<input type="hidden" class="form-control" name="rsvId"/> 
+							<input type="hidden" class="form-control" name="rfdReqDt"/>
+							<!-- 
+							{"rsvId":"R20221113120001","rsvCode":"K02","rsvDt":1668265200000
+							,"memId":"heeee","busiId":null,"cupnId":null,"gstEmail":null}
+							 -->
+							 <input type="hidden" class="form-control" name="rsvDt"/>
+						<label for="recipient-name" class="col-form-label">취소 사유를 선택해주세요.</label> </br>
+					<label>
+						<input type="checkbox" id="cs_biz_form1" name="rfdResn" value="단순변심">단순변심</p>
+						<input type="checkbox" id="cs_biz_form2" name="rfdResn" value="옵션변경">옵션변경</p>
+						<input type="checkbox" id="cs_biz_form3" name="rfdResn" value="결제수단">결제수단</p>
+						<input type="checkbox" id="cs_biz_form4" name="rfdResn" value="천재지변">천재지변</p>
+						<input type="checkbox" id="cs_biz_form5" name="rfdResn" value="기타">기타</p>
+						<input type="text" class="form-control" id="chkEtc" style="display:none;" required /></p>
+					</label>
+					<sec:csrfInput/>
+					</form:form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary close" data-bs-dismiss="modal">취소</button>
+					<button type="button" class="btn btn-primary" id="cancelOk">확인</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+			<!-- =======================
+Tabs-content END -->
+
+<script type="text/javascript">
+
+//리뷰 모달창 띄우기
+$(function() {
+	$(".review").on("click", function() {
+		var rsvId = $("#rsvId").val();
+		console.log("rsvId : " + rsvId);
+		$("#reviewModal").fadeIn(300);
+	});
+		
+	//작성하기
+	$(".review").on( "click", function() {
+		var button = event.relatedTarget
+		var recipient = button .getAttribute('data-bs-whatever')
+		var modalTitle = exampleModal .querySelector('.modal-title')
+		var modalBodyInput = exampleModal
+				.querySelector('.modal-body input')
+
+		modalTitle.textContent = 'New message to ' + recipient
+		modalBodyInput.value = recipient
+	});
+		
+});
+	//결제취소 버튼 누르기
+// 	$(".cancelBefPay").on("click",function(){
+// 		console.log("")
+// 		if(confirm("정말 취소하시겠습니까?")){
+// 			alert("취소되었습니다.")
+// 			location.reload();
+// 		}
+		
+// 	})
+//결제대기 취소
+function cancelBefPay(data){
+		var rsvId = data;
+		alert("rsvId : " + rsvId);
+		
+// 		$.ajax({
+// 			url : "/member/myPage/myBooking/canncelBefPay",
+// 			data : JSON.stringify(data),
+// 			type : "post",
+// 			dataType: "text",
+// 			beforeSend : function(xhr) {
+// 				xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+// 			},
+// 		})
+	}
+	
+
+//예약취소
+//체크박스 하나만 선택 하게
+$(document).ready(function() {
+	//x 버튼 누르면
+	$('.close').on("click",function(){
+		$('input[type="checkbox"][name="rfdResn"]').prop('checked',false);
+		$("#rfdResn").val("");
+	})
+	
+	
+	
+	//체크박스 하나만 선택 하게
+	 $('input[type="checkbox"][name="rfdResn"]').click(function(){
+	  if($(this).prop('checked')){
+	     $('input[type="checkbox"][name="rfdResn"]').prop('checked',false);
+	     $("#rfdResn").val("");
+	     $("#chkEtc").css("display","none");
+	     $(this).prop('checked',true);
+	    }
+	   });
+		
+	 	//기타 선택
+		$("#cs_biz_form5").on("click",function(){
+			console.log("ischecked : " + $(this).is(":checked"));
+			if($(this).is(":checked")){
+				$("#chkEtc").css("display","block");
+			}else{
+				$("#chkEtc").val("");
+				$("#chkEtc").css("display","none");
+			}
+		});
+		
+	 
+		//예약취소 
+		$("#cancelOk").on("click",function(){
+			alert("누름");
+			var rsvId =  $('input[name="rsvId"]').val();
+			var rfdReqDt = $('input[name="rfdReqDt"]').val();
+			var rsfResn = [];
+			var rsvDt = $('input[name="rsvDt"]').val();
+			
+			//rfdResn 이유 checked
+			$('input:checkbox[name=rfdResn]').each(function (index) {
+			    if ($(this).is(":checked") == true) {
+			        var value = $(this).val();
+			        rsfResn.push(value);
+			    }
+			});
+			if(rsfResn[0]=="기타"){
+				rsfResn[0] = $("#chkEtc").val();
+			}
+			console.log("rsfResn[0] : " + rsfResn[0])
+			
+			//날짜 계산
+			var rsvDt = $('input[name="rsvDt"]').val();
+			var today = new Date(); // 현재 날짜와 시간을 가져옵니다.
+			var selectedDate = new Date(rsvDt); // 입력된 날짜를 가져옵니다.
+			// 두 날짜 사이의 차이를 계산합니다.
+			var timeDiff = selectedDate.getTime()-today.getTime();
+			// 일 단위로 변환합니다.
+			var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+			console.log(diffDays); // 차이를 출력합니다.
+
+			var data = {
+					'rsvId':rsvId,
+					'rfdResn':rsfResn[0]
+			};
+			console.log("data : " + JSON.stringify(data));
+			
+			if(diffDays>=30){
+				$.ajax({
+					url : "/member/mypage/myBooking/cancelFee0",
+					contentType:"application/json;charset=utf-8",
+					data : JSON.stringify(data),
+					type : "post",
+					dataType: "text",
+					beforeSend : function(xhr) {
+						xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+					},
+					success : function(result) {
+						alert("여기까지 왔다.");
+						alert("넌 수수료 없어 바보야.");
+					}
+					
+				})
+			}else{
+				$.ajax({
+					url : "/member/mypage/myBooking/cancelHasFee",
+					contentType:"application/json;charset=utf-8",
+					data : JSON.stringify(data),
+					type : "post",
+					dataType: "text",
+					beforeSend : function(xhr) {
+						xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+					},
+					success : function(result) {
+						if(confirm("예약 취소하시겠습니까?")){
+							alert("취소신청되었습니다. 취소내역은 예약내역의 취소내역에서 보실 수 있습니다.")
+						}else{
+							alert("취소되었습니다.");
+							location.reload();
+						}
+					}
+					
+					
+				});	
+			}
+	});
+});
+	 
+//예약취소 모달창에 상품명 넣기.
+function cancelBooking(data,data2){
+	console.log("data : " + data);
+	console.log("data2 : " + data2);
+	var rsvId = data;
+	var  busiNm= data2;
+	console.log("rsvId : " + rsvId);
+	console.log("busiNm : " + busiNm);
+	
+	$('input[name=busiNm]').attr('value',busiNm);
+	
+	let dt = {"rsvId":data,"rsvCode":"K02"};
+	console.log("dt : " + JSON.stringify(dt));
+	
+	$.ajax({
+		url:"/member/mypage/myBooking/rsvDetail",
+		contentType:"application/json;charset:utf-8",
+		data:JSON.stringify(dt),
+		type:"post",
+		dataType:"json",
+		beforeSend : function (xhr) {
+			xhr.setRequestHeader("${_csrf.headerName}","${_csrf.token}");
+		},
+		success:function(result){
+			console.log("result : " + JSON.stringify(result));
+			$("input[name='rsvDt']").val(result.rsvDtStr);
+			$("input[name='rsvId']").val(result.rsvId);
+		}
+	});
+	
+}
+
+
+
+
+
+//이미지 업로드
+$("#uploadfile-1").on("change", handleImg);
+
+function handleImg(e) {
+	console.log("개똥이");
+	let files = e.target.files;
+	let fileArr = Array.prototype.slice.call(files);
+
+	fileArr.forEach(function(f) {
+		if (!f.type.match("image.*")) {
+			alert("이미지만 가능합니다.");
+			return;
+		}
+
+		let reader = new FileReader();
+		reader.onload = function(e) {
+			let img_html = "<img src='" + e.target.result
+					+ "' style='width:20%;'/>";
+			$("#div01").append(img_html);
+		}
+		reader.readAsDataURL(f);
+	});
+}
+
+
+</script>

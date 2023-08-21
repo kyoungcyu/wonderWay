@@ -1,0 +1,23 @@
+package kr.or.ddit.business.service;
+
+import java.util.List;
+
+import kr.or.ddit.vo.BusiVO;
+
+public interface BsBusiService {
+
+   //회원 목록
+	public List<BusiVO> busiList();
+
+	public BusiVO busiOne(BusiVO busiVO);
+
+	public BusiVO userDetail(String lginId);
+      // 회원가입
+    public int create(BusiVO busiVO);
+      // 아이디 중복체크
+    public int checkBusiId(BusiVO busiVO);
+   
+      // 이메일 중복체크
+    public int checkBsEmail(BusiVO busiVO);
+
+}

@@ -1,0 +1,116 @@
+package kr.or.ddit.util.websocket;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import kr.or.ddit.util.websocket.service.WsService;
+import kr.or.ddit.vo.ChatVO;
+
+@Component
+public class AdminMemChatHandler extends TextWebSocketHandler {
+	
+	@Autowired
+	WsService wsService;
+	
+	
+	public static final Logger log = LoggerFactory.getLogger(AdminMemChatHandler.class);
+	// ("/chat")웹소켓에 들어온 모든 회원
+	List<WebSocketSession> chatSessList = new ArrayList<WebSocketSession>();
+	Set<String> chatIdSet = new HashSet<String>();
+
+	// afterConnectionEstablished : 웹소켓이 연결되면 호출되는 함수
+	// 웹소켓이 연결 되는 것 = 프론트에서 웹소켓이 정확한 경로를 잡아 생성 되는 것
+	@Override
+	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+		System.out.printf("ChatHandler  %s 소켓 연결 \n", session.getId());
+		chatSessList.add(session);
+
+	}
+	/**
+	 * ChatVO
+	 * 1. 보낸사람 아이디
+	 * 2. 받는사람 아이디
+	 * 3. 보낸메세지
+	 * 4. 현재 채팅방 회원
+	 * 5. 날짜시간
+	 * 6. 
+	 */
+	@Override
+	protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+		System.out.printf("ChatHandler : 소켓메세지  %s로부터 [%s] 받음\n", session.getId(), message.getPayload());
+		
+		// JSON.stringify(data)로 온 데이터를 ChatVO로 mapping
+		String recvMsg =  message.getPayload();
+		ChatVO chat = new ObjectMapper().readValue(recvMsg, ChatVO.class);
+		
+		// 입장 시 회원아이디를 chatIdSet에 들어가기
+		if (chat.getReceiver().equals("IN")) {
+			chatIdSet.add(chat.getSender());
+			chat.setIdSet(chatIdSet);
+			System.out.println(chatIdSet);
+			
+			String jsonString = new ObjectMapper().writeValueAsString(chat);
+			for (WebSocketSession chatsess : chatSessList) {
+				chatsess.sendMessage(new TextMessage(jsonString));
+			}
+		// 퇴장 시  회원아이디를 chatIdSet에서 제거하기
+		} else if(chat.getReceiver().equals("OUT")) {
+			chatIdSet.remove(chat.getSender());
+			chat.setIdSet(chatIdSet);
+			
+			String jsonString = new ObjectMapper().writeValueAsString(chat);
+			for (WebSocketSession chatsess : chatSessList) {
+				chatsess.sendMessage(new TextMessage(jsonString));
+			}
+			
+		} else {
+			// 회원아이디를 chatIdSet에 들어가기
+			chatIdSet.add(chat.getSender());
+			chat.setIdSet(chatIdSet);
+			// 채팅 보낸시간 담기 
+			String curTime = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
+			chat.setChatDt(curTime);
+			// chat을 다시 String으로 바꾸기
+			String jsonString = new ObjectMapper().writeValueAsString(chat);
+			
+			for (WebSocketSession chatsess : chatSessList) {
+				chatsess.sendMessage(new TextMessage(jsonString));
+			}
+			// db에 insert
+//			int cnt = this.wsService.insertChat(chat);
+//			System.out.println("ChatHandler cnt"+ cnt);
+			
+		}
+		
+	}
+
+	
+	
+	
+	
+	
+	@Override
+	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+		System.out.printf("ChatHandler %s 연결 끊김\n", session.getId());
+		chatSessList.remove(session);
+		
+	}
+}

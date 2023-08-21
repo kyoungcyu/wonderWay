@@ -1,0 +1,166 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+<head>
+<!-- Meta Tags -->
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="Webestica.com">
+<meta name="description"
+	content="Booking - Multipurpose Online Booking Theme">
+
+
+<!-- Plugins CSS -->
+<link rel="stylesheet" type="text/css" href="/resources/booking/assets/vendor/choices/css/choices.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="/resources/booking/assets/vendor/choices/js/choices.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script type="text/javascript">
+$(function() {
+	//========================== 파이썬 서버로 영상 전송 ==========================
+	let car_num = "0";
+	let mem = "";
+
+	// 미디어 장치 접근 권한 요청
+    navigator.mediaDevices.getUserMedia({ video: true })
+		.then(function(stream) {
+			let video = document.getElementById("videoElement");
+			video.srcObject = stream;
+
+			// 1초마다 프레임 캡쳐 및 서버로 전송
+			setInterval(function() {
+				// 캔버스 생성
+				const canvas = document.createElement("canvas");
+				canvas.width = video.videoWidth;
+				canvas.height = video.videoHeight;
+
+				// 캔버스에 비디오 프레임 그리기
+				const context = canvas.getContext("2d");
+				context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+				// 캔버스 이미지를 데이터 URL로 변환
+				const imageDataURL = canvas.toDataURL("image/jpeg");
+
+				// 이미지를 서버로 전송
+				$.ajax({
+					url: "http://127.0.0.1:5000/process_image",
+					type: "POST",
+					data: JSON.stringify({ image: imageDataURL }),
+					contentType: "application/json",
+					beforeSend: function(xhr) {
+						xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+					},
+					dataType: "json",
+					success: function(data) {
+						// 서버로부터 응답 처리
+						console.log(data);
+			
+						car_num = data.car_num;
+						mem = data.mem;
+						let str = "";
+						str += `<li class="list-group-item mb-3"><span>체크인 상태:</span><span class="badge bg-success bg-opacity-10 text-success">성공</span></li>`;
+						console.log("car_num : ", car_num);
+						console.log("mem : ", mem);
+
+						if (car_num.length == 8) {
+							// 차량번호, 세대정보 입력
+
+							$("#car_num").val(car_num);
+							 $("#mem").val(mem);
+							 $("#rmInfo").html(str);
+
+							// 차량번호, 세대정보 삭제
+							setTimeout(function() {
+								$("#car_num").val("");
+								$("#mem").val("");
+								$("#rmInfo").html("");
+							}, 10000)
+						}
+					},
+					error: function(xhr, status, error) {
+						console.error("이미지 전송 중 오류가 발생했습니다:", error);
+					}
+				});
+			}, 3000); // 3초마다 캡쳐 및 전송
+		})
+		.catch(function(error) {
+			console.error("웹캠 접근 권한이 거부되었습니다:", error);
+		});
+	//=======================================================================
+});
+		
+		
+	
+  
+</script>
+</head>
+
+<body>
+
+	<!-- **************** MAIN CONTENT START **************** -->
+	<main>
+
+		<!-- Page main content START -->
+		<div class="page-content-wrapper p-xxl-4">
+
+			<!-- Filters START -->
+			<div class="col-lg-5">
+				<h1 class="h3 mb-3 mb-sm-0">차량번호판 인식 </h1>
+				
+			</div>
+			
+			<div class="row g-4">
+				<div class="col-lg-3 div3" style="float: left; width: 50%;">
+				<form class="row g-3">
+					<div class="card shadow">
+						<div class="card-body"">
+							<video id="videoElement" autoplay></video>
+						</div>
+						
+					</div>
+				</form>
+				</div>
+				<div class="col-lg-3 div3" style="float: left; width: 50%;">
+					<div class="card shadow">
+						<div class="card-header border-bottom" style="text-align: center;">
+							<h5 class="card-header-title">예약 정보</h5>
+						</div>
+						<div class="card-body" style="text-align: center;">
+							<div class="mb-3" >
+									<div class="col-md-8" style="margin-left:90px;">
+										<td>차량번호 : </td>
+										<td><input id="car_num" class="form-control text-center font-bold text-xl w-36 h-9 ml-2" type="text" /></td>
+									</div>
+									<div class="col-md-8" style="margin-left:90px;">
+										<td>회원 이름 : </td>
+										<td><input id="mem" class="form-control text-center font-bold text-xl w-36 h-9 ml-2" type="text" /></td>
+									</div>
+									<ul id="rmInfo" class="list-group list-group-borderless">
+									</ul>
+							</div>
+							<hr />
+									<a href="/business/myBusi/carNumVideo">시연영상</a>
+							<div class="mb-3">
+								<div class="col-md-8" style="margin-left:90px;">
+									<ul id="correct" class="list-group list-group-borderless">
+									</ul>
+								</div>
+							</div>
+							<hr />
+							<div class="d-flex justify-content-end mt-4">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Page main content END -->
+	</main>
+	<!-- **************** MAIN CONTENT END **************** -->
+</body>
+</html>

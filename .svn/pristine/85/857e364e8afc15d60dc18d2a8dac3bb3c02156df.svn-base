@@ -1,0 +1,435 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<script type="text/javascript" src="/resources/js/jquery-3.6.4.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.36.0/apexcharts.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  new ApexCharts(document.querySelector("#ChartCheck"), {
+  	series: [{
+          name: 'Check-in',
+          data: [${checkDays[0].checkIn}, ${checkDays[1].checkIn}, ${checkDays[2].checkIn}, ${checkDays[3].checkIn}, ${checkDays[4].checkIn}, ${checkDays[5].checkIn}, ${checkDays[6].checkIn}]
+        }, {
+          name: 'Check-out',
+          data: [${checkDays[0].checkOut}, ${checkDays[1].checkOut}, ${checkDays[2].checkOut}, ${checkDays[3].checkOut}, ${checkDays[4].checkOut}, ${checkDays[5].checkOut}, ${checkDays[6].checkOut}]
+        }],
+          chart: {
+          height: 350,
+          type: 'area'
+        },
+        colors: [
+          ThemeColor.getCssVariableValue('--bs-primary'),
+          ThemeColor.getCssVariableValue('--bs-info')
+        ],
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          curve: 'smooth'
+        },
+        xaxis: {
+          type: 'day',
+          categories: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
+        }
+  }).render();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  new ApexCharts(document.querySelector("#ChartRooms"), {
+	  series: [${countRooms.reservedRooms}, ${countRooms.total}-${countRooms.reservedRooms}],
+      labels: ['예약중', '예약가능'],
+      chart: {
+        height: 300,
+        width: 300,
+        offsetX: 0,
+        type: 'donut',
+        sparkline: {
+          enabled: !0
+        }
+      },
+      colors: [
+        ThemeColor.getCssVariableValue('--bs-danger'),
+        ThemeColor.getCssVariableValue('--bs-success')
+      ],
+      tooltip: {
+        theme: "dark"
+      },
+      responsive: [{
+        breakpoint: 480,
+        options: {
+          chart: {
+            width: 200,
+            height: 200,
+          },
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }]
+  }).render();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+	  new ApexCharts(document.querySelector("#ChartRnt"), {
+	  	series: [{
+	          name: 'Rent-start',
+	          data: [${rntDays[0].rntStart}, ${rntDays[1].rntStart}, ${rntDays[2].rntStart}, ${rntDays[3].rntStart}, ${rntDays[4].rntStart}, ${rntDays[5].rntStart}, ${rntDays[6].rntStart}]
+	        }, {
+	          name: 'Rent-end',
+	          data: [${rntDays[0].rntEnd}, ${rntDays[1].rntEnd}, ${rntDays[2].rntEnd}, ${rntDays[3].rntEnd}, ${rntDays[4].rntEnd}, ${rntDays[5].rntEnd}, ${rntDays[6].rntEnd}]
+	        }],
+	          chart: {
+	          height: 350,
+	          type: 'area'
+	        },
+	        colors: [
+	          ThemeColor.getCssVariableValue('--bs-primary'),
+	          ThemeColor.getCssVariableValue('--bs-info')
+	        ],
+	        dataLabels: {
+	          enabled: false
+	        },
+	        stroke: {
+	          curve: 'smooth'
+	        },
+	        xaxis: {
+	          type: 'day',
+	          categories: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
+	        }
+	  }).render();
+	});
+
+document.addEventListener("DOMContentLoaded", () => {
+	  new ApexCharts(document.querySelector("#ChartCars"), {
+		  series: [${countCars.reservedCars}, ${countCars.total}-${countCars.reservedCars}],
+	      labels: ['예약중', '예약가능'],
+	      chart: {
+	        height: 300,
+	        width: 300,
+	        offsetX: 0,
+	        type: 'donut',
+	        sparkline: {
+	          enabled: !0
+	        }
+	      },
+	      colors: [
+	        ThemeColor.getCssVariableValue('--bs-danger'),
+	        ThemeColor.getCssVariableValue('--bs-success')
+	      ],
+	      tooltip: {
+	        theme: "dark"
+	      },
+	      responsive: [{
+	        breakpoint: 480,
+	        options: {
+	          chart: {
+	            width: 200,
+	            height: 200,
+	          },
+	          legend: {
+	            position: 'bottom'
+	          }
+	        }
+	      }]
+	  }).render();
+	});
+</script>
+
+
+<div class="page-content-wrapper p-xxl-4">
+	<!-- Title -->
+	<div class="row">
+		<div class="col-12 mb-4 mb-sm-5">
+			<div class="d-sm-flex justify-content-between align-items-center">
+				<h1 class="h3 mb-2 mb-sm-0">Dashboard</h1>
+			</div>
+		</div>
+	</div>
+
+	<!-- Counter boxes START -->
+	<div class="row g-4 mb-5">
+		<!-- Counter item -->
+		<div class="col-md-6 col-xxl-3">
+			<div class="card card-body bg-warning bg-opacity-10 border border-warning border-opacity-25 p-4 h-100">
+				<a href="/admin/busi/sty">
+					<div class="d-flex justify-content-between align-items-center">
+						<!-- Digit -->
+						<div>
+							<h4 class="mb-0">${styCount}</h4>
+							<span class="h6 fw-light mb-0">숙박 업체</span>
+						</div>
+						<!-- Icon -->
+						<div class="icon-lg rounded-circle bg-warning text-white mb-0"><i class="fa-solid fa-hotel fa-fw"></i></div>
+					</div>
+				</a>
+			</div>
+		</div>
+
+		<!-- Counter item -->
+		<div class="col-md-6 col-xxl-3">
+			<div class="card card-body bg-primary bg-opacity-10 border border-primary border-opacity-25 p-4 h-100">
+				<a href="/admin/busi/rnt">
+					<div class="d-flex justify-content-between align-items-center">
+						<!-- Digit -->
+						<div>
+							<h4 class="mb-0">${rntCount}</h4>
+							<span class="h6 fw-light mb-0">렌터카 업체</span>
+						</div>
+						<!-- Icon -->
+						<div class="icon-lg rounded-circle bg-primary text-white mb-0"><i class="fa-solid fa-car fa-fw"></i></div>
+					</div>
+				</a>
+			</div>
+		</div>
+		
+		<!-- Counter item -->
+		<div class="col-md-6 col-xxl-3">
+			<div class="card card-body bg-success bg-opacity-10 border border-success border-opacity-25 p-4 h-100">
+				<div class="d-flex justify-content-between align-items-center">
+					<!-- Digit -->
+					<div>
+						<h5 class="mb-0">₩ <fmt:formatNumber value="${totalSales}" pattern="#,###" /></h5>
+						<span class="h6 fw-light mb-0">지난 30일 매출</span>
+					</div>
+					<!-- Icon -->
+					<div class="icon-lg rounded-circle bg-success text-white mb-0"><i class="fa-solid fa-hand-holding-dollar fa-fw"></i></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Counter item -->
+		<div class="col-md-6 col-xxl-3">
+			<div class="card card-body bg-info bg-opacity-10 border border-info border-opacity-25 p-4 h-100">
+				<a href="/admin/mem/list">
+					<div class="d-flex justify-content-between align-items-center">
+						<!-- Digit -->
+						<div>
+							<h4 class="mb-0">${memCount}</h4>
+							<span class="h6 fw-light mb-0">전체 회원수</span>
+						</div>
+						<!-- Icon -->
+						<div class="icon-lg rounded-circle bg-info text-white mb-0"><i class="fa-solid fa-people-group fa-fw"></i></div>
+					</div>
+				</a>
+			</div>
+		</div>
+	</div>
+	<!-- Counter boxes END -->
+
+	<!-- Hotel grid START -->
+	<div class="row g-4 mb-5">
+		<!-- Title -->
+		<div class="col-12">
+			<div class="d-flex justify-content-between">
+				<h4 class="mb-0">인기 숙박 업체</h4>
+				<a href="/admin/busi/sty" class="btn btn-primary-soft mb-0">전체 숙박 업체</a>
+			</div>	
+		</div>
+
+		<!-- Hotel item -->
+		<c:forEach var="list" items="${popularStayList}" varStatus="stat">
+			<div class="col-lg-6">
+				<div class="card shadow p-3">
+					<div class="row g-4">
+						<!-- Card img -->
+						<c:if test="${not empty list.busiImg}">
+							<div class="col-md-3">
+								<img class="rounded-2" src="/resources/upload/busi${list.busiImg}" alt="avatar" style="width: 135px; height: 100px;">
+							</div>
+						</c:if>
+						<c:if test="${empty list.busiImg}">
+							<div class="col-md-3">
+								<img src="/resources/booking/assets/images/category/hotel/4by3/10.jpg" class="rounded-2" alt="Card image" style="width: 135px; height: 100px;">
+							</div>
+						</c:if>
+	
+						<!-- Card body -->
+						<div class="col-md-9">
+							<div class="card-body position-relative d-flex flex-column p-0 h-100">
+	
+								<!-- Title -->
+								<h5 class="card-title mb-0 me-5"><a href="/admin/busi/styDetail?busiId=${list.busiId}">${list.busiNm}</a></h5>
+								<small><i class="bi bi-geo-alt me-2"></i>${list.busiLoc}</small>
+	
+								<!-- Price and Button -->
+								<div class="d-sm-flex justify-content-sm-between align-items-center mt-3 mt-md-auto">
+									<!-- Price -->
+									<div class="d-flex align-items-center">
+										<h5 class="fw-bold mb-0 me-1">₩ <fmt:formatNumber value="${list.total}" pattern="#,###" /></h5>
+										<span class="mb-0 me-2">/지난 30일</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</c:forEach>
+	</div>
+	<!-- Hotel grid END -->
+	
+	<!-- Widget START -->
+	<div class="row g-4">
+		<!-- Booking Chart START -->
+		<div class="col-xxl-8">
+			<!-- Chart START -->
+			<div class="card shadow h-100">
+				<!-- Card header -->
+				<div class="card-header border-bottom">
+					<h5 class="card-header-title">체크인/체크아웃 통계</h5>
+				</div>
+
+				<!-- Card body -->
+				<div class="card-body">
+					<!-- Content -->
+					<div class="d-flex gap-4 mb-3">
+						<h6><span class="fw-light"><i class="bi bi-square-fill text-primary"></i> 체크인 : </span> ${checkDays[0].totalIn} </h6>
+						<h6><span class="fw-light"><i class="bi bi-square-fill text-info"></i> 체크아웃 : </span> ${checkDays[0].totalOut} </h6>
+					</div>
+					<!-- Apex chart -->
+					<div id="ChartCheck" class="mt-2"></div>
+				</div>
+			</div>
+			<!-- Chart END -->
+		</div>
+		<!-- Booking Chart END -->
+
+		<!-- Booking graph START -->
+		<div class="col-lg-6 col-xxl-4">
+			<div class="card shadow h-100">
+				<!-- Card header -->
+				<div class="card-header border-bottom">
+					<h5 class="card-header-title">객실 이용 가능 여부</h5>
+				</div>
+
+				<!-- Card body START -->
+				<div class="card-body p-3">
+					<!-- Chart -->
+					<div class="col-sm-6 mx-auto">
+						<div class="d-flex justify-content-center" id="ChartRooms"></div>
+					</div>
+
+					<!-- Content -->
+					<ul class="list-group list-group-borderless mb-0">
+						<li class="list-group-item d-flex justify-content-between">
+							<span class="h6 fw-light mb-0"><i class="text-success fas fa-circle me-2"></i>예약가능</span>
+							<span class="h6 fw-light mb-0">${countRooms.total-countRooms.reservedRooms} 객실</span>
+						</li>
+						<li class="list-group-item d-flex justify-content-between">
+							<span class="h6 fw-light mb-0"><i class="text-danger fas fa-circle me-2"></i>예약중</span>
+							<span class="h6 fw-light mb-0">${countRooms.reservedRooms} 객실</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!-- Booking graph END -->
+	</div>	
+	<!-- Widget END -->
+</div>
+<div class="page-content-wrapper p-xxl-4">
+	<!-- Hotel grid START -->
+	<div class="row g-4 mb-5">
+		<!-- Title -->
+		<div class="col-12">
+			<div class="d-flex justify-content-between">
+				<h4 class="mb-0">인기 렌터카 업체</h4>
+				<a href="/admin/busi/rnt" class="btn btn-primary-soft mb-0">전체 렌터카 업체</a>
+			</div>	
+		</div>
+
+		<!-- Hotel item -->
+		<c:forEach var="list" items="${popularRntList}" varStatus="stat">
+			<div class="col-lg-6">
+				<div class="card shadow p-3">
+					<div class="row g-4">
+						<!-- Card img -->
+						<div class="col-md-3">
+							<img src="/resources/booking/assets/images/category/hotel/4by3/10.jpg" class="rounded-2" alt="Card image">
+						</div>
+	
+						<!-- Card body -->
+						<div class="col-md-9">
+							<div class="card-body position-relative d-flex flex-column p-0 h-100">
+	
+								<!-- Title -->
+								<h5 class="card-title mb-0 me-5"><a href="/admin/busi/styDetail?busiId=${list.busiId}">${list.busiNm}</a></h5>
+								<small><i class="bi bi-geo-alt me-2"></i>${list.busiLoc}</small>
+	
+								<!-- Price and Button -->
+								<div class="d-sm-flex justify-content-sm-between align-items-center mt-3 mt-md-auto">
+									<!-- Price -->
+									<div class="d-flex align-items-center">
+										<h5 class="fw-bold mb-0 me-1">₩ <fmt:formatNumber value="${list.total}" pattern="#,###" /></h5>
+										<span class="mb-0 me-2">/지난 30일</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</c:forEach>
+	</div>
+	<!-- Hotel grid END -->
+	
+	<!-- Widget START -->
+	<div class="row g-4">
+		<!-- Booking Chart START -->
+		<div class="col-xxl-8">
+			<!-- Chart START -->
+			<div class="card shadow h-100">
+				<!-- Card header -->
+				<div class="card-header border-bottom">
+					<h5 class="card-header-title">렌트시작/렌트끝 통계</h5>
+				</div>
+
+				<!-- Card body -->
+				<div class="card-body">
+					<!-- Content -->
+					<div class="d-flex gap-4 mb-3">
+						<h6><span class="fw-light"><i class="bi bi-square-fill text-primary"></i> 렌트시작 : </span> ${rntDays[0].totalStart} </h6>
+						<h6><span class="fw-light"><i class="bi bi-square-fill text-info"></i> 렌트끝 : </span> ${rntDays[0].totalEnd} </h6>
+					</div>
+					<!-- Apex chart -->
+					<div id="ChartRnt" class="mt-2"></div>
+				</div>
+			</div>
+			<!-- Chart END -->
+		</div>
+		<!-- Booking Chart END -->
+
+		<!-- Booking graph START -->
+		<div class="col-lg-6 col-xxl-4">
+			<div class="card shadow h-100">
+				<!-- Card header -->
+				<div class="card-header border-bottom">
+					<h5 class="card-header-title">렌터카 이용 가능 여부</h5>
+				</div>
+
+				<!-- Card body START -->
+				<div class="card-body p-3">
+					<!-- Chart -->
+					<div class="col-sm-6 mx-auto">
+						<div class="d-flex justify-content-center" id="ChartCars"></div>
+					</div>
+
+					<!-- Content -->
+					<ul class="list-group list-group-borderless mb-0">
+						<li class="list-group-item d-flex justify-content-between">
+							<span class="h6 fw-light mb-0"><i class="text-success fas fa-circle me-2"></i>예약가능</span>
+							<span class="h6 fw-light mb-0">${countCars.total - countCars.reservedCars}차량</span>
+						</li>
+						<li class="list-group-item d-flex justify-content-between">
+							<span class="h6 fw-light mb-0"><i class="text-danger fas fa-circle me-2"></i>예약중</span>
+							<span class="h6 fw-light mb-0">${countCars.reservedCars} 차량</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!-- Booking graph END -->
+	</div>	
+	<!-- Widget END -->
+</div>

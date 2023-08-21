@@ -1,0 +1,36 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+
+@Data
+public class WishVO {
+	
+	private String memId;		//회원아이디
+	private String busiId;		//업체아이디
+	private Date wishDt;		//찜 누른 날
+	private String carNum;		//차량번호
+	
+	
+	//공통 
+	private String busiNm;		//업체명
+	private String busiLoc;		//업체위치
+	private int busiScr;		//별점
+	private String busiImg;		//업체이미지
+	private String busiCode;	//업체코드
+	private String chckIn;		//체크인
+	private String chckOut;		//체크아웃
+	
+	//숙박
+	
+	//차량
+	
+	private String carCode;		//차코드
+	private String carKnd;		//차종류
+	private String carFee;		//차요금
+	private String carImg;		//차 이미지
+	
+	
+
+}

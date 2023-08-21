@@ -1,0 +1,74 @@
+package kr.or.ddit.admin.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.admin.mapper.AdBrdMapper;
+import kr.or.ddit.admin.mapper.AdMemMapper;
+import kr.or.ddit.admin.service.AdBrdService;
+import kr.or.ddit.admin.service.AdMemService;
+import kr.or.ddit.vo.AttachDeVO;
+import kr.or.ddit.vo.AttachVO;
+import kr.or.ddit.vo.BrdVO;
+import kr.or.ddit.vo.MemVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class AdBrdServiceImpl implements AdBrdService{
+	@Autowired
+	AdBrdMapper brdMapper;
+	
+	//게시판 목록
+	@Override
+	public List<BrdVO> brdList(Map<String, String> map){
+		return this.brdMapper.brdList(map);
+	}
+	
+	//게시글 수
+	@Override
+	public int brdTotal(Map<String,String> map) {
+		return this.brdMapper.brdTotal(map);
+	};
+	
+	//공지사항 목록
+	@Override
+	public List<BrdVO> brdNotice(Map<String, String> map) {
+		return this.brdMapper.brdNotice(map);
+	};
+	
+	//공지글 수
+	@Override
+	public int noticeTotal(Map<String,String> map) {
+		return this.brdMapper.noticeTotal(map);
+	};
+	
+	//공지사항 작성
+	@Override
+	public int noticeRegistration(BrdVO brdVO) {
+		return this.brdMapper.noticeRegistration(brdVO);
+	};
+	
+	//공지사항 작성 - 첨부파일
+	@Override
+	public int attachInsert(AttachVO attachVO) {
+		return this.brdMapper.attachInsert(attachVO);
+	};
+	
+	//공지사항 작성 - 첨부파일_상세
+	@Override
+	public int attachDeInsert(List<AttachDeVO> attachDeVOlist) {
+		return this.brdMapper.attachDeInsert(attachDeVOlist);
+	};
+	
+	//공지사항 작성 - 첨부파일 아이디 update
+	@Override
+	public int attachIdUpdate(BrdVO brdVO) {
+		return this.brdMapper.attachIdUpdate(brdVO);
+	};
+}

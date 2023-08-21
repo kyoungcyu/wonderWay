@@ -1,0 +1,16 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+
+@Data
+public class RfdListVO {
+	private String payId;
+	private String memNm;
+	private int rfdPr;
+	private Date rfdReqDt;
+	private String busiNm;
+	private String rfdResn;
+	private String rfdCk;
+}

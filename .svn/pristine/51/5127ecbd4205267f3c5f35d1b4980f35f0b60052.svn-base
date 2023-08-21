@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mapper.MmMemMapper">
+	
+	<!-- 회원가입시 정보 입력 -->
+	<insert id="registerMem" parameterType="memVO">
+		INSERT INTO MEM(MEM_ID, MEM_PW, MEM_NM, MEM_ENM, MEM_FMNM, MEM_BIR, MEM_GEN, MEM_TEL, MEM_EMAIL, GRAD_ID)
+		VALUES(#{memId}, #{memPw}, #{memNm},#{memEnm},#{memFmnm},#{memBir},#{memGen},#{memTel},#{memEmail},'G01')
+	</insert>
+	
+	<!-- 아이디 중복 체크 -->
+	<select id="checkMemId" parameterType="memVO" resultType="int">
+		SELECT COUNT(*) FROM MEM WHERE MEM_ID = #{memId}
+	</select>
+	
+	<!-- 이메일 중복 체크 -->
+	<select id="checkMemEmail" parameterType="memVO" resultType="int">
+		SELECT COUNT(*) FROM MEM WHERE MEM_EMAIL = #{memEmail}
+	</select>
+	
+	<!-- 이메일로 아이디 찾기 -->
+	<select id="findIdByEmail" parameterType="memVO" resultType="String">
+		SELECT MEM_ID FROM MEM WHERE MEM_EMAIL = #{memEmail}
+	</select>
+	
+	<!-- 이메일로 비밀번호 재설정 -->
+	<update  id="resetPwByEmail" parameterType="memVO">
+		UPDATE MEM SET MEM_PW= #{memPw} WHERE MEM_EMAIL= #{memEmail}
+	</update>
+
+	<resultMap type="memVO" id="memMap">
+		<result property="memId" column="MEM_ID" />
+		<result property="memNm" column="MEM_NM" />
+		<result property="memEnm" column="MEM_ENM" />
+		<result property="memFmnm" column="MEM_FMNM" />
+		<result property="memPw" column="MEM_PW" />
+		<result property="memBir" column="MEM_BIR" />
+		<result property="memGen" column="MEM_GEN" />
+		<result property="memTel" column="MEM_TEL" />
+		<result property="memEmail" column="MEM_EMAIL" />
+		<result property="memAddr1" column="MEM_ADDR1" />
+		<result property="memAddr2" column="MEM_ADDR2" />
+		<result property="mailAgr" column="MAIL_AGR" />
+		<result property="memMlg" column="MEM_MLG" />
+		<result property="wrnCnt" column="WRN_CNT" />
+		<result property="wrnSt" column="WRN_ST" />
+		<result property="memMbti" column="MEM_MBTI" />
+		<result property="gradId" column="GRAD_ID" />
+		<result property="enabled" column="ENABLED" />
+		<result property="memImg" column="MEM_IMG" />
+		<collection property="authVOList" resultMap="authMap"></collection>
+	</resultMap>
+	
+	<resultMap type="authVO" id="authMap">
+		<result property="memId" column="MEM_ID" />
+		<result property="memAuth" column="MEM_AUTH" />
+	</resultMap>
+
+	<!-- 로그인 -->
+<!-- 	<select id="signIn" parameterType="memVO" resultMap="memMap"> -->
+<!-- 		SELECT A.MEM_ID, A.MEM_NM, A.MEM_ENM, A.MEM_FMNM, A.MEM_PW -->
+<!-- 		     , A.MEM_BIR, A.MEM_GEN, A.MEM_TEL, A.MEM_EMAIL, A.MEM_ADDR1 -->
+<!-- 		     , A.MEM_ADDR2, A.MAIL_AGR, A.MEM_MLG, A.WRN_CNT, A.WRN_ST -->
+<!-- 		     , A.MEM_MBTI, A.GRAD_ID, A.MEM_IMG, A.ENABLED -->
+<!-- 		     , B.MEM_AUTH -->
+<!-- 		FROM   (SELECT * FROM MEM WHERE MEM_ID = #{memId}) A, AUTH B -->
+<!-- 		WHERE  A.MEM_ID = B.MEM_ID(+) -->
+<!-- 	</select> -->
+	
+	<!-- 회원, 업체, 관리자 다 같이 쓰는 로그인 -->
+	<select id="detailMem" parameterType="memVO" resultMap="memMap">
+		SELECT MEM_ID, MEM_NM, MEM_PW, ENABLED, GUBUN, MEM_AUTH 
+		FROM   VW_LOGIN_ALL 
+		WHERE  MEM_ID = #{memId}
+	</select>
+	
+	<!-- 회원정보 가져오기 -->
+	<select id="userDetail" parameterType="String" resultType="memVO">
+		SELECT
+		    MEM_ID,
+		    MEM_NM,
+		    MEM_ENM,
+		    MEM_FMNM,
+		    MEM_PW,
+		    MEM_BIR,
+		    MEM_GEN,
+		    MEM_TEL,
+		    MEM_EMAIL,
+		    MEM_ADDR1,
+		    MEM_ADDR2,
+		    MAIL_AGR,
+		    MEM_MLG,
+		    WRN_CNT,
+		    WRN_ST,
+		    MEM_MBTI,
+		    GRAD_ID,
+		    MEM_IMG,
+		    ENABLED,
+		    JOIN_DT,
+		    WHDWL_DT
+		FROM
+		    MEM
+		WHERE
+		    MEM_ID = #{memId}
+	
+	</select>
+	
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,19 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+
+@Data
+public class InsuVO {
+	
+	private String prodId;
+	private String insuNm;
+	private String insuTrTy;
+	private String insuNat;
+	private int insuPeri;
+	private String insuDc;
+	private String insuLmt;
+	private int insuFee;
+	private String insuPrcs;
+	private int insuAge;
+
+}

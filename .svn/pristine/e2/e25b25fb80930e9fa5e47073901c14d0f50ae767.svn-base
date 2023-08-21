@@ -1,0 +1,32 @@
+package kr.or.ddit.util.websocket.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AlarmVO;
+import kr.or.ddit.vo.ChatRmVO;
+import kr.or.ddit.vo.ChatVO;
+
+public interface WsMapper {
+
+	public int insertChat(ChatVO chatVO);
+
+	public int insertAlarm(AlarmVO alarmVO);
+
+	public List<AlarmVO> selectAllAlarms(String receiver);
+
+	public int deleteAllAlarms(String receiver);
+	
+	//관리자가 들어가 있는 업체 채팅방ID
+	public List<Long> chatRmId(ChatRmVO chatRmVO);
+	
+	//관리자와 채팅 중인 업체멤버
+	public String chatList(Long chatRmId);
+	
+	//채팅방 중복 확인
+	public Long checkchatRm(ChatRmVO chatRmVO);
+	
+	//채팅방 만들기
+	public int createChRmId(ChatRmVO chatRmVO);
+	
+}

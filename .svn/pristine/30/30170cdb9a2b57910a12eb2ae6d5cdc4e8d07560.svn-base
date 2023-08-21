@@ -1,0 +1,95 @@
+package kr.or.ddit.member.controller;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.member.service.MmAcmService;
+import kr.or.ddit.member.service.MmMemService;
+import kr.or.ddit.vo.BusiVO;
+import kr.or.ddit.vo.MemVO;
+
+@RequestMapping("/member/acm")
+@Controller
+public class AcmController {
+	private static final Logger log = LoggerFactory.getLogger(AcmController.class);
+
+	@Autowired
+	MmAcmService mmAcmService;
+
+	// 숙소 검색 메인페이지로
+	@GetMapping("/main")
+	public String acmMain(Model model) {
+
+		return "member/acm/acmMain";
+	}
+	
+
+	//검색 결과 리스트 페이지로 
+	@GetMapping("/search")
+	public String searchAcm(Model model,
+			@RequestParam("busiLoc") String busiLoc,
+		    @RequestParam("guestRoomNum") String guestRoomNum,
+		    @RequestParam("checkInOut") String checkInOut){
+		
+		String rsvSt=checkInOut.split("to")[0].trim();
+		String rsvEd=checkInOut.split("to")[1].trim();
+		String guestNum=guestRoomNum.split(" ")[0];
+		String rmNum=guestRoomNum.split(" ")[2];
+		
+		//숙소 검색 위해 쿼리로 들어갈 검색 조건 저장 map
+		Map<String,String> map = new HashMap<String, String>();
+		
+		map.put("busiLoc",busiLoc);
+		map.put("guestNum",guestNum);
+		map.put("rmNum",rmNum);
+		map.put("rsvSt",rsvSt);
+		map.put("rsvEd",rsvEd);
+		
+		log.info("map:"+map);
+		
+		List<BusiVO> busiVOList = this.mmAcmService.searchAcm(map);
+		model.addAttribute("data", busiVOList);
+		
+		//검색창에 검색조건 유지하기 위한 코드
+		model.addAttribute("busiLoc",busiLoc);
+		model.addAttribute("guestRoomNum",guestRoomNum);
+		model.addAttribute("checkInOut",checkInOut);
+		
+		
+		return "member/acm/acmList";
+		
+	}
+	
+	
+	// 숙소 클릭시 숙소 디테일 정보 페이지로 
+	@GetMapping("/detail/{busiId}")
+	public String acmDetail(@PathVariable(value="busiId",required=true) String busiId,
+			@ModelAttribute BusiVO busiVO,
+			Model model) {
+		
+		
+		return "member/acm/acmDetail";
+	}
+
+
+}
